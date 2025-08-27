@@ -1,697 +1,490 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>HORUS STATION - DASHBOARD COMPLETO</title>
-  
-  <!-- Cargar A-Frame 1.4.2 desde carpeta local -->
-  <script src="js/aframe.js"></script>
-  
-  <!-- Cargar paho.js desde carpeta local -->
-  <script src="js/paho.js"></script>
-  
-  <!-- Biblioteca para el joystick desde carpeta local -->
-  <script src="js/nipple.js"></script>
-  
-  <style>
-    :root {
-      --primary: #00eaff;
-      --dark-bg: #000a1a;
-      --card-bg: #152540;
-      --text: #e0e0e0;
-      --text-secondary: #a0a0a0;
-      --border-radius: 12px;
-      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      --shadow: 0 10px 30px rgba(0, 20, 50, 0.3);
-      --glow: 0 0 15px rgba(0, 234, 255, 0.5);
-    }
-    
-    * {
-      box-sizing: border-box;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, var(--dark-bg), #000510);
-      color: var(--text);
-      height: 100vh;
-      position: relative;
-    }
-    
-    /* Indicador de conexión */
-    #connection-status {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      z-index: 1000;
-      padding: 8px 12px;
-      background: rgba(0, 10, 30, 0.7);
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid rgba(0, 234, 255, 0.2);
-      backdrop-filter: blur(5px);
-    }
-    
-    .led {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #f00;
-      box-shadow: 0 0 6px rgba(255, 0, 0, 0.7);
-    }
-    
-    .led.connected {
-      background: #0f0;
-      box-shadow: 0 0 6px rgba(0, 255, 0, 0.7);
-      animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.4); }
-      70% { box-shadow: 0 0 0 8px rgba(0, 255, 0, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
-    }
-    
-    #connection-text {
-      color: white;
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.3px;
-    }
-    
-    /* Botón VR - SOLO PARA MÓVILES */
-    #vr-button {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      background: rgba(0, 234, 255, 0.2);
-      color: var(--primary);
-      border: none;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      z-index: 1000;
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(0, 234, 255, 0.3);
-      display: none; /* Por defecto oculto */
-    }
-    
-    #vr-button:hover {
-      transform: scale(1.1);
-      background: rgba(0, 234, 255, 0.3);
-      box-shadow: 0 0 15px rgba(0, 234, 255, 0.5);
-    }
-    
-    /* Joystick - SOLO PARA MÓVILES */
-    #joystick-container {
-      position: fixed;
-      left: 20px;
-      bottom: 20px;
-      width: 80px;
-      height: 80px;
-      z-index: 1000;
-      display: none; /* Por defecto oculto */
-    }
-    
-    /* Panel de datos 3D */
-    .sensor-card {
-      position: relative;
-      overflow: hidden;
-      border-radius: 10px;
-      background: var(--card-bg);
-      padding: 15px 15px;
-      text-align: center;
-      transition: transform 0.2s ease;
-    }
-    
-    .sensor-icon {
-      font-size: 24px;
-      width: 35px;
-      height: 35px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0, 234, 255, 0.1);
-      border-radius: 8px;
-      margin: 0 auto 8px;
-    }
-    
-    .sensor-name {
-      color: var(--text-secondary);
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.3px;
-      margin-bottom: 5px;
-    }
-    
-    .sensor-value {
-      font-size: 20px;
-      font-weight: bold;
-      color: var(--primary);
-      line-height: 1.2;
-    }
-    
-    .unit {
-      font-size: 13px;
-      color: var(--text-secondary);
-      font-weight: normal;
-    }
-    
-    /* Estilo para el loader */
-    .loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--dark-bg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-    }
-    
-    .loader-text {
-      color: var(--primary);
-      font-size: 16px;
-      font-weight: 600;
-      margin-top: 15px;
-    }
-    
-    /* Overlay para solicitar permisos de orientación */
-    .orientation-permission {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 10, 30, 0.95);
-      z-index: 3000;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      text-align: center;
-    }
-    
-    .orientation-permission h3 {
-      color: var(--primary);
-      margin-bottom: 12px;
-      font-size: 18px;
-    }
-    
-    .orientation-permission p {
-      margin-bottom: 15px;
-      font-size: 14px;
-      color: #a0a0a0;
-      max-width: 280px;
-      line-height: 1.4;
-    }
-    
-    .orientation-btn {
-      background: var(--primary);
-      color: #000;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .orientation-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 10px rgba(0, 234, 255, 0.5);
-    }
-    
-    /* Estilos específicos para escritorio */
-    @media (min-width: 769px) {
-      .sensor-card {
-        padding: 20px 25px;
-      }
-      
-      .sensor-icon {
-        font-size: 30px;
-        width: 45px;
-        height: 45px;
-      }
-      
-      .sensor-name {
-        font-size: 16px;
-      }
-      
-      .sensor-value {
-        font-size: 26px;
-      }
-      
-      .unit {
-        font-size: 16px;
-      }
-      
-      /* Dashboard más grande y más cerca para escritorio */
-      #dashboard {
-        transform: scale(1.2);
-      }
-    }
-  </style>
-</head>
-<body>
-  <!-- Indicador de conexión -->
-  <div id="connection-status">
-    <span class="led" id="connection-led"></span>
-    <span id="connection-text">Conectando...</span>
-  </div>
-  
-  <!-- Botón VR - SOLO PARA MÓVILES -->
-  <button id="vr-button" title="Modo VR">🕶️</button>
-  
-  <!-- Joystick - SOLO PARA MÓVILES -->
-  <div id="joystick-container" class="mobile-only"></div>
-  
-  <!-- Overlay para solicitar permisos de orientación -->
-  <div class="orientation-permission" id="orientation-permission">
-    <h3>📱 Permiso Necesario</h3>
-    <p>Para usar el modo VR, necesitamos acceso a la orientación de tu dispositivo.</p>
-    <button class="orientation-btn" id="orientation-btn">Permitir</button>
-  </div>
+/* Estilos para el chatbot */
+.chat-main-container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 200px);
+}
 
-  <!-- Escena 3D - CONFIGURACIÓN CORREGIDA PARA A-FRAME 1.4.2 -->
-  <a-scene embedded style="width: 100%; height: 100vh;" 
-           vr-mode-ui="enabled: false"
-           loading-screen="enabled: false">
-    
-    <!-- Configuración CORRECTA para A-Frame 1.4.2 -->
-    <a-entity id="camera-rig" position="0 1.6 0">
-      <a-entity id="camera" camera="fov: 80" look-controls wasd-controls="acceleration: 20; fly: true">
-        <a-cursor 
-          raycaster="objects: .sensor-card" 
-          color="#00eaff" 
-          opacity="0.5"
-          radiusInner="0.01"
-          radiusOuter="0.02">
-        </a-cursor>
-      </a-entity>
-    </a-entity>
-    
-    <!-- Suelo -->
-    <a-plane rotation="-90 0 0" width="50" height="50" color="#002244" opacity="0.1" transparent="true"></a-plane>
-    
-    <!-- Panel de datos - POSICIÓN OPTIMIZADA PARA ESCRITORIO Y MÓVIL -->
-    <a-entity id="dashboard" position="0 1.3 -2.2">
-      <!-- Temperatura -->
-      <a-entity position="-2 0.7 0.1" class="sensor-card">
-        <a-entity class="sensor-header">
-          <a-text value="🌡️" position="-0.6 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-          <a-text value="TEMP" color="#FF5722" position="0 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-        </a-entity>
-        <a-text id="temp-value" value="--" color="#FF5722" position="0 -0.05 0.1" align="center" width="1.5" font="exo2bold"></a-text>
-        <a-text value="°C" color="#a0a0a0" position="0.4 -0.05 0.1" align="center" width="1.5" font="roboto" class="unit"></a-text>
-      </a-entity>
-      
-      <!-- Humedad -->
-      <a-entity position="-0.5 0.7 0.1" class="sensor-card">
-        <a-entity class="sensor-header">
-          <a-text value="💧" position="-0.6 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-          <a-text value="HUM" color="#2196F3" position="0 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-        </a-entity>
-        <a-text id="hum-value" value="--" color="#2196F3" position="0 -0.05 0.1" align="center" width="1.5" font="exo2bold"></a-text>
-        <a-text value="%" color="#a0a0a0" position="0.4 -0.05 0.1" align="center" width="1.5" font="roboto" class="unit"></a-text>
-      </a-entity>
-      
-      <!-- Presión -->
-      <a-entity position="1 0.7 0.1" class="sensor-card">
-        <a-entity class="sensor-header">
-          <a-text value="🔽" position="-0.6 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-          <a-text value="PRES" color="#9E9E9E" position="0 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-        </a-entity>
-        <a-text id="press-value" value="--" color="#9E9E9E" position="0 -0.05 0.1" align="center" width="1.5" font="exo2bold"></a-text>
-        <a-text value="hPa" color="#a0a0a0" position="0.5 -0.05 0.1" align="center" width="1.5" font="roboto" class="unit"></a-text>
-      </a-entity>
-      
-      <!-- Altitud -->
-      <a-entity position="-2 -0.3 0.1" class="sensor-card">
-        <a-entity class="sensor-header">
-          <a-text value="⛰️" position="-0.6 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-          <a-text value="ALT" color="#673AB7" position="0 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-        </a-entity>
-        <a-text id="alt-value" value="--" color="#673AB7" position="0 -0.05 0.1" align="center" width="1.5" font="exo2bold"></a-text>
-        <a-text value="m" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.5" font="roboto" class="unit"></a-text>
-      </a-entity>
-      
-      <!-- Gas -->
-      <a-entity position="-0.5 -0.3 0.1" class="sensor-card">
-        <a-entity class="sensor-header">
-          <a-text value="⛽" position="-0.6 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-          <a-text value="GAS" color="#FFEB3B" position="0 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-        </a-entity>
-        <a-text id="gas-value" value="--" color="#FFEB3B" position="0 -0.05 0.1" align="center" width="1.5" font="exo2bold"></a-text>
-        <a-text value="%" color="#a0a0a0" position="0.4 -0.05 0.1" align="center" width="1.5" font="roboto" class="unit"></a-text>
-      </a-entity>
-      
-      <!-- Lluvia -->
-      <a-entity position="1 -0.3 0.1" class="sensor-card">
-        <a-entity class="sensor-header">
-          <a-text value="🌧️" position="-0.6 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-          <a-text value="LLUVIA" color="#2196F3" position="0 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-        </a-entity>
-        <a-text id="rain-value" value="no" color="#2196F3" position="0 -0.05 0.1" align="center" width="1.5" font="exo2bold"></a-text>
-      </a-entity>
-      
-      <!-- PM2.5 -->
-      <a-entity position="-2 -1.3 0.1" class="sensor-card">
-        <a-entity class="sensor-header">
-          <a-text value="🌫️" position="-0.6 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-          <a-text value="PM2.5" color="#9C27B0" position="0 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-        </a-entity>
-        <a-text id="pm25-value" value="--" color="#9C27B0" position="0 -0.05 0.1" align="center" width="1.5" font="exo2bold"></a-text>
-        <a-text value="μg/m³" color="#a0a0a0" position="0.6 -0.05 0.1" align="center" width="1.5" font="roboto" class="unit"></a-text>
-      </a-entity>
-      
-      <!-- PM10 -->
-      <a-entity position="-0.5 -1.3 0.1" class="sensor-card">
-        <a-entity class="sensor-header">
-          <a-text value="🌫️" position="-0.6 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-          <a-text value="PM10" color="#673AB7" position="0 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-        </a-entity>
-        <a-text id="pm10-value" value="--" color="#673AB7" position="0 -0.05 0.1" align="center" width="1.5" font="exo2bold"></a-text>
-        <a-text value="μg/m³" color="#a0a0a0" position="0.6 -0.05 0.1" align="center" width="1.5" font="roboto" class="unit"></a-text>
-      </a-entity>
-      
-      <!-- Dirección del Viento -->
-      <a-entity position="1 -1.3 0.1" class="sensor-card">
-        <a-entity class="sensor-header">
-          <a-text value="🌀" position="-0.6 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-          <a-text value="VIENTO" color="#03A9F4" position="0 0.25 0.1" align="center" width="1.5" font="roboto"></a-text>
-        </a-entity>
-        <a-text id="wind-value" value="--" color="#03A9F4" position="0 -0.05 0.1" align="center" width="1.5" font="exo2bold"></a-text>
-        <a-text value="°" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.5" font="roboto" class="unit"></a-text>
-      </a-entity>
-    </a-entity>
-  </a-scene>
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
 
-  <!-- Loader de conexión minimalista -->
-  <div class="loader" id="loader">
-    <div class="loader-text">Conectando a HiveMQ...</div>
-  </div>
+.message {
+  display: flex;
+  align-items: start;
+  max-width: 85%;
+  position: relative;
+  animation: fadeIn 0.3s ease;
+  font-size: 15px;
+}
 
-  <script>
-    // Variables globales
-    let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    let isDesktop = !isMobile;
-    let mqttClient;
-    let mqttConnected = false;
-    let cameraRig, camera;
-    let isVRMode = false;
-    let joystick;
-    let movementSpeed = 0.06;
-    let vrPermissionRequested = false;
-    
-    // Elementos UI
-    const connectionLed = document.getElementById('connection-led');
-    const connectionText = document.getElementById('connection-text');
-    const loader = document.getElementById('loader');
-    const vrButton = document.getElementById('vr-button');
-    const joystickContainer = document.getElementById('joystick-container');
-    const orientationPermission = document.getElementById('orientation-permission');
-    const orientationBtn = document.getElementById('orientation-btn');
-    
-    // Actualizar estado de conexión
-    function updateConnectionStatus(connected, message = "") {
-      mqttConnected = connected;
-      connectionLed.className = connected ? "led connected" : "led";
-      connectionText.textContent = connected ? "Conectado" : (message || "Desconectado");
-      
-      if (connected) {
-        // Ocultar loader después de conexión
-        setTimeout(() => {
-          loader.style.opacity = '0';
-          setTimeout(() => {
-            loader.style.display = 'none';
-          }, 300);
-        }, 500);
-      } else {
-        loader.style.display = 'flex';
-        loader.style.opacity = '1';
-      }
-    }
-    
-    // Solicitar permiso de orientación para VR en móviles
-    function requestOrientationPermission() {
-      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        orientationPermission.style.display = 'flex';
-      } else {
-        initVR();
-      }
-    }
-    
-    // Inicializar VR después de obtener permisos
-    function initVR() {
-      orientationPermission.style.display = 'none';
-      vrPermissionRequested = true;
-      
-      const scene = document.querySelector('a-scene');
-      if (scene && scene.enterVR) {
-        scene.enterVR();
-      }
-    }
-    
-    // Inicializar el joystick para móviles
-    function initJoystick() {
-      if (!isMobile) return;
-      
-      // Mostrar joystick solo en móviles
-      joystickContainer.style.display = 'block';
-      
-      // Obtener referencias a la cámara
-      cameraRig = document.getElementById('camera-rig');
-      camera = document.getElementById('camera');
-      
-      if (!cameraRig || !camera) {
-        console.error("No se encontraron elementos de cámara");
-        return;
-      }
-      
-      // Configurar el joystick
-      joystick = nipplejs.create({
-        zone: joystickContainer,
-        size: 70,
-        threshold: 0.25,
-        color: 'rgba(0, 234, 255, 0.5)',
-        fadeTime: 250,
-        position: {left: '50%', top: '50%'}
-      });
-      
-      // Manejar el movimiento del joystick
-      joystick.on('move', (evt, data) => {
-        if (!cameraRig || !camera) return;
-        
-        const angle = data.angle.radian;
-        const force = data.force;
-        
-        // Ajustar velocidad de movimiento
-        const moveSpeed = movementSpeed * force * 1.8;
-        const dx = Math.sin(angle) * moveSpeed;
-        const dz = Math.cos(angle) * moveSpeed;
-        
-        // Actualizar posición
-        const currentPos = cameraRig.getAttribute('position');
-        cameraRig.setAttribute('position', {
-          x: currentPos.x - dx,
-          y: currentPos.y,
-          z: currentPos.z - dz
-        });
-      });
-    }
-    
-    // Ajustar posición del dashboard para VR
-    function adjustDashboardForVR() {
-      const dashboard = document.getElementById('dashboard');
-      if (dashboard) {
-        dashboard.setAttribute('position', '0 1.5 -1.6');
-      }
-    }
-    
-    // Restaurar posición del dashboard
-    function restoreDashboardPosition() {
-      const dashboard = document.getElementById('dashboard');
-      if (dashboard) {
-        // Posición diferente para escritorio vs móvil
-        if (isDesktop) {
-          dashboard.setAttribute('position', '0 1.3 -2.2');
-        } else {
-          dashboard.setAttribute('position', '0 1.4 -2.8');
-        }
-      }
-    }
-    
-    // Configurar la interfaz según el dispositivo
-    function setupDeviceInterface() {
-      if (isMobile) {
-        // Mostrar botón VR solo en móviles
-        vrButton.style.display = 'flex';
-        
-        // Inicializar joystick para móviles
-        initJoystick();
-      } else {
-        // En escritorio, asegurar que el dashboard está bien posicionado
-        const dashboard = document.getElementById('dashboard');
-        if (dashboard) {
-          dashboard.setAttribute('position', '0 1.3 -2.2');
-        }
-      }
-    }
-    
-    // Conectar al broker HiveMQ usando PAHO.MQTT
-    function connectToHiveMQ() {
-      // URL del broker HiveMQ (Paho usa puerto 8000 para WebSocket)
-      const brokerUrl = "broker.hivemq.com";
-      const brokerPort = 8000; // WebSocket port
-      
-      // Generar un ID de cliente único
-      const clientId = "web-client-" + Math.random().toString(16).substr(2, 8);
-      
-      try {
-        // Crear cliente MQTT usando Paho
-        mqttClient = new Paho.MQTT.Client(brokerUrl, brokerPort, clientId);
-        
-        // Configurar callbacks
-        mqttClient.onConnectionLost = (responseObject) => {
-          console.log("Conexión perdida:", responseObject.errorMessage);
-          updateConnectionStatus(false, "Desconectado");
-          
-          // Intentar reconectar después de 5 segundos
-          setTimeout(connectToHiveMQ, 5000);
-        };
-        
-        mqttClient.onMessageArrived = (message) => {
-          const topic = message.destinationName;
-          const payload = message.payloadString;
-          
-          // Mapeo de topics a elementos - ¡AHORA INCLUYE TODOS LOS TOPICS!
-          const topicMap = {
-            "horus/vvb/temperatura": "temp-value",
-            "horus/vvb/humedad": "hum-value",
-            "horus/vvb/presion": "press-value",
-            "horus/vvb/altitud": "alt-value",
-            "horus/vvb/gas": "gas-value",
-            "horus/vvb/lluvia": "rain-value",
-            "horus/vvb/pm25": "pm25-value",
-            "horus/vvb/pm10": "pm10-value",
-            "horus/vvb/wind_direction": "wind-value",
-            "horus/vvb/wind_speed": "wind-speed-value"
-          };
-          
-          const elementId = topicMap[topic];
-          if (!elementId) {
-            console.log("Topic no manejado:", topic);
-            return;
-          }
-          
-          const element = document.getElementById(elementId);
-          if (!element) {
-            console.error("Elemento no encontrado para el topic:", topic);
-            return;
-          }
-          
-          // Actualizar el valor
-          if (topic === "horus/vvb/lluvia") {
-            const raining = ["1", "true", "si", "yes", "sí", "rain"].includes(payload.toLowerCase());
-            element.setAttribute('text', `value: ${raining ? 'sí' : 'no'}`);
-          } else {
-            element.setAttribute('text', `value: ${payload}`);
-          }
-        };
-        
-        // Manejar conexión exitosa
-        const connectOptions = {
-          onSuccess: () => {
-            updateConnectionStatus(true, "Conectado");
-            mqttClient.subscribe("horus/#", {qos: 0});
-            console.log("Suscrito a horus/#");
-          },
-          onFailure: (error) => {
-            console.error("Error al conectar:", error);
-            updateConnectionStatus(false, "Error de conexión");
-            setTimeout(connectToHiveMQ, 5000);
-          },
-          timeout: 3
-        };
-        
-        // Conectar
-        mqttClient.connect(connectOptions);
-        
-      } catch (error) {
-        console.error("Error al crear cliente MQTT:", error);
-        setTimeout(connectToHiveMQ, 5000);
-      }
-    }
-    
-    // Inicializar la aplicación
-    window.addEventListener('load', () => {
-      // Configurar interfaz según el dispositivo
-      setupDeviceInterface();
-      
-      // Configurar botón VR
-      vrButton.addEventListener('click', () => {
-        if (isMobile && !vrPermissionRequested) {
-          requestOrientationPermission();
-        } else {
-          const scene = document.querySelector('a-scene');
-          if (scene && scene.enterVR) {
-            scene.enterVR();
-          }
-        }
-      });
-      
-      // Configurar botón de permisos
-      orientationBtn.addEventListener('click', () => {
-        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-          DeviceOrientationEvent.requestPermission()
-            .then(permissionState => {
-              if (permissionState === 'granted') {
-                initVR();
-              }
-            })
-            .catch(console.error);
-        } else {
-          initVR();
-        }
-      });
-      
-      // Configurar eventos de VR
-      const scene = document.querySelector('a-scene');
-      if (scene) {
-        scene.addEventListener('enter-vr', () => {
-          isVRMode = true;
-          adjustDashboardForVR();
-        });
-        
-        scene.addEventListener('exit-vr', () => {
-          isVRMode = false;
-          restoreDashboardPosition();
-        });
-      }
-      
-      // Conectar al broker HiveMQ
-      connectToHiveMQ();
-    });
-  </script>
-</body>
-</html>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+  gap: 0.75rem;
+}
+
+.message.bot {
+  align-self: flex-start;
+  gap: 0.75rem;
+}
+
+.bot-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.message-content {
+  padding: 0.95rem 1.25rem;
+  border-radius: 18px;
+  line-height: 1.5;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.message.user .message-content {
+  background-color: #4a90e2;
+  color: white;
+  border-bottom-right-radius: 4px;
+  border-top-left-radius: 18px;
+}
+
+.message.bot .message-content {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border-bottom-left-radius: 4px;
+  border-top-right-radius: 18px;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+  text-align: right;
+  opacity: 0.7;
+}
+
+/* Estilos para el encabezado de predicción */
+.prediction-header {
+  margin-bottom: 1rem;
+}
+
+.prediction-header h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.prediction-header p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Estilos para la confiabilidad de predicciones */
+.prediction-reliability {
+  padding: 0.85rem;
+  border-radius: 10px;
+  margin: 1.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-left: 4px solid;
+}
+
+.prediction-reliability.alta {
+  background-color: rgba(76, 175, 80, 0.08);
+  border-color: #4CAF50;
+}
+
+.prediction-reliability.media {
+  background-color: rgba(255, 193, 7, 0.08);
+  border-color: #FFC107;
+}
+
+.prediction-reliability.baja {
+  background-color: rgba(244, 67, 54, 0.08);
+  border-color: #F44336;
+}
+
+.reliability-badge {
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.reliability-badge.alta {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.reliability-badge.media {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #FFC107;
+}
+
+.reliability-badge.baja {
+  background-color: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+}
+
+/* Estilos para el resumen de predicción */
+.prediction-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.summary-item {
+  padding: 0.75rem;
+  border-radius: 8px;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+}
+
+.summary-item strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--text-color);
+  font-size: 0.95rem;
+}
+
+/* Estilos para la interpretación de predicción */
+.prediction-interpretation {
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 1.25rem 0;
+  border-left: 3px solid #4a90e2;
+}
+
+/* Estilos para el análisis de datos */
+.analysis-header {
+  margin-bottom: 1rem;
+}
+
+.analysis-header h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.analysis-header p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Estilos para las estadísticas */
+.statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.stat-item {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  padding: 0.85rem;
+  text-align: center;
+  border: 1px solid var(--border-color);
+}
+
+.stat-item strong {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.stat-value {
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--text-color);
+}
+
+/* Estilos para la interpretación del análisis */
+.analysis-interpretation {
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 1.25rem 0;
+  border-left: 3px solid #4a90e2;
+}
+
+/* Tipografía */
+.message.bot strong {
+  color: #4a90e2;
+  font-weight: 600;
+}
+
+.message.bot ul, 
+.message.bot ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.message.bot li {
+  margin-bottom: 0.25rem;
+}
+
+.message.bot p {
+  margin: 0.5rem 0;
+}
+
+/* Indicador de escritura */
+.typing-indicator {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 5px;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background-color: var(--text-muted);
+  border-radius: 50%;
+  display: inline-block;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-5px);
+  }
+}
+
+.loading-text {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* Barra de entrada */
+.chat-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0 1.25rem 1.25rem;
+}
+
+.input-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-container input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 25px;
+  border: 1px solid var(--border-color);
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.input-container input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.input-container button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.input-container button:hover {
+  background-color: #3a7bcd;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.input-container button:active {
+  transform: translateY(0);
+}
+
+/* Sugerencias */
+.suggestion-bubbles {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: thin;
+}
+
+.suggestion-bubbles::-webkit-scrollbar {
+  height: 6px;
+}
+
+.suggestion-bubbles::-webkit-scrollbar-track {
+  background: var(--card-bg);
+  border-radius: 3px;
+}
+
+.suggestion-bubbles::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.suggestion {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.suggestion:hover {
+  background-color: var(--background-color);
+  border-color: var(--primary-color);
+  color: var(--text-color);
+}
+
+/* Status indicator */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.status-indicator.error {
+  background-color: #ffebee;
+  color: #b71c1c;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+  animation: pulse 2s infinite;
+}
+
+.status-indicator.error .status-dot {
+  background-color: #b71c1c;
+  animation: none;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+/* Gráfico */
+.prediction-chart-container {
+  height: 280px;
+  margin: 1.25rem 0;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+}
+
+/* Transiciones fluidas para modo oscuro */
+.chatbot-page, .chatbot-page * {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease !important;
+}
+
+/* Mensaje de bienvenida */
+.welcome-message {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Efectos para mensajes */
+.message {
+  transition: all 0.2s ease;
+}
+
+.message:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Ajustes para modo oscuro */
+@media (prefers-color-scheme: dark) {
+  .message.user .message-content {
+    background-color: #5a9ee2;
+  }
+  
+  .suggestion {
+    background-color: #2a2a2a;
+    border-color: #444;
+  }
+  
+  .suggestion:hover {
+    background-color: #333;
+    border-color: #6aace6;
+  }
+}
