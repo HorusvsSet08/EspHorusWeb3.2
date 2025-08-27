@@ -57,12 +57,12 @@
   <div class="container">
     <header>
       <h1>🤖 Chatbot Meteorológico Horus</h1>
-      <p>Pregunta sobre el clima, haz consultas históricas o solicita predicciones para la próxima semana</p>
+      <p>Pregunta sobre el clima, haz consultas históricas o solicita predicciones basadas en el análisis de datos reales</p>
     </header>
 
     <main id="chat-container" class="chat-main-container">
       <div id="chat-messages" class="chat-messages">
-        <div class="message bot">¡Hola! Soy Horus, tu asistente meteorológico. Tengo acceso a los datos históricos de la estación y puedo ayudarte a entender las tendencias climáticas. ¿En qué puedo ayudarte hoy?</div>
+        <div class="message bot">¡Hola! Soy Horus, tu asistente meteorológico. Tengo acceso a los datos históricos de la estación y puedo analizarlos para proporcionarte información precisa sobre tendencias climáticas. ¿En qué puedo ayudarte?</div>
       </div>
       <div class="chat-input">
         <input type="text" id="user-input" placeholder="Escribe tu pregunta sobre el clima...">
@@ -76,7 +76,7 @@
     </div>
 
     <footer>
-      <p>El chatbot utiliza datos de <a href="https://docs.google.com/spreadsheets/d/1k1EBYptoYHVg982yqQdPF9Glt0PJAUZWMW0J-z4ps-4/edit" target="_blank">Google Sheets</a> para generar análisis</p>
+      <p>El chatbot analiza datos de <a href="https://docs.google.com/spreadsheets/d/1k1EBYptoYHVg982yqQdPF9Glt0PJAUZWMW0J-z4ps-4/edit" target="_blank">Google Sheets</a> para generar análisis personalizados</p>
     </footer>
   </div>
 
@@ -314,38 +314,181 @@
       
       // Generar respuesta de saludo
       const handleGreeting = () => {
-        const responses = [
-          "¡Hola! Soy Horus, tu asistente meteorológico especializado. Tengo acceso a los datos históricos de la estación y puedo ayudarte a entender las tendencias climáticas. ¿En qué puedo ayudarte hoy?",
-          "¡Buen día! Soy Horus, tu asistente para análisis meteorológico. Tanto si necesitas información sobre el clima reciente como si quieres hacer una predicción, estaré encantado de ayudarte. ¿Qué te gustaría saber?",
-          "¡Saludos! Soy Horus, tu asistente especializado en pronósticos y análisis climáticos. ¿Te gustaría una predicción para los próximos días o prefieres analizar los datos históricos para identificar tendencias?"
-        ];
+        const now = new Date();
+        const hour = now.getHours();
+        let greeting = "¡Hola!";
         
-        return responses[Math.floor(Math.random() * responses.length)];
+        if (hour < 12) {
+          greeting = "¡Buenos días!";
+        } else if (hour < 18) {
+          greeting = "¡Buenas tardes!";
+        } else {
+          greeting = "¡Buenas noches!";
+        }
+        
+        return `${greeting} Soy Horus, tu asistente meteorológico. Tengo acceso a los datos históricos de la estación y puedo analizarlos para proporcionarte información precisa sobre tendencias climáticas. ¿En qué puedo ayudarte?`;
       };
       
       // Generar respuesta de despedida
       const handleGoodbye = () => {
-        const responses = [
-          "¡Hasta luego! Si en algún momento necesitas información meteorológica o quieres analizar los datos climáticos, no dudes en regresar. ¡Que tengas un buen día!",
-          "¡Fue un placer ayudarte! Recuerda que estoy disponible cuando necesites análisis o predicciones climáticas. ¡Que tengas un excelente día!",
-          "¡Adiós! Si tienes más preguntas sobre el clima o deseas profundizar en el análisis de datos meteorológicos, estaré aquí para ayudarte. ¡Cuídate!"
-        ];
+        const now = new Date();
+        const hour = now.getHours();
+        let farewell = "¡Hasta luego!";
         
-        return responses[Math.floor(Math.random() * responses.length)];
+        if (hour < 12) {
+          farewell = "¡Que tengas un buen día!";
+        } else if (hour < 18) {
+          farewell = "¡Que tengas una buena tarde!";
+        } else {
+          farewell = "¡Que tengas una buena noche!";
+        }
+        
+        return `${farewell} Si necesitas más información meteorológica en el futuro, no dudes en regresar. ¡Cuídate!`;
       };
       
       // Generar respuesta de ayuda
       const handleHelp = () => {
-        return "Puedes preguntarme de forma natural sobre el clima, por ejemplo:<br><br>" +
-               "- \"¿Qué temperatura hará mañana?\"<br>" +
-               "- \"¿Habrá lluvia en los próximos 3 días?\"<br>" +
-               "- \"Analiza la tendencia de humedad de la última semana\"<br>" +
-               "- \"¿Cómo ha estado el viento en los últimos días?\"<br>" +
-               "- \"¿Cuál es la presión atmosférica promedio en el mes?\"<br><br>" +
-               "También puedes hacer preguntas más específicas como:<br>" +
-               "- \"¿Cómo ha evolucionado la temperatura en las últimas 2 semanas?\"<br>" +
-               "- \"¿Hay alguna tendencia clara en la humedad reciente?\"<br>" +
-               "- \"¿Qué podemos esperar para el fin de semana?\"";
+        return "Puedes hacer preguntas específicas sobre el clima como:<br><br>" +
+               "- \"¿Cómo ha sido la evolución de la temperatura en los últimos 7 días?\"<br>" +
+               "- \"¿Qué tendencia se observa en la humedad recientemente?\"<br>" +
+               "- \"Analiza los niveles de lluvia de la última semana\"<br>" +
+               "- \"¿Cómo se compara la presión atmosférica de esta semana con la anterior?\"<br>" +
+               "- \"¿Qué podemos esperar para el clima en los próximos días?\"<br><br>" +
+               "El chatbot procesará los datos históricos y generará un análisis personalizado basado en tus preguntas específicas.";
+      };
+      
+      // Analiza los datos y genera una respuesta basada en el análisis
+      const analyzeData = (parameter, chartData, periodInfo) => {
+        if (chartData.length === 0) {
+          return "No se encontraron datos suficientes para el análisis solicitado.";
+        }
+        
+        // Determina el nombre del parámetro
+        let paramName = '';
+        let unit = '';
+        let description = '';
+        switch (parameter) {
+          case 'temp':
+            paramName = 'temperatura';
+            unit = '°C';
+            description = 'La temperatura es un indicador clave del clima y afecta directamente nuestra comodidad y actividades diarias.';
+            break;
+          case 'hum':
+            paramName = 'humedad';
+            unit = '%';
+            description = 'La humedad relativa indica la cantidad de vapor de agua presente en el aire y es crucial para entender la sensación térmica.';
+            break;
+          case 'pres':
+            paramName = 'presión atmosférica';
+            unit = 'hPa';
+            description = 'La presión atmosférica es fundamental para predecir cambios en el clima y la probabilidad de precipitaciones.';
+            break;
+          case 'lluvia':
+            paramName = 'precipitación';
+            unit = 'mm';
+            description = 'La precipitación es un factor importante para actividades al aire libre, agricultura y planificación de eventos.';
+            break;
+          case 'wind':
+            paramName = 'velocidad del viento';
+            unit = 'km/h';
+            description = 'El viento afecta la sensación térmica, la dispersión de contaminantes y las condiciones para actividades al aire libre.';
+            break;
+          case 'gas':
+            paramName = 'nivel de gas';
+            unit = 'kΩ';
+            description = 'El nivel de gas puede indicar la calidad del aire y está relacionado con la presencia de contaminantes atmosféricos.';
+            break;
+          default:
+            paramName = 'medición';
+            unit = '';
+        }
+        
+        // Calcula estadísticas
+        const values = chartData.map(item => item.y);
+        const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        
+        // Determina la tendencia
+        const startValue = values[0];
+        const endValue = values[values.length - 1];
+        const trend = endValue > startValue ? 'aumentando' : (endValue < startValue ? 'disminuyendo' : 'estable');
+        const changePercent = startValue !== 0 ? Math.abs(((endValue - startValue) / startValue) * 100) : 0;
+        
+        // Genera una descripción de la tendencia
+        let trendDescription = '';
+        if (changePercent > 15) {
+          trendDescription = `muestra una tendencia clara de ${trend} con un cambio significativo del ${changePercent.toFixed(1)}%`;
+        } else if (changePercent > 5) {
+          trendDescription = `muestra una tendencia ${trend} moderada con un cambio del ${changePercent.toFixed(1)}%`;
+        } else {
+          trendDescription = `se mantiene bastante estable sin cambios significativos`;
+        }
+        
+        // Genera una interpretación contextual
+        let contextInterpretation = '';
+        if (parameter === 'temp') {
+          if (avg > 30) {
+            contextInterpretation = `Con una temperatura promedio de ${avg.toFixed(1)}°C, actualmente estamos en condiciones cálidas.`;
+            if (trend === 'aumentando') {
+              contextInterpretation += ` La tendencia ascendente sugiere que podríamos estar entrando en una ola de calor.`;
+            } else if (trend === 'disminuyendo') {
+              contextInterpretation += ` Aunque las temperaturas están comenzando a descender, aún se mantienen en rangos elevados.`;
+            }
+          } else if (avg < 20) {
+            contextInterpretation = `Con una temperatura promedio de ${avg.toFixed(1)}°C, actualmente estamos en condiciones frescas o frías.`;
+            if (trend === 'aumentando') {
+              contextInterpretation += ` Es positivo ver que las temperaturas están comenzando a subir.`;
+            } else if (trend === 'disminuyendo') {
+              contextInterpretation += ` La tendencia a la baja sugiere que podríamos estar entrando en un período más frío.`;
+            }
+          } else {
+            contextInterpretation = `Con una temperatura promedio de ${avg.toFixed(1)}°C, actualmente estamos en condiciones moderadas y agradables.`;
+            if (trend === 'aumentando') {
+              contextInterpretation += ` Podemos observar que las temperaturas están comenzando a subir, lo que podría indicar el inicio de un período más cálido.`;
+            } else if (trend === 'disminuyendo') {
+              contextInterpretation += ` Podemos observar que las temperaturas están comenzando a descender, lo que podría indicar el inicio de un período más fresco.`;
+            }
+          }
+        } else if (parameter === 'hum') {
+          if (avg > 70) {
+            contextInterpretation = `Con una humedad promedio del ${avg.toFixed(1)}%, actualmente estamos en un ambiente bastante húmedo.`;
+            if (trend === 'aumentando') {
+              contextInterpretation += ` La tendencia ascendente podría indicar mayor sensación de bochorno.`;
+            }
+          } else if (avg < 40) {
+            contextInterpretation = `Con una humedad promedio del ${avg.toFixed(1)}%, actualmente estamos en un ambiente bastante seco.`;
+            if (trend === 'disminuyendo') {
+              contextInterpretation += ` La tendencia a la baja podría indicar mayor sequedad en la piel y las mucosas.`;
+            }
+          } else {
+            contextInterpretation = `Con una humedad promedio del ${avg.toFixed(1)}%, actualmente estamos en un ambiente con niveles de humedad moderados y cómodos.`;
+          }
+        } else if (parameter === 'pres') {
+          if (avg > 1013) {
+            contextInterpretation = `Con una presión atmosférica promedio de ${avg.toFixed(1)} hPa, actualmente estamos en un sistema de alta presión.`;
+            contextInterpretation += ` Esto generalmente indica condiciones climáticas estables, con cielos despejados y poca probabilidad de precipitaciones.`;
+          } else if (avg < 1013) {
+            contextInterpretation = `Con una presión atmosférica promedio de ${avg.toFixed(1)} hPa, actualmente estamos en un sistema de baja presión.`;
+            contextInterpretation += ` Esto suele indicar condiciones climáticas inestables, con mayor probabilidad de nubosidad y precipitaciones.`;
+          } else {
+            contextInterpretation = `Con una presión atmosférica promedio de ${avg.toFixed(1)} hPa, actualmente estamos en condiciones atmosféricas normales.`;
+            contextInterpretation += ` La presión se mantiene dentro del rango estándar, lo que sugiere condiciones climáticas estables.`;
+          }
+        }
+        
+        // Genera la respuesta completa
+        let response = `<strong>Análisis de ${paramName} para ${periodInfo}:</strong><br><br>`;
+        response += description + '<br><br>';
+        
+        response += `• El valor promedio es de <strong>${avg.toFixed(1)}${unit}</strong><br>`;
+        response += `• El valor mínimo registrado fue de <strong>${min.toFixed(1)}${unit}</strong><br>`;
+        response += `• El valor máximo alcanzado fue de <strong>${max.toFixed(1)}${unit}</strong><br>`;
+        response += `• La tendencia general es que la ${paramName} ${trendDescription}<br><br>`;
+        
+        response += contextInterpretation;
+        
+        return response;
       };
       
       // Generar predicciones meteorológicas
@@ -369,26 +512,323 @@
             throw new Error("No hay suficientes datos válidos para el análisis");
           }
           
-          // Genera la respuesta
-          return generatePredictionResponse(parameter, chartData, days);
+          // Determinar el período para la descripción
+          let periodInfo = '';
+          if (days === 1) {
+            periodInfo = 'hoy';
+          } else if (days === 2) {
+            periodInfo = 'los próximos dos días';
+          } else {
+            periodInfo = `los próximos ${days} días`;
+          }
+          
+          // Genera la respuesta basada en el análisis de los datos
+          const response = analyzeData(parameter, chartData, `para ${periodInfo}`);
+          
+          // Añade un gráfico de análisis
+          const chartId = `prediction-chart-${Date.now()}`;
+          const chartResponse = `<br><div class="prediction-chart-container"><canvas class="prediction-chart" id="${chartId}" data-parameter="${parameter}" data-chart-data='${JSON.stringify(chartData)}'></canvas></div>`;
+          
+          // Actualizar contexto de conversación
+          conversationContext.lastParameter = parameter;
+          conversationContext.lastPeriod = days;
+          conversationContext.lastQuestionType = 'prediction';
+          
+          return response + chartResponse;
         } catch (error) {
           console.error('Error en análisis:', error);
           return "⚠️ Ocurrió un error al generar el análisis. Por favor, intenta nuevamente.";
         }
       };
       
-      // Genera la respuesta de predicción
-      const generatePredictionResponse = (parameter, chartData, days) => {
-        if (chartData.length === 0) {
-          return "No se pudieron generar análisis válidos. Por favor, intenta nuevamente.";
+      // Analiza datos históricos
+      const analyzeHistoricalData = async (entities) => {
+        if (historicalData.length === 0) {
+          return "Actualmente no hay datos históricos disponibles para analizar. Por favor, verifica que la estación esté funcionando correctamente.";
         }
         
-        // Determina el nombre del parámetro
+        const parameter = entities.parameter || 'temp';
+        const period = entities.period || 'week';
+        
+        try {
+          // Filtra datos según el período
+          let filteredData;
+          let periodInfo = '';
+          const now = new Date();
+          
+          if (period === 'week') {
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(now.getDate() - 7);
+            filteredData = historicalData.filter(item => {
+              const itemDate = new Date(item.fecha);
+              return !isNaN(itemDate.getTime()) && itemDate >= oneWeekAgo;
+            });
+            periodInfo = 'la última semana';
+          } else if (period === 'month') {
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(now.getMonth() - 1);
+            filteredData = historicalData.filter(item => {
+              const itemDate = new Date(item.fecha);
+              return !isNaN(itemDate.getTime()) && itemDate >= oneMonthAgo;
+            });
+            periodInfo = 'el último mes';
+          } else { // day
+            const oneDayAgo = new Date();
+            oneDayAgo.setDate(now.getDate() - 1);
+            filteredData = historicalData.filter(item => {
+              const itemDate = new Date(item.fecha);
+              return !isNaN(itemDate.getTime()) && itemDate >= oneDayAgo;
+            });
+            periodInfo = 'las últimas 24 horas';
+          }
+          
+          if (filteredData.length === 0) {
+            return "No hay datos suficientes para el período seleccionado. Prueba con un período diferente.";
+          }
+          
+          // Prepara los datos para el análisis
+          const chartData = filteredData.map(item => ({
+            x: new Date(item.fecha),
+            y: item[parameter]
+          })).filter(item => item.y !== null && !isNaN(item.y));
+          
+          // Genera la respuesta basada en el análisis de los datos
+          const response = analyzeData(parameter, chartData, periodInfo);
+          
+          // Añade un gráfico de análisis
+          const chartId = `prediction-chart-${Date.now()}`;
+          const chartResponse = `<br><div class="prediction-chart-container"><canvas class="prediction-chart" id="${chartId}" data-parameter="${parameter}" data-chart-data='${JSON.stringify(chartData)}'></canvas></div>`;
+          
+          // Actualizar contexto de conversación
+          conversationContext.lastParameter = parameter;
+          conversationContext.lastPeriod = period;
+          conversationContext.lastQuestionType = 'analysis';
+          
+          return response + chartResponse;
+        } catch (error) {
+          console.error('Error en análisis de datos:', error);
+          return "⚠️ Ocurrió un error al analizar los datos. Por favor, intenta nuevamente.";
+        }
+      };
+      
+      // Renderiza el gráfico de análisis
+      const renderAnalysisChart = (parameter, chartData, canvasId) => {
+        const chartCtx = document.getElementById(canvasId)?.getContext('2d');
+        if (!chartCtx) return;
+        
+        // Determina el nombre del parámetro y colores
         let paramName = '';
-        let unit = '';
-        let description = '';
+        let color = '#4a90e2';
         switch (parameter) {
           case 'temp':
-            paramName = 'temperatura';
-            unit = '°C';
-            description = 'La temperatura es un indicador clave del clima y afec
+            paramName = 'Temperatura';
+            color = '#FF6384';
+            break;
+          case 'hum':
+            paramName = 'Humedad';
+            color = '#36A2EB';
+            break;
+          case 'pres':
+            paramName = 'Presión';
+            color = '#FFCE56';
+            break;
+          case 'lluvia':
+            paramName = 'Precipitación';
+            color = '#46BFBD';
+            break;
+          case 'wind':
+            paramName = 'Viento';
+            color = '#C9CBCF';
+            break;
+          case 'gas':
+            paramName = 'Nivel de Gas';
+            color = '#FDB45C';
+            break;
+          default:
+            paramName = 'Medición';
+        }
+        
+        // Crea el nuevo gráfico
+        const chart = new Chart(chartCtx, {
+          type: 'line',
+          data: {
+            datasets: [{
+              label: paramName,
+               chartData,
+              borderColor: color,
+              backgroundColor: `${color}40`,
+              borderWidth: 3,
+              tension: 0.3,
+              pointRadius: 3
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false
+              }
+            },
+            scales: {
+              x: {
+                type: 'time',
+                time: {
+                  unit: 'day'
+                },
+                title: {
+                  display: true,
+                  text: 'Fecha'
+                }
+              },
+              y: {
+                beginAtZero: false,
+                title: {
+                  display: true,
+                  text: unit
+                }
+              }
+            }
+          }
+        });
+        
+        // Almacenar instancia del gráfico para actualizarla al cambiar de tema
+        charts.push(chart);
+      };
+      
+      // Procesar mensaje del usuario
+      const processUserMessage = async (message) => {
+        const intent = detectIntent(message);
+        
+        // Procesa según la intención
+        switch (intent.type) {
+          case 'greeting':
+            return handleGreeting();
+          
+          case 'goodbye':
+            return handleGoodbye();
+          
+          case 'prediction':
+            return await generateWeatherPrediction(intent.entities);
+          
+          case 'data_query':
+            return await analyzeHistoricalData(intent.entities);
+          
+          case 'help':
+            return handleHelp();
+          
+          default:
+            // Intentar detectar contexto de conversación previa
+            if (conversationContext.lastQuestionType && conversationContext.lastParameter) {
+              let paramName = '';
+              switch (conversationContext.lastParameter) {
+                case 'temp': paramName = 'temperatura'; break;
+                case 'hum': paramName = 'humedad'; break;
+                case 'pres': paramName = 'presión atmosférica'; break;
+                case 'lluvia': paramName = 'precipitación'; break;
+                case 'wind': paramName = 'velocidad del viento'; break;
+                case 'gas': paramName = 'nivel de gas'; break;
+                default: paramName = 'medición';
+              }
+              
+              return `Parece que estabas preguntando sobre ${paramName}. ¿Te gustaría que profundice más en ese tema o prefieres hacer una nueva consulta sobre otro aspecto meteorológico?`;
+            }
+            
+            return "No entendí completamente tu pregunta. Por favor, formula tu consulta de manera específica sobre el clima o los datos meteorológicos que deseas analizar.";
+        }
+      };
+      
+      // Enviar mensaje
+      const sendMessage = async () => {
+        const message = userInput.value.trim();
+        if (message === '' || !chatbotReady) return;
+        
+        // Añade mensaje del usuario
+        addMessage(message, true);
+        userInput.value = '';
+        
+        // Muestra "escribiendo..."
+        const loadingId = showLoading();
+        
+        try {
+          // Procesa el mensaje
+          const response = await processUserMessage(message);
+          
+          // Remueve el mensaje de "escribiendo..."
+          document.getElementById(loadingId).remove();
+          
+          // Muestra la respuesta
+          addMessage(response);
+          
+          // Renderizar gráficos si existen
+          setTimeout(() => {
+            document.querySelectorAll('.prediction-chart').forEach(canvas => {
+              const parameter = canvas.dataset.parameter;
+              const chartData = JSON.parse(canvas.dataset.chartData);
+              renderAnalysisChart(parameter, chartData, canvas.id);
+            });
+          }, 100);
+        } catch (error) {
+          console.error('Error procesando mensaje:', error);
+          document.getElementById(loadingId).remove();
+          addMessage("⚠️ Ocurrió un error al procesar tu solicitud. Por favor, intenta nuevamente.");
+        }
+      };
+      
+      // Inicializar chatbot
+      const initChatbot = async () => {
+        try {
+          updateStatus("Inicializando componentes...");
+          
+          // Carga datos históricos
+          await loadHistoricalData();
+          
+          updateStatus("Chatbot listo para usar");
+          chatbotReady = true;
+          
+          // Mensaje de bienvenida
+          addMessage(handleGreeting());
+          
+          // Hacer disponible para main.js
+          window.updateChatbotCharts = () => {
+            // Destruir y recrear los gráficos para actualizar colores
+            charts.forEach(chart => {
+              if (chart && chart.destroy) {
+                chart.destroy();
+              }
+            });
+            
+            // Limpiar el array
+            charts = [];
+            
+            // Recrear gráficos existentes
+            document.querySelectorAll('.prediction-chart').forEach(canvas => {
+              const parameter = canvas.dataset.parameter;
+              const chartData = JSON.parse(canvas.dataset.chartData);
+              renderAnalysisChart(parameter, chartData, canvas.id);
+            });
+          };
+        } catch (error) {
+          console.error('Error inicializando chatbot:', error);
+          updateStatus("Error al inicializar el chatbot", true);
+          chatbotReady = true;
+          addMessage("⚠️ Hubo un problema al cargar los datos. Algunas funciones avanzadas podrían no estar disponibles.");
+        }
+      };
+      
+      // Event listeners
+      sendButton.addEventListener('click', sendMessage);
+      userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+      });
+      
+      // Inicializar el chatbot
+      initChatbot();
+    });
+  </script>
+</body>
+</html>
