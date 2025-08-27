@@ -57,16 +57,36 @@
   <div class="container">
     <header>
       <h1>🤖 Chatbot Meteorológico Horus</h1>
-      <p>Entiende consultas con errores tipográficos y ofrece análisis profesionales especializados en meteorología</p>
+      <p>Conversa naturalmente con tu asistente meteorológico especializado</p>
     </header>
 
     <main id="chat-container" class="chat-main-container">
       <div id="chat-messages" class="chat-messages">
-        <div class="message bot">¡Hola! Soy Horus, tu asistente meteorológico especializado. Tanto si escribes con errores tipográficos como si usas términos técnicos o coloquiales, entenderé tu consulta sobre el clima. ¿En qué puedo ayudarte?</div>
+        <div class="message bot welcome-message">
+          <div class="bot-avatar">
+            <span>🤖</span>
+          </div>
+          <div class="message-content">
+            ¡Hola! Soy Horus, tu asistente meteorológico especializado. Tanto si escribes con errores tipográficos como si usas términos técnicos o coloquiales, entenderé tu consulta sobre el clima. ¿En qué puedo ayudarte?
+          </div>
+          <div class="message-time">Ahora</div>
+        </div>
       </div>
       <div class="chat-input">
-        <input type="text" id="user-input" placeholder="Escribe tu pregunta sobre el clima...">
-        <button id="send-button">Enviar</button>
+        <div class="input-container">
+          <input type="text" id="user-input" placeholder="Escribe tu pregunta sobre el clima...">
+          <button id="send-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+        <div class="suggestion-bubbles">
+          <span class="suggestion">¿Cómo estará el clima mañana?</span>
+          <span class="suggestion">Análisis de la temperatura</span>
+          <span class="suggestion">Predicción para el fin de semana</span>
+        </div>
       </div>
     </main>
 
@@ -117,9 +137,36 @@
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message');
         messageDiv.classList.add(isUser ? 'user' : 'bot');
-        messageDiv.innerHTML = content;
+        
+        if (isUser) {
+          messageDiv.innerHTML = `
+            <div class="message-content">
+              ${content}
+            </div>
+            <div class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+          `;
+        } else {
+          messageDiv.innerHTML = `
+            <div class="bot-avatar">
+              <span>🤖</span>
+            </div>
+            <div class="message-content">
+              ${content}
+            </div>
+            <div class="message-time">Ahora</div>
+          `;
+        }
+        
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Actualizar el tiempo "Ahora" a minutos reales después de 5 segundos
+        setTimeout(() => {
+          const timeElement = messageDiv.querySelector('.message-time');
+          if (timeElement && timeElement.textContent === 'Ahora') {
+            timeElement.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+          }
+        }, 5000);
       };
       
       // Mostrar estado de carga
@@ -128,7 +175,20 @@
         const loadingDiv = document.createElement('div');
         loadingDiv.id = loadingId;
         loadingDiv.className = 'message bot';
-        loadingDiv.innerHTML = `${message}<span class="loading-dots"></span>`;
+        loadingDiv.innerHTML = `
+          <div class="bot-avatar">
+            <span>🤖</span>
+          </div>
+          <div class="message-content">
+            <div class="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="loading-text">${message}</div>
+          </div>
+          <div class="message-time">Escribiendo...</div>
+        `;
         chatMessages.appendChild(loadingDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
         return loadingId;
@@ -899,7 +959,7 @@
           response += `<div class="prediction-summary">`;
           response += `<div class="summary-item"><strong>Tendencia</strong><br>La ${paramName} se espera que ${trend}</div>`;
           response += `<div class="summary-item"><strong>Rango esperado</strong><br>${minPredicted.toFixed(1)}${unit} - ${maxPredicted.toFixed(1)}${unit}</div>`;
-          response += `<div class="summary-item"><strong>Promedio</strong><br>${(minPredicted + maxPredicted) / 2.toFixed(1)}${unit}</div>`;
+          response += `<div class="summary-item"><strong>Promedio</strong><br>${((minPredicted + maxPredicted) / 2).toFixed(1)}${unit}</div>`;
           response += `</div>`;
           
           // Interpretación contextual
@@ -1226,7 +1286,7 @@
           data: {
             datasets: [{
               label: paramName,
-              data: chartData,
+               chartData,
               borderColor: color,
               backgroundColor: `${color}40`,
               borderWidth: 3,
@@ -1315,7 +1375,7 @@
           data: {
             datasets: [{
               label: `${paramName} Predicha`,
-              data: predictionData,
+               predictionData,
               borderColor: color,
               backgroundColor: `${color}40`,
               borderWidth: 3,
@@ -1464,7 +1524,15 @@
           chatbotReady = true;
           
           // Mensaje de bienvenida
-          addMessage(handleGreeting());
+          // Ya se muestra en el HTML inicial
+          
+          // Configurar sugerencias
+          document.querySelectorAll('.suggestion').forEach(suggestion => {
+            suggestion.addEventListener('click', () => {
+              userInput.value = suggestion.textContent;
+              sendMessage();
+            });
+          });
           
           // Hacer disponible para main.js
           window.updateChatbotCharts = () => {
