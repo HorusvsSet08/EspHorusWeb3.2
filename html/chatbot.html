@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chatbot Meteorológico - Horus</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/chatbot.css" />
+  <!-- Carga librerías locales en minúsculas y en orden correcto -->
+  <script src="../js/papaparse.js"></script>
+  <script src="../js/chart.js"></script>
+</head>
+<body class="light-mode chatbot-page">
+  <nav class="nav">
+    <div class="nav-container">
+      <div class="nav-buttons">
+        <a href="../index.html" class="nav-btn">
+          <span class="nav-icon">🏠</span> Inicio
+        </a>
+        <a href="mqtt.html" class="nav-btn">
+          <span class="nav-icon">📡</span> Datos en Vivo
+        </a>
+        <a href="analisis.html" class="nav-btn">
+          <span class="nav-icon">📊</span> Análisis
+        </a>
+        <a href="chatbot.html" class="nav-btn active">
+          <span class="nav-icon">🤖</span> Chatbot
+        </a>
+      </div>
+
+      <!-- Switch de Galahad -->
+      <div class="nav-right">
+        <label class="theme-switch">
+          <input type="checkbox" class="theme-switch__checkbox">
+          <div class="theme-switch__container">
+            <div class="theme-switch__clouds"></div>
+            <div class="theme-switch__stars-container">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none">
+                <path d="M135.831 3.00688C135.055 3.85027 134.111 4.29946 133 4.35447C134.111 4.40947 135.055 4.85867 135.831 5.71123C136.607 6.55462 136.996 7.56303 136.996 8.72727C136.996 7.95722 137.172 7.25134 137.525 6.59129C137.886 5.93124 138.372 5.39954 138.98 5.00535C139.598 4.60199 140.268 4.39114 141 4.35447C139.88 4.2903 138.936 3.85027 138.16 3.00688C137.384 2.16348 136.996 1.16425 136.996 0C136.996 1.16425 136.607 2.16348 135.831 3.00688ZM31 23.3545C32.1114 23.2995 33.0551 22.8503 33.8313 22.0069C34.6075 21.1635 34.9956 20.1642 34.9956 19C34.9956 20.1642 35.3837 21.1635 36.1599 22.0069C36.9361 22.8503 37.8798 23.2903 39 23.3545C38.2679 23.3911 37.5976 23.602 36.9802 24.0053C36.3716 24.3995 35.8864 24.9312 35.5248 25.5913C35.172 26.2513 34.9956 26.9572 34.9956 27.7273C34.9956 26.563 34.6075 25.5546 33.8313 24.7112C33.0551 23.8587 32.1114 23.4095 31 23.3545ZM0 36.3545C1.11136 36.2995 2.05513 35.8503 2.83131 35.0069C3.6075 34.1635 3.99559 33.1642 3.99559 32C3.99559 33.1642 4.38368 34.1635 5.15987 35.0069C5.93605 35.8503 6.87982 36.2903 8 36.3545C7.26792 36.3911 6.59757 36.602 5.98015 37.0053C5.37155 37.3995 4.88644 37.9312 4.52481 38.5913C4.172 39.2513 3.99559 39.9572 3.99559 40.7273C3.99559 39.563 3.6075 38.5546 2.83131 37.7112C2.05513 36.8587 1.11136 36.4095 0 36.3545ZM56.8313 24.0069C56.0551 24.8503 55.1114 25.2995 54 25.3545C55.1114 25.4095 56.0551 25.8587 56.8313 26.7112C57.6075 27.5546 57.9956 28.563 57.9956 29.7273C57.9956 28.9572 58.172 28.2513 58.5248 27.5913C58.8864 26.9312 59.3716 26.3995 59.9802 26.0053C60.5976 25.602 61.2679 25.3911 62 25.3545C60.8798 25.2903 59.9361 24.8503 59.1599 24.0069C58.3837 23.1635 57.9956 22.1642 57.9956 21C57.9956 22.1642 57.6075 23.1635 56.8313 24.0069ZM81 25.3545C82.1114 25.2995 83.0551 24.8503 83.8313 24.0069C84.6075 23.1635 84.9956 22.1642 84.9956 21C84.9956 22.1642 85.3837 23.1635 86.1599 24.0069C86.9361 24.8503 87.8798 25.2903 89 25.3545C88.2679 25.3911 87.5976 25.602 86.9802 26.0053C86.3716 26.3995 85.8864 26.9312 85.5248 27.5913C85.172 28.2513 84.9956 28.9572 84.9956 29.7273C84.9956 28.563 84.6075 27.5546 83.8313 26.7112C83.0551 25.8587 82.1114 25.4095 81 25.3545ZM136 36.3545C137.111 36.2995 138.055 35.8503 138.831 35.0069C139.607 34.1635 139.996 33.1642 139.996 32C139.996 33.1642 140.384 34.1635 141.16 35.0069C141.936 35.8503 142.88 36.2903 144 36.3545C143.268 36.3911 142.598 36.602 141.98 37.0053C141.372 37.3995 140.886 37.9312 140.525 38.5913C140.172 39.2513 139.996 39.9572 139.996 40.7273C139.996 39.563 139.607 38.5546 138.831 37.7112C138.055 36.8587 137.111 36.4095 136 36.3545ZM101.831 49.0069C101.055 49.8503 100.111 50.2995 99 50.3545C100.111 50.4095 101.055 50.8587 101.831 51.7112C102.607 52.5546 102.996 53.563 102.996 54.7273C102.996 53.9572 103.172 53.2513 103.525 52.5913C103.886 51.9312 104.372 51.3995 104.98 51.0053C105.598 50.602 106.268 50.3911 107 50.3545C105.88 50.2903 104.936 49.8503 104.16 49.0069C103.384 48.1635 102.996 47.1642 102.996 46C102.996 47.1642 102.607 48.1635 101.831 49.0069Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="theme-switch__circle-container">
+              <div class="theme-switch__sun-moon-container">
+                <div class="theme-switch__moon">
+                  <div class="theme-switch__spot"></div>
+                  <div class="theme-switch__spot"></div>
+                  <div class="theme-switch__spot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </label>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header>
+      <h1>🤖 Chatbot Meteorológico Horus</h1>
+      <p>Pregunta sobre el clima, haz consultas históricas o solicita predicciones para la próxima semana</p>
+    </header>
+
+    <main id="chat-container" class="chat-main-container">
+      <div id="chat-messages" class="chat-messages">
+        <div class="message bot">¡Hola! Soy Horus, tu asistente meteorológico. Puedo analizar los datos históricos y hacer predicciones para la próxima semana. ¿En qué puedo ayudarte?</div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="user-input" placeholder="Escribe tu pregunta sobre el clima...">
+        <button id="send-button">Enviar</button>
+      </div>
+    </main>
+
+    <div id="status-indicator" class="status-indicator">
+      <div class="status-dot"></div>
+      <span id="status-text">Cargando datos históricos...</span>
+    </div>
+
+    <footer>
+      <p>El chatbot utiliza datos de <a href="https://docs.google.com/spreadsheets/d/1k1EBYptoYHVg982yqQdPF9Glt0PJAUZWMW0J-z4ps-4/edit" target="_blank">Google Sheets</a> para generar análisis</p>
+    </footer>
+  </div>
+
+  <!-- CARGA main.js AL FINAL: es CRÍTICO -->
+  <script src="../js/main.js"></script>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Variables globales
+      let historicalData = [];
+      let chatbotReady = false;
+      let charts = []; // Para almacenar instancias de gráficos
+      
+      // Elementos del DOM
+      const chatMessages = document.getElementById('chat-messages');
+      const userInput = document.getElementById('user-input');
+      const sendButton = document.getElementById('send-button');
+      const statusIndicator = document.getElementById('status-indicator');
+      const statusText = document.getElementById('status-text');
+      
+      // Actualizar estado
+      const updateStatus = (message, isError = false) => {
+        statusText.textContent = message;
+        if (isError) {
+          statusIndicator.classList.add('error');
+        } else {
+          statusIndicator.classList.remove('error');
+        }
+      };
+      
+      // Añadir mensaje al chat
+      const addMessage = (content, isUser = false) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+        messageDiv.classList.add(isUser ? 'user' : 'bot');
+        messageDiv.innerHTML = content;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      };
+      
+      // Mostrar estado de carga
+      const showLoading = (message = "Analizando tu pregunta") => {
+        const loadingId = `loading-${Date.now()}`;
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = loadingId;
+        loadingDiv.className = 'message bot';
+        loadingDiv.innerHTML = `${message}<span class="loading-dots"></span>`;
+        chatMessages.appendChild(loadingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return loadingId;
+      };
+      
+      // Cargar datos históricos
+      const loadHistoricalData = () => {
+        return new Promise((resolve, reject) => {
+          updateStatus("Cargando datos históricos...");
+          
+          // URL corregida de Google Sheets
+          const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWCl1SexRqaXBFHYwWMLz2NjeZ0JlHmSRa2Ia_XUz974vGK8a74QgBqfhZRGxKkEzDGn1JdD1sDLpq/pub?gid=0&single=true&output=csv";
+          
+          Papa.parse(sheetURL, {
+            download: true,
+            header: false,
+            skipEmptyLines: true,
+            complete: function(results) {
+              try {
+                historicalData = results.data.slice(1).map(row => {
+                  // Asegurarnos de que la fila tiene suficientes elementos
+                  if (!row || row.length < 11) return null;
+                  
+                  // Extraer fecha y hora
+                  const dateTime = row[0] ? row[0].trim() : '';
+                  const dateParts = dateTime.split(' ');
+                  
+                  // Verificar que tenemos una fecha válida
+                  if (dateParts.length < 2 || !dateTime) return null;
+                  
+                  return {
+                    fecha: dateParts[0],  // Solo la fecha (sin hora)
+                    temp: !isNaN(parseFloat(row[1])) ? parseFloat(row[1]) : null,
+                    hum: !isNaN(parseFloat(row[2])) ? parseFloat(row[2]) : null,
+                    pres: !isNaN(parseFloat(row[3])) ? parseFloat(row[3]) : null,
+                    pm25: !isNaN(parseFloat(row[6])) ? parseFloat(row[6]) : null,
+                    pm10: !isNaN(parseFloat(row[7])) ? parseFloat(row[7]) : null,
+                    wind: !isNaN(parseFloat(row[8])) ? parseFloat(row[8]) : null,
+                    gas: !isNaN(parseFloat(row[10])) ? parseFloat(row[10]) : null,
+                    lluvia: !isNaN(parseFloat(row[11])) ? parseFloat(row[11]) : null
+                  };
+                }).filter(item => item !== null && item.fecha && item.temp !== null);
+                
+                if (historicalData.length === 0) {
+                  throw new Error("No se encontraron datos válidos después de filtrar");
+                }
+                
+                updateStatus(`Datos cargados: ${historicalData.length} registros históricos`);
+                resolve(historicalData);
+              } catch (error) {
+                console.error("Error procesando datos históricos:", error);
+                updateStatus("Error al procesar datos históricos", true);
+                reject(error);
+              }
+            },
+            error: function(error) {
+              console.error("Error al cargar CSV:", error);
+              updateStatus("Error de conexión con Google Sheets", true);
+              reject(error);
+            }
+          });
+        });
+      };
+      
+      // Detectar intención del usuario
+      const detectIntent = (message) => {
+        // Normalizar el mensaje
+        const normalizedMessage = message.toLowerCase().replace(/[.,!?]/g, '');
+        
+        // Palabras clave para diferentes intenciones
+        const greetings = ['hola', 'buenos días', 'buenas tardes', 'hey', 'saludos', 'buen día'];
+        const predictions = ['predic', 'predec', 'pronóstico', 'pronostico', 'mañana', 'próxim', 'proximo', 'futuro', 'siguiente', 'semana', 'día', 'días'];
+        const dataQueries = ['analiza', 'analizar', 'tendencia', 'historial', 'histórico', 'comportamiento', 'evolución', 'cómo ha estado', 'qué ha pasado'];
+        const helpWords = ['ayuda', 'funciona', 'puedes', 'capaz', 'hacer', 'qué puedo preguntar'];
+        const goodbye = ['adiós', 'gracias', 'chao', 'hasta luego'];
+        
+        // Detecta tipo de intención
+        let intentType = 'unknown';
+        const entities = {};
+        
+        // Verifica saludos
+        if (greetings.some(word => normalizedMessage.includes(word))) {
+          intentType = 'greeting';
+        }
+        // Verifica despedidas
+        else if (goodbye.some(word => normalizedMessage.includes(word))) {
+          intentType = 'goodbye';
+        }
+        // Verifica predicciones
+        else if (predictions.some(word => normalizedMessage.includes(word))) {
+          intentType = 'prediction';
+          
+          // Detecta parámetros de predicción
+          if (normalizedMessage.includes('temperatura') || normalizedMessage.includes('grado') || normalizedMessage.includes('calor') || normalizedMessage.includes('frío')) {
+            entities.parameter = 'temp';
+          } else if (normalizedMessage.includes('humedad') || normalizedMessage.includes('húmedo')) {
+            entities.parameter = 'hum';
+          } else if (normalizedMessage.includes('presión') || normalizedMessage.includes('presion') || normalizedMessage.includes('atmosférica')) {
+            entities.parameter = 'pres';
+          } else if (normalizedMessage.includes('lluvia') || normalizedMessage.includes('precipitación') || normalizedMessage.includes('llover')) {
+            entities.parameter = 'lluvia';
+          } else if (normalizedMessage.includes('viento') || normalizedMessage.includes('velocidad') || normalizedMessage.includes('ráfaga')) {
+            entities.parameter = 'wind';
+          } else if (normalizedMessage.includes('gas') || normalizedMessage.includes('contaminación')) {
+            entities.parameter = 'gas';
+          } else {
+            // Por defecto, predice temperatura
+            entities.parameter = 'temp';
+          }
+          
+          // Detecta horizonte temporal
+          if (normalizedMessage.includes('mañana')) {
+            entities.days = 1;
+          } else if (normalizedMessage.includes('pasado mañana')) {
+            entities.days = 2;
+          } else if (normalizedMessage.includes('3 días') || normalizedMessage.includes('tres días')) {
+            entities.days = 3;
+          } else if (normalizedMessage.includes('4 días') || normalizedMessage.includes('cuatro días')) {
+            entities.days = 4;
+          } else if (normalizedMessage.includes('5 días') || normalizedMessage.includes('cinco días')) {
+            entities.days = 5;
+          } else if (normalizedMessage.includes('6 días') || normalizedMessage.includes('seis días')) {
+            entities.days = 6;
+          } else if (normalizedMessage.includes('fin de semana')) {
+            entities.days = 2; // Asumiendo que es para el fin de semana más cercano
+          } else {
+            entities.days = 7; // Por defecto, predicción de una semana
+          }
+        }
+        // Verifica consultas de datos
+        else if (dataQueries.some(word => normalizedMessage.includes(word))) {
+          intentType = 'data_query';
+          
+          // Detecta parámetros de consulta
+          if (normalizedMessage.includes('temperatura') || normalizedMessage.includes('grado') || normalizedMessage.includes('calor') || normalizedMessage.includes('frío')) {
+            entities.parameter = 'temp';
+          } else if (normalizedMessage.includes('humedad') || normalizedMessage.includes('húmedo')) {
+            entities.parameter = 'hum';
+          } else if (normalizedMessage.includes('presión') || normalizedMessage.includes('presion') || normalizedMessage.includes('atmosférica')) {
+            entities.parameter = 'pres';
+          } else if (normalizedMessage.includes('lluvia') || normalizedMessage.includes('precipitación') || normalizedMessage.includes('llover')) {
+            entities.parameter = 'lluvia';
+          } else if (normalizedMessage.includes('viento') || normalizedMessage.includes('velocidad') || normalizedMessage.includes('ráfaga')) {
+            entities.parameter = 'wind';
+          } else if (normalizedMessage.includes('gas') || normalizedMessage.includes('contaminación')) {
+            entities.parameter = 'gas';
+          } else {
+            // Por defecto, consulta temperatura
+            entities.parameter = 'temp';
+          }
+          
+          // Detecta período de tiempo
+          if (normalizedMessage.includes('última semana') || normalizedMessage.includes('semana pasada')) {
+            entities.period = 'week';
+          } else if (normalizedMessage.includes('último mes') || normalizedMessage.includes('mes pasado')) {
+            entities.period = 'month';
+          } else if (normalizedMessage.includes('últimas 24 horas') || normalizedMessage.includes('hoy')) {
+            entities.period = 'day';
+          } else {
+            entities.period = 'week'; // Por defecto, última semana
+          }
+        }
+        // Verifica solicitudes de ayuda
+        else if (helpWords.some(word => normalizedMessage.includes(word))) {
+          intentType = 'help';
+        }
+        
+        // Si no se detectó intención clara, intenta adivinar
+        if (intentType === 'unknown') {
+          if (normalizedMessage.length > 5) { // Evitar detección en mensajes muy cortos
+            if (normalizedMessage.includes('cuál') || normalizedMessage.includes('cómo') || 
+                normalizedMessage.includes('qué') || normalizedMessage.includes('dónde') || 
+                normalizedMessage.includes('cuándo')) {
+              intentType = 'prediction'; // Asumir que es una pregunta de predicción
+            } else {
+              intentType = 'prediction'; // Por defecto, asume que quiere una predicción
+            }
+          }
+        }
+        
+        return { type: intentType, entities };
+      };
+      
+      // Generar respuesta de saludo
+      const handleGreeting = () => {
+        const responses = [
+          "¡Hola! Soy Horus, tu asistente meteorológico. Puedo ayudarte a entender los datos climáticos y hacer predicciones para la próxima semana. ¿En qué puedo ayudarte?",
+          "¡Saludos! Soy Horus, tu asistente para análisis meteorológico. Tengo acceso a los datos históricos y puedo predecir el clima para los próximos días. ¿Qué te gustaría saber?",
+          "¡Bienvenido! Soy Horus, tu asistente especializado en pronósticos meteorológicos. ¿Te gustaría una predicción para la próxima semana o prefieres analizar datos históricos?"
+        ];
+        
+        return responses[Math.floor(Math.random() * responses.length)];
+      };
+      
+      // Generar respuesta de despedida
+      const handleGoodbye = () => {
+        const responses = [
+          "¡Hasta luego! No dudes en volver si necesitas más información meteorológica.",
+          "¡Que tengas un buen día! Estoy aquí cuando necesites análisis o predicciones climáticas.",
+          "¡Adiós! Recuerda que puedo ayudarte con predicciones y análisis de datos climáticos en cualquier momento."
+        ];
+        
+        return responses[Math.floor(Math.random() * responses.length)];
+      };
+      
+      // Generar respuesta de ayuda
+      const handleHelp = () => {
+        return "Puedes preguntarme cosas como:<br><br>" +
+               "- \"¿Qué temperatura hará mañana?\"<br>" +
+               "- \"¿Habrá lluvia en los próximos 3 días?\"<br>" +
+               "- \"Analiza la tendencia de humedad de la última semana\"<br>" +
+               "- \"Predice la presión atmosférica para el fin de semana\"<br>" +
+               "- \"¿Cómo ha estado el viento en los últimos días?\"<br><br>" +
+               "Soy capaz de entender preguntas complejas y hacer análisis basados en los datos históricos.";
+      };
+      
+      // Generar predicciones meteorológicas
+      const generateWeatherPrediction = async (entities) => {
+        if (historicalData.length < 30) {
+          return "No hay suficientes datos históricos para hacer un análisis confiable. Necesito al menos 30 puntos de datos.";
+        }
+        
+        const parameter = entities.parameter || 'temp';
+        const days = entities.days || 7;
+        
+        try {
+          // Prepara los datos para el análisis
+          const chartData = historicalData.map(item => ({
+            x: new Date(item.fecha),
+            y: item[parameter]
+          })).filter(item => item.y !== null && !isNaN(item.y));
+          
+          // Verificar que hay suficientes datos válidos
+          if (chartData.length < 10) {
+            throw new Error("No hay suficientes datos válidos para el análisis");
+          }
+          
+          // Genera la respuesta
+          return generatePredictionResponse(parameter, chartData, days);
+        } catch (error) {
+          console.error('Error en análisis:', error);
+          return "⚠️ Ocurrió un error al generar el análisis. Por favor, intenta nuevamente.";
+        }
+      };
+      
+      // Genera la respuesta de predicción
+      const generatePredictionResponse = (parameter, chartData, days) => {
+        if (chartData.length === 0) {
+          return "No se pudieron generar análisis válidos. Por favor, intenta nuevamente.";
+        }
+        
+        // Determina el nombre del parámetro
+        let paramName = '';
+        let unit = '';
+        let description = '';
+        switch (parameter) {
+          case 'temp':
+            paramName = 'temperatura';
+            unit = '°C';
+            description = 'La temperatura es un indicador clave del clima. ';
+            break;
+          case 'hum':
+            paramName = 'humedad';
+            unit = '%';
+            description = 'La humedad relativa indica cuánta agua hay en el aire. ';
+            break;
+          case 'pres':
+            paramName = 'presión atmosférica';
+            unit = 'hPa';
+            description = 'La presión atmosférica ayuda a predecir cambios en el clima. ';
+            break;
+          case 'lluvia':
+            paramName = 'precipitación';
+            unit = 'mm';
+            description = 'La precipitación indica la cantidad de lluvia registrada. ';
+            break;
+          case 'wind':
+            paramName = 'velocidad del viento';
+            unit = 'km/h';
+            description = 'La velocidad del viento afecta la sensación térmica y condiciones climáticas. ';
+            break;
+          case 'gas':
+            paramName = 'nivel de gas';
+            unit = 'kΩ';
+            description = 'El nivel de gas puede indicar la calidad del aire. ';
+            break;
+          default:
+            paramName = 'medición';
+            unit = '';
+        }
+        
+        // Crea el mensaje de respuesta
+        let response = description + `Análisis de la ${paramName} basado en los datos históricos:<br><br>`;
+        
+        // Calcula estadísticas
+        const values = chartData.map(item => item.y);
+        const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        
+        // Determina la tendencia
+        const startValue = values[0];
+        const endValue = values[values.length - 1];
+        const trend = endValue > startValue ? 'aumentando' : (endValue < startValue ? 'disminuyendo' : 'estable');
+        const changePercent = startValue !== 0 ? Math.abs(((endValue - startValue) / startValue) * 100) : 0;
+        
+        response += `Se observa que la ${paramName} ha estado ${trend} aproximadamente un ${changePercent.toFixed(1)}% en el período analizado.<br><br>`;
+        
+        response += `- Valor promedio: ${avg.toFixed(1)}${unit}<br>`;
+        response += `- Valor mínimo: ${min.toFixed(1)}${unit}<br>`;
+        response += `- Valor máximo: ${max.toFixed(1)}${unit}<br>`;
+        response += `- Tendencia general: ${trend}<br><br>`;
+        
+        // Añade interpretación contextual
+        if (parameter === 'temp') {
+          if (avg > 30) {
+            response += "La temperatura ha sido relativamente alta durante este período, indicando condiciones cálidas.";
+          } else if (avg < 20) {
+            response += "La temperatura ha sido relativamente baja durante este período, indicando condiciones frescas o frías.";
+          } else {
+            response += "La temperatura ha estado dentro de un rango moderado durante este período.";
+          }
+        } else if (parameter === 'hum') {
+          if (avg > 70) {
+            response += "La humedad ha sido alta, lo que podría indicar condiciones propensas a lluvia o niebla.";
+          } else if (avg < 40) {
+            response += "La humedad ha sido baja, lo que podría indicar condiciones secas.";
+          } else {
+            response += "La humedad ha estado dentro de un rango moderado.";
+          }
+        } else if (parameter === 'pres') {
+          if (avg > 1013) {
+            response += "La presión atmosférica ha estado por encima del promedio, lo que suele indicar condiciones climáticas estables.";
+          } else if (avg < 1013) {
+            response += "La presión atmosférica ha estado por debajo del promedio, lo que suele indicar condiciones climáticas inestables.";
+          } else {
+            response += "La presión atmosférica ha estado dentro del rango normal.";
+          }
+        }
+        
+        // Añade un gráfico de análisis
+        response += `<br><div class="prediction-chart-container"><canvas class="prediction-chart" id="prediction-chart-${Date.now()}"></canvas></div>`;
+        
+        // Crea el gráfico después de que se renderice
+        setTimeout(() => {
+          renderAnalysisChart(parameter, chartData, `prediction-chart-${Date.now()}`);
+        }, 100);
+        
+        return response;
+      };
+      
+      // Renderiza el gráfico de análisis
+      const renderAnalysisChart = (parameter, chartData, canvasId) => {
+        const chartCtx = document.getElementById(canvasId)?.getContext('2d');
+        if (!chartCtx) return;
+        
+        // Determina el nombre del parámetro y colores
+        let paramName = '';
+        let color = '#4a90e2';
+        switch (parameter) {
+          case 'temp':
+            paramName = 'Temperatura';
+            color = '#FF6384';
+            break;
+          case 'hum':
+            paramName = 'Humedad';
+            color = '#36A2EB';
+            break;
+          case 'pres':
+            paramName = 'Presión';
+            color = '#FFCE56';
+            break;
+          case 'lluvia':
+            paramName = 'Precipitación';
+            color = '#46BFBD';
+            break;
+          case 'wind':
+            paramName = 'Viento';
+            color = '#C9CBCF';
+            break;
+          case 'gas':
+            paramName = 'Nivel de Gas';
+            color = '#FDB45C';
+            break;
+          default:
+            paramName = 'Medición';
+        }
+        
+        // Crea el nuevo gráfico
+        const chart = new Chart(chartCtx, {
+          type: 'line',
+          data: {
+            datasets: [{
+              label: paramName,
+              data: chartData,
+              borderColor: color,
+              backgroundColor: `${color}40`,
+              borderWidth: 3,
+              tension: 0.3,
+              pointRadius: 3
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false
+              }
+            },
+            scales: {
+              x: {
+                type: 'time',
+                time: {
+                  unit: 'day'
+                },
+                title: {
+                  display: true,
+                  text: 'Fecha'
+                }
+              },
+              y: {
+                beginAtZero: false,
+                title: {
+                  display: true,
+                  text: unit
+                }
+              }
+            }
+          }
+        });
+        
+        // Almacenar instancia del gráfico para actualizarla al cambiar de tema
+        charts.push(chart);
+      };
+      
+      // Analiza datos históricos
+      const analyzeHistoricalData = async (entities) => {
+        if (historicalData.length === 0) {
+          return "No hay datos históricos disponibles para analizar.";
+        }
+        
+        const parameter = entities.parameter || 'temp';
+        const period = entities.period || 'week';
+        
+        try {
+          // Filtra datos según el período
+          let filteredData;
+          const now = new Date();
+          
+          if (period === 'week') {
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(now.getDate() - 7);
+            filteredData = historicalData.filter(item => {
+              const itemDate = new Date(item.fecha);
+              return !isNaN(itemDate.getTime()) && itemDate >= oneWeekAgo;
+            });
+          } else if (period === 'month') {
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(now.getMonth() - 1);
+            filteredData = historicalData.filter(item => {
+              const itemDate = new Date(item.fecha);
+              return !isNaN(itemDate.getTime()) && itemDate >= oneMonthAgo;
+            });
+          } else { // day
+            const oneDayAgo = new Date();
+            oneDayAgo.setDate(now.getDate() - 1);
+            filteredData = historicalData.filter(item => {
+              const itemDate = new Date(item.fecha);
+              return !isNaN(itemDate.getTime()) && itemDate >= oneDayAgo;
+            });
+          }
+          
+          if (filteredData.length === 0) {
+            return "No hay datos suficientes para el período seleccionado.";
+          }
+          
+          // Calcula estadísticas
+          const values = filteredData.map(item => item[parameter]).filter(v => v !== null && !isNaN(v));
+          const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
+          const min = Math.min(...values);
+          const max = Math.max(...values);
+          
+          // Determina la tendencia
+          const startValue = values[0];
+          const endValue = values[values.length - 1];
+          const trend = endValue > startValue ? 'aumentando' : (endValue < startValue ? 'disminuyendo' : 'estable');
+          
+          // Genera la respuesta
+          return generateDataAnalysisResponse(parameter, avg, min, max, trend, period);
+        } catch (error) {
+          console.error('Error en análisis de datos:', error);
+          return "⚠️ Ocurrió un error al analizar los datos. Por favor, intenta nuevamente.";
+        }
+      };
+      
+      // Genera respuesta de análisis de datos
+      const generateDataAnalysisResponse = (parameter, avg, min, max, trend, period) => {
+        // Determina el nombre del parámetro
+        let paramName = '';
+        let unit = '';
+        let description = '';
+        switch (parameter) {
+          case 'temp':
+            paramName = 'temperatura';
+            unit = '°C';
+            description = 'La temperatura es un indicador clave del clima. ';
+            break;
+          case 'hum':
+            paramName = 'humedad';
+            unit = '%';
+            description = 'La humedad relativa indica cuánta agua hay en el aire. ';
+            break;
+          case 'pres':
+            paramName = 'presión atmosférica';
+            unit = 'hPa';
+            description = 'La presión atmosférica ayuda a predecir cambios en el clima. ';
+            break;
+          case 'lluvia':
+            paramName = 'precipitación';
+            unit = 'mm';
+            description = 'La precipitación indica la cantidad de lluvia registrada. ';
+            break;
+          case 'wind':
+            paramName = 'velocidad del viento';
+            unit = 'km/h';
+            description = 'La velocidad del viento afecta la sensación térmica y condiciones climáticas. ';
+            break;
+          case 'gas':
+            paramName = 'nivel de gas';
+            unit = 'kΩ';
+            description = 'El nivel de gas puede indicar la calidad del aire. ';
+            break;
+          default:
+            paramName = 'medición';
+            unit = '';
+        }
+        
+        // Crea el mensaje de respuesta
+        let response = description + `Análisis de la ${paramName} para el período seleccionado:<br><br>`;
+        
+        response += `- Valor promedio: ${avg.toFixed(1)}${unit}<br>`;
+        response += `- Valor mínimo: ${min.toFixed(1)}${unit}<br>`;
+        response += `- Valor máximo: ${max.toFixed(1)}${unit}<br>`;
+        response += `- Tendencia: La ${paramName} ha estado ${trend}<br><br>`;
+        
+        // Añade interpretación contextual
+        if (parameter === 'temp') {
+          if (avg > 30) {
+            response += "La temperatura ha sido relativamente alta durante este período, indicando condiciones cálidas.";
+          } else if (avg < 20) {
+            response += "La temperatura ha sido relativamente baja durante este período, indicando condiciones frescas o frías.";
+          } else {
+            response += "La temperatura ha estado dentro de un rango moderado durante este período.";
+          }
+        } else if (parameter === 'hum') {
+          if (avg > 70) {
+            response += "La humedad ha sido alta, lo que podría indicar condiciones propensas a lluvia o niebla.";
+          } else if (avg < 40) {
+            response += "La humedad ha sido baja, lo que podría indicar condiciones secas.";
+          } else {
+            response += "La humedad ha estado dentro de un rango moderado.";
+          }
+        } else if (parameter === 'pres') {
+          if (avg > 1013) {
+            response += "La presión atmosférica ha estado por encima del promedio, lo que suele indicar condiciones climáticas estables.";
+          } else if (avg < 1013) {
+            response += "La presión atmosférica ha estado por debajo del promedio, lo que suele indicar condiciones climáticas inestables.";
+          } else {
+            response += "La presión atmosférica ha estado dentro del rango normal.";
+          }
+        }
+        
+        return response;
+      };
+      
+      // Procesar mensaje del usuario
+      const processUserMessage = async (message) => {
+        const intent = detectIntent(message);
+        
+        // Procesa según la intención
+        switch (intent.type) {
+          case 'greeting':
+            return handleGreeting();
+          
+          case 'goodbye':
+            return handleGoodbye();
+          
+          case 'prediction':
+            return await generateWeatherPrediction(intent.entities);
+          
+          case 'data_query':
+            return await analyzeHistoricalData(intent.entities);
+          
+          case 'help':
+            return handleHelp();
+          
+          default:
+            return "No entendí completamente tu pregunta. ¿Podrías reformularla? Recuerda que puedo ayudarte con análisis de datos históricos.";
+        }
+      };
+      
+      // Enviar mensaje
+      const sendMessage = async () => {
+        const message = userInput.value.trim();
+        if (message === '' || !chatbotReady) return;
+        
+        // Añade mensaje del usuario
+        addMessage(message, true);
+        userInput.value = '';
+        
+        // Muestra "escribiendo..."
+        const loadingId = showLoading();
+        
+        try {
+          // Procesa el mensaje
+          const response = await processUserMessage(message);
+          
+          // Remueve el mensaje de "escribiendo..."
+          document.getElementById(loadingId).remove();
+          
+          // Muestra la respuesta
+          addMessage(response);
+        } catch (error) {
+          console.error('Error procesando mensaje:', error);
+          document.getElementById(loadingId).remove();
+          addMessage("⚠️ Ocurrió un error al procesar tu solicitud. Por favor, intenta nuevamente.");
+        }
+      };
+      
+      // Inicializar chatbot
+      const initChatbot = async () => {
+        try {
+          updateStatus("Inicializando componentes...");
+          
+          // Carga datos históricos
+          await loadHistoricalData();
+          
+          updateStatus("Chatbot listo para usar");
+          chatbotReady = true;
+          
+          // Mensaje de bienvenida
+          addMessage("¡Listo! Tengo acceso a los datos históricos y estoy listo para ayudarte con análisis meteorológicos.");
+          
+          // Hacer disponible para main.js
+          window.updateChatbotCharts = () => {
+            // Destruir y recrear los gráficos para actualizar colores
+            charts.forEach(chart => {
+              if (chart && chart.destroy) {
+                chart.destroy();
+              }
+            });
+            
+            // Limpiar el array
+            charts = [];
+            
+            // Recrear gráficos existentes
+            document.querySelectorAll('.prediction-chart').forEach(canvas => {
+              const parameter = canvas.dataset.parameter;
+              const chartData = JSON.parse(canvas.dataset.chartData);
+              renderAnalysisChart(parameter, chartData, canvas.id);
+            });
+          };
+        } catch (error) {
+          console.error('Error inicializando chatbot:', error);
+          updateStatus("Error al inicializar el chatbot", true);
+          chatbotReady = true;
+          addMessage("⚠️ Hubo un problema al cargar los datos. Algunas funciones avanzadas podrían no estar disponibles.");
+        }
+      };
+      
+      // Event listeners
+      sendButton.addEventListener('click', sendMessage);
+      userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+      });
+      
+      // Inicializar el chatbot
+      initChatbot();
+    });
+  </script>
+</body>
+</html>
