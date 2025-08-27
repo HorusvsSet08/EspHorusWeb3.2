@@ -488,3 +488,82 @@
     border-color: #6aace6;
   }
 }
+
+/* Estilos para resultados de búsqueda */
+.web-results {
+  margin: 0.5rem 0;
+}
+
+.web-result {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--border-color);
+}
+
+.web-result h4 {
+  margin: 0 0 0.5rem 0;
+  color: #4a90e2;
+  font-size: 1rem;
+}
+
+.result-snippet {
+  color: var(--text-muted);
+  margin: 0.25rem 0;
+  line-height: 1.4;
+}
+
+.result-url {
+  color: #666;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.result-url:hover {
+  text-decoration: underline;
+}
+
+/* Estilos para la introducción del AI */
+.ai-intro {
+  margin-bottom: 0.75rem;
+}
+
+.ai-intro h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  color: var(--text-color);
+}
+
+.ai-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.feature-icon {
+  font-size: 1.1rem;
+}
+
+/* Marca de fuente de información */
+.source-badge {
+  display: inline-block;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  margin-left: 5px;
+  vertical-align: middle;
+}
