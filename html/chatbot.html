@@ -621,14 +621,18 @@
             'aumentando' : (predictions[predictions.length - 1].value < predictions[0].value ? 'disminuyendo' : 'estable');
           
           // Generar la respuesta basada en el análisis de los datos
-          let response = `<strong>Predicción avanzada de ${paramName} para los próximos ${days} días:</strong><br><br>`;
-          response += description + '<br><br>';
+          let response = `<div class="prediction-header">`;
+          response += `<h2>Predicción avanzada de ${paramName} para los próximos ${days} días</h2>`;
+          response += `<p>${description}</p>`;
+          response += `</div>`;
           
           response += `<div class="prediction-reliability ${reliability}">
-            <strong>Confiabilidad de la predicción: ${reliability.charAt(0).toUpperCase() + reliability.slice(1)}</strong><br>
-            Coeficiente de determinación (R²): ${(rSquared * 100).toFixed(1)}%<br>
-            ${reliabilityExplanation}
-          </div><br>`;
+            <div class="reliability-badge">${reliability.charAt(0).toUpperCase() + reliability.slice(1)}</div>
+            <div class="reliability-content">
+              <strong>Coeficiente de determinación (R²): ${(rSquared * 100).toFixed(1)}%</strong><br>
+              ${reliabilityExplanation}
+            </div>
+          </div>`;
           
           // Determinar el período
           let periodText = '';
@@ -641,8 +645,11 @@
           }
           
           // Resumen de la predicción
-          response += `• La ${paramName} se espera que ${trend} en el período analizado<br>`;
-          response += `• Rango esperado: <strong>${minPredicted.toFixed(1)}${unit} - ${maxPredicted.toFixed(1)}${unit}</strong><br>`;
+          response += `<div class="prediction-summary">`;
+          response += `<div class="summary-item"><strong>Tendencia</strong><br>La ${paramName} se espera que ${trend}</div>`;
+          response += `<div class="summary-item"><strong>Rango esperado</strong><br>${minPredicted.toFixed(1)}${unit} - ${maxPredicted.toFixed(1)}${unit}</div>`;
+          response += `<div class="summary-item"><strong>Promedio</strong><br>${(minPredicted + maxPredicted / 2).toFixed(1)}${unit}</div>`;
+          response += `</div>`;
           
           // Interpretación contextual
           let contextInterpretation = '';
@@ -692,7 +699,7 @@
             }
           }
           
-          response += `<br>${contextInterpretation}<br><br>`;
+          response += `<div class="prediction-interpretation">${contextInterpretation}</div>`;
           
           // Añadir un gráfico de predicción
           const chartId = `prediction-chart-${Date.now()}`;
@@ -771,7 +778,7 @@
           
           // Añade un gráfico de análisis
           const chartId = `prediction-chart-${Date.now()}`;
-          const chartResponse = `<br><div class="prediction-chart-container"><canvas class="prediction-chart" id="${chartId}" data-parameter="${parameter}" data-chart-data='${JSON.stringify(chartData)}'></canvas></div>`;
+          const chartResponse = `<div class="prediction-chart-container"><canvas class="prediction-chart" id="${chartId}" data-parameter="${parameter}" data-chart-data='${JSON.stringify(chartData)}'></canvas></div>`;
           
           // Actualizar contexto de conversación
           conversationContext.lastParameter = parameter;
@@ -906,15 +913,19 @@
         }
         
         // Genera la respuesta completa
-        let response = `<strong>Análisis de ${paramName} para ${periodInfo}:</strong><br><br>`;
-        response += description + '<br><br>';
+        let response = `<div class="analysis-header">`;
+        response += `<h2>Análisis de ${paramName} para ${periodInfo}</h2>`;
+        response += `<p>${description}</p>`;
+        response += `</div>`;
         
-        response += `• El valor promedio es de <strong>${avg.toFixed(1)}${unit}</strong><br>`;
-        response += `• El valor mínimo registrado fue de <strong>${min.toFixed(1)}${unit}</strong><br>`;
-        response += `• El valor máximo alcanzado fue de <strong>${max.toFixed(1)}${unit}</strong><br>`;
-        response += `• La tendencia general es que la ${paramName} ${trendDescription}<br><br>`;
+        response += `<div class="statistics-grid">`;
+        response += `<div class="stat-item"><strong>Promedio</strong><br><span class="stat-value">${avg.toFixed(1)}${unit}</span></div>`;
+        response += `<div class="stat-item"><strong>Mínimo</strong><br><span class="stat-value">${min.toFixed(1)}${unit}</span></div>`;
+        response += `<div class="stat-item"><strong>Máximo</strong><br><span class="stat-value">${max.toFixed(1)}${unit}</span></div>`;
+        response += `<div class="stat-item"><strong>Tendencia</strong><br><span class="stat-value">${trend}</span></div>`;
+        response += `</div>`;
         
-        response += contextInterpretation;
+        response += `<div class="analysis-interpretation">${contextInterpretation}</div>`;
         
         return response;
       };
@@ -959,10 +970,10 @@
         // Crea el nuevo gráfico
         const chart = new Chart(chartCtx, {
           type: 'line',
-           {
+          data: {
             datasets: [{
               label: paramName,
-               chartData,
+              data: chartData,
               borderColor: color,
               backgroundColor: `${color}40`,
               borderWidth: 3,
@@ -1048,10 +1059,10 @@
         // Crea el nuevo gráfico
         const chart = new Chart(chartCtx, {
           type: 'line',
-           {
+          data: {
             datasets: [{
               label: `${paramName} Predicha`,
-               predictionData,
+              data: predictionData,
               borderColor: color,
               backgroundColor: `${color}40`,
               borderWidth: 3,
