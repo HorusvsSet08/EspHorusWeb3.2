@@ -56,8 +56,8 @@
 
   <div class="container">
     <header>
-      <h1>🤖 Horus AI - Asistente Inteligente</h1>
-      <p>Un asistente avanzado con acceso a internet y entendimiento profundo de múltiples dominios</p>
+      <h1>🤖 Horus AI - Análisis Avanzado</h1>
+      <p>Un asistente inteligente con análisis semántico avanzado y procesamiento profundo de preguntas</p>
     </header>
 
     <main id="chat-container" class="chat-main-container">
@@ -68,23 +68,23 @@
           </div>
           <div class="message-content">
             <div class="ai-intro">
-              <h3>Horus AI</h3>
-              <p>Soy un asistente inteligente avanzado con acceso a información en tiempo real y especialización en análisis meteorológico.</p>
+              <h3>Horus AI - Análisis Semántico Avanzado</h3>
+              <p>Soy un asistente inteligente avanzado con capacidad para analizar profundamente tus preguntas y proporcionar respuestas precisas y contextualizadas.</p>
               <div class="ai-features">
-                <div class="feature"><span class="feature-icon">🌐</span> Acceso a internet</div>
-                <div class="feature"><span class="feature-icon">🧠</span> Entendimiento avanzado</div>
-                <div class="feature"><span class="feature-icon">📊</span> Análisis meteorológico</div>
-                <div class="feature"><span class="feature-icon">🔍</span> Búsqueda inteligente</div>
+                <div class="feature"><span class="feature-icon">🧠</span> Análisis semántico avanzado</div>
+                <div class="feature"><span class="feature-icon">🔍</span> Identificación de entidades</div>
+                <div class="feature"><span class="feature-icon">🔄</span> Manejo de contexto conversacional</div>
+                <div class="feature"><span class="feature-icon">📊</span> Análisis meteorológico profundo</div>
               </div>
             </div>
-            <p>Hazme cualquier pregunta, desde el clima hasta temas generales, y haré lo posible por ayudarte.</p>
+            <p>Formúlame cualquier pregunta, y analizaré su significado completo para proporcionarte una respuesta precisa y contextualizada.</p>
           </div>
           <div class="message-time">Ahora</div>
         </div>
       </div>
       <div class="chat-input">
         <div class="input-container">
-          <input type="text" id="user-input" placeholder="Escribe cualquier pregunta...">
+          <input type="text" id="user-input" placeholder="Haz una pregunta detallada...">
           <button id="send-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -93,10 +93,10 @@
           </button>
         </div>
         <div class="suggestion-bubbles">
-          <span class="suggestion">¿Cómo estará el clima mañana?</span>
-          <span class="suggestion">¿Qué es la energía solar?</span>
-          <span class="suggestion">Analiza la temperatura de la última semana</span>
-          <span class="suggestion">¿Cuál es la capital de Francia?</span>
+          <span class="suggestion">¿Cómo ha sido la tendencia de temperatura en la última semana?</span>
+          <span class="suggestion">¿Qué relación hay entre la humedad y la lluvia en los últimos datos?</span>
+          <span class="suggestion">Analiza si hay correlación entre el viento y la presión atmosférica</span>
+          <span class="suggestion">¿Cómo se compara el clima de hoy con el de hace una semana?</span>
         </div>
       </div>
     </main>
@@ -107,7 +107,7 @@
     </div>
 
     <footer>
-      <p>Horus AI - Asistente inteligente con acceso a internet y análisis meteorológico avanzado</p>
+      <p>Horus AI - Sistema avanzado de análisis semántico y procesamiento de preguntas</p>
     </footer>
   </div>
 
@@ -124,7 +124,10 @@
         lastParameter: null,
         lastPeriod: null,
         lastQuestionType: null,
-        conversationHistory: []
+        conversationHistory: [],
+        entityContext: {},
+        temporalContext: null,
+        spatialContext: null
       };
       
       // Elementos del DOM
@@ -480,7 +483,286 @@
         ]
       };
       
-      // Detectar intención del usuario con corrección de errores
+      // Sistema avanzado de análisis semántico
+      const semanticAnalysis = {
+        // Identificación de entidades
+        identifyEntities: (text) => {
+          const entities = {
+            parameters: [],
+            temporal: null,
+            spatial: null,
+            comparisons: [],
+            operations: []
+          };
+          
+          // Normalizar texto
+          const normalizedText = text.toLowerCase().replace(/[.,!?]/g, '');
+          
+          // Diccionarios para identificación
+          const parameterKeywords = {
+            'temp': ['temperatura', 'grados', 'calor', 'frío', 'termómetro'],
+            'hum': ['humedad', 'húmedo', 'humedo', 'vapor', 'saturación'],
+            'pres': ['presión', 'presion', 'atmosférica', 'barométrica', 'barómetro'],
+            'lluvia': ['lluvia', 'precipitación', 'precipitacion', 'pluvial', 'llovizna'],
+            'wind': ['viento', 'velocidad', 'ráfaga', 'dirección', 'brisa'],
+            'gas': ['gas', 'contaminación', 'pm25', 'pm10', 'partículas']
+          };
+          
+          const temporalKeywords = {
+            'today': ['hoy', 'actual', 'ahora', 'en este momento'],
+            'yesterday': ['ayer'],
+            'week': ['semana', 'siete días', '7 días'],
+            'month': ['mes', 'treinta días', '30 días'],
+            'year': ['año', 'doce meses', '365 días'],
+            'last_week': ['última semana', 'pasada semana', 'semana anterior'],
+            'last_month': ['último mes', 'pasado mes', 'mes anterior'],
+            'last_year': ['último año', 'pasado año', 'año anterior'],
+            'next_day': ['mañana', 'próximo día'],
+            'next_week': ['próxima semana', 'próximos siete días'],
+            'next_month': ['próximo mes', 'próximos treinta días']
+          };
+          
+          const comparisonKeywords = {
+            'vs': ['comparar', 'comparación', 'versus', 'vs', 'comparado con'],
+            'trend': ['tendencia', 'cambio', 'variación', 'evolución', 'patrón'],
+            'correlation': ['correlación', 'relación', 'conexión', 'asociación']
+          };
+          
+          const operationKeywords = {
+            'average': ['promedio', 'media', 'promedios', 'medias'],
+            'min': ['mínimo', 'menor', 'mínimos', 'menores'],
+            'max': ['máximo', 'mayor', 'máximos', 'mayores'],
+            'difference': ['diferencia', 'cambio', 'variación', 'desviación']
+          };
+          
+          // Identificar parámetros
+          for (const [param, keywords] of Object.entries(parameterKeywords)) {
+            if (keywords.some(kw => normalizedText.includes(kw))) {
+              entities.parameters.push(param);
+            }
+          }
+          
+          // Identificar temporal
+          for (const [time, keywords] of Object.entries(temporalKeywords)) {
+            if (keywords.some(kw => normalizedText.includes(kw))) {
+              entities.temporal = time;
+              break; // Solo tomamos el primero que encontramos
+            }
+          }
+          
+          // Identificar comparaciones
+          for (const [comp, keywords] of Object.entries(comparisonKeywords)) {
+            if (keywords.some(kw => normalizedText.includes(kw))) {
+              entities.comparisons.push(comp);
+            }
+          }
+          
+          // Identificar operaciones
+          for (const [op, keywords] of Object.entries(operationKeywords)) {
+            if (keywords.some(kw => normalizedText.includes(kw))) {
+              entities.operations.push(op);
+            }
+          }
+          
+          // Si no se encontró temporal, intentar identificar por contexto
+          if (!entities.temporal) {
+            if (normalizedText.includes('último')) {
+              entities.temporal = 'last_week';
+            } else if (normalizedText.includes('próximo')) {
+              entities.temporal = 'next_week';
+            } else {
+              // Por defecto, usar la última semana
+              entities.temporal = 'last_week';
+            }
+          }
+          
+          return entities;
+        },
+        
+        // Análisis de intención
+        analyzeIntent: (text, entities) => {
+          // Palabras clave para diferentes intenciones
+          const intentKeywords = {
+            prediction: ['predicción', 'pronóstico', 'predecir', 'previsión', 'pronosticar'],
+            analysis: ['analizar', 'análisis', 'comportamiento', 'tendencia', 'patrón'],
+            comparison: ['comparar', 'comparación', 'versus', 'vs', 'comparado'],
+            correlation: ['correlación', 'relación', 'conexión', 'asociación'],
+            help: ['ayuda', 'funciona', 'cómo', 'como', 'puedo', 'capaz', 'hacer', 'qué', 'que', 'preguntar'],
+            greeting: ['hola', 'buenos días', 'buenos dias', 'buenas tardes', 'hey', 'saludos', 'buen día', 'buen dia'],
+            goodbye: ['adiós', 'adios', 'gracias', 'chao', 'hasta luego', 'hasta pronto', 'nos vemos', 'bye']
+          };
+          
+          // Normalizar texto
+          const normalizedText = text.toLowerCase().replace(/[.,!?]/g, '');
+          
+          // Determinar intención principal
+          if (intentKeywords.greeting.some(kw => normalizedText.includes(kw))) {
+            return 'greeting';
+          }
+          
+          if (intentKeywords.goodbye.some(kw => normalizedText.includes(kw))) {
+            return 'goodbye';
+          }
+          
+          if (intentKeywords.help.some(kw => normalizedText.includes(kw))) {
+            return 'help';
+          }
+          
+          // Si hay comparaciones, es probable que sea una comparación
+          if (entities.comparisons.length > 0) {
+            return 'comparison';
+          }
+          
+          // Si hay correlación, es probable que sea una correlación
+          if (entities.comparisons.includes('correlation')) {
+            return 'correlation';
+          }
+          
+          // Si hay operaciones específicas, podría ser un análisis
+          if (entities.operations.length > 0 || entities.temporal) {
+            return 'analysis';
+          }
+          
+          // Si hay parámetros y temporal, podría ser una predicción
+          if (entities.parameters.length > 0 && entities.temporal && 
+              (entities.temporal.includes('next') || entities.temporal.includes('próximo'))) {
+            return 'prediction';
+          }
+          
+          // Por defecto, análisis
+          return 'analysis';
+        },
+        
+        // Análisis de preguntas compuestas
+        analyzeCompoundQuestions: (text) => {
+          // Dividir la pregunta en partes más pequeñas
+          const questionParts = [];
+          
+          // Buscar conectores que indiquen preguntas compuestas
+          const connectors = ['y', 'además', 'también', 'además de', 'mientras que', 'y también', 'y además'];
+          
+          // Dividir por conectores
+          let currentPart = text;
+          connectors.forEach(connector => {
+            if (currentPart.includes(connector)) {
+              const parts = currentPart.split(connector);
+              if (parts.length > 1) {
+                // Guardar la primera parte
+                if (parts[0].trim().length > 0) {
+                  questionParts.push(parts[0].trim());
+                }
+                // Continuar con la siguiente parte
+                currentPart = parts[1].trim();
+              }
+            }
+          });
+          
+          // Agregar la última parte
+          if (currentPart.trim().length > 0) {
+            questionParts.push(currentPart.trim());
+          }
+          
+          // Si no hay conectores, verificar si hay signos de interrogación múltiples
+          if (questionParts.length === 0 && (text.includes('?') && text.indexOf('?', text.indexOf('?') + 1) > -1)) {
+            const parts = text.split('?').filter(part => part.trim().length > 0);
+            parts.forEach(part => {
+              // Agregar el signo de interrogación al final
+              questionParts.push(part.trim() + '?');
+            });
+          }
+          
+          return questionParts.length > 1 ? questionParts : null;
+        },
+        
+        // Análisis de referencias
+        analyzeReferences: (text, context) => {
+          const references = {
+            temporal: null,
+            spatial: null,
+            parameters: []
+          };
+          
+          // Verificar referencias temporales
+          if (context.temporalContext) {
+            if (text.includes('ese período') || text.includes('ese periodo') || 
+                text.includes('ese tiempo') || text.includes('esa época')) {
+              references.temporal = context.temporalContext;
+            }
+          }
+          
+          // Verificar referencias espaciales
+          if (context.spatialContext) {
+            if (text.includes('ese lugar') || text.includes('esa zona') || 
+                text.includes('esa área') || text.includes('esa región')) {
+              references.spatial = context.spatialContext;
+            }
+          }
+          
+          // Verificar referencias a parámetros
+          const parameterKeywords = {
+            'temp': ['esa temperatura', 'ese calor', 'ese frío'],
+            'hum': ['esa humedad', 'esa saturación'],
+            'pres': ['esa presión', 'esa atmósfera'],
+            'lluvia': ['esa lluvia', 'esa precipitación'],
+            'wind': ['ese viento', 'esa brisa'],
+            'gas': ['ese gas', 'esa contaminación']
+          };
+          
+          for (const [param, keywords] of Object.entries(parameterKeywords)) {
+            if (keywords.some(kw => text.includes(kw))) {
+              references.parameters.push(param);
+            }
+          }
+          
+          return references;
+        },
+        
+        // Resolución de anáforas
+        resolveAnaphora: (text, context) => {
+          // Reemplazar pronombres por referencias concretas
+          let resolvedText = text;
+          
+          // Reemplazar "eso" por el último parámetro mencionado
+          if (context.lastParameter && (text.includes('eso') || text.includes('eso es') || text.includes('eso fue'))) {
+            let paramName = '';
+            switch (context.lastParameter) {
+              case 'temp': paramName = 'la temperatura'; break;
+              case 'hum': paramName = 'la humedad'; break;
+              case 'pres': paramName = 'la presión atmosférica'; break;
+              case 'lluvia': paramName = 'la precipitación'; break;
+              case 'wind': paramName = 'la velocidad del viento'; break;
+              case 'gas': paramName = 'el nivel de gas'; break;
+              default: paramName = 'el dato meteorológico';
+            }
+            
+            resolvedText = resolvedText.replace(/eso/g, paramName);
+          }
+          
+          // Reemplazar "hoy" si hay contexto temporal
+          if (context.temporalContext && (text.includes('ayer') || text.includes('mañana'))) {
+            // Si el contexto es "hoy", y pregunta sobre "ayer", ajustamos
+            if (context.temporalContext === 'today' && text.includes('ayer')) {
+              resolvedText = resolvedText.replace(/ayer/g, 'hace un día');
+            }
+          }
+          
+          return resolvedText;
+        },
+        
+        // Análisis de preguntas hipotéticas
+        analyzeHypotheticals: (text) => {
+          const hypotheticalIndicators = [
+            'si', 'suponiendo que', 'en el caso de', 'qué pasaría si', 
+            'cómo sería', 'cómo estaría', 'qué ocurriría', 'qué sucedería'
+          ];
+          
+          return hypotheticalIndicators.some(indicator => 
+            text.toLowerCase().includes(indicator)
+          );
+        }
+      };
+      
+      // Detectar intención del usuario con análisis semántico avanzado
       const detectIntent = (message) => {
         // Normalizar el mensaje
         const originalMessage = message;
@@ -504,209 +786,40 @@
         
         normalizedMessage = correctedWords.join(' ');
         
-        // Palabras clave para diferentes intenciones
-        const greetings = weatherDictionary.greeting;
-        const predictions = weatherDictionary.prediction;
-        const dataQueries = weatherDictionary.analysis;
-        const helpWords = weatherDictionary.help;
-        const goodbye = weatherDictionary.goodbye;
+        // Análisis semántico avanzado
+        const entities = semanticAnalysis.identifyEntities(normalizedMessage);
+        const intentType = semanticAnalysis.analyzeIntent(normalizedMessage, entities);
         
-        // Detecta tipo de intención
-        let intentType = 'unknown';
-        const entities = {};
+        // Verificar si es una pregunta compuesta
+        const compoundQuestions = semanticAnalysis.analyzeCompoundQuestions(normalizedMessage);
         
-        // Verifica saludos
-        if (greetings.some(word => normalizedMessage.includes(word))) {
-          intentType = 'greeting';
-        }
-        // Verifica despedidas
-        else if (goodbye.some(word => normalizedMessage.includes(word))) {
-          intentType = 'goodbye';
-        }
-        // Verifica predicciones
-        else if (predictions.some(word => normalizedMessage.includes(word))) {
-          intentType = 'prediction';
-          
-          // Detecta parámetros de predicción con corrección
-          const tempWords = weatherDictionary.temperature;
-          const humWords = weatherDictionary.humidity;
-          const presWords = weatherDictionary.pressure;
-          const rainWords = weatherDictionary.precipitation;
-          const windWords = weatherDictionary.wind;
-          const airWords = weatherDictionary.airQuality;
-          
-          // Buscar coincidencias con tolerancia
-          const hasTemp = tempWords.some(word => 
-            normalizedMessage.includes(word) || 
-            tempWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
-          );
-          
-          const hasHum = humWords.some(word => 
-            normalizedMessage.includes(word) || 
-            humWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
-          );
-          
-          const hasPres = presWords.some(word => 
-            normalizedMessage.includes(word) || 
-            presWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
-          );
-          
-          const hasRain = rainWords.some(word => 
-            normalizedMessage.includes(word) || 
-            rainWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
-          );
-          
-          const hasWind = windWords.some(word => 
-            normalizedMessage.includes(word) || 
-            windWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
-          );
-          
-          const hasAir = airWords.some(word => 
-            normalizedMessage.includes(word) || 
-            airWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
-          );
-          
-          // Detecta parámetros de predicción
-          if (hasTemp) {
-            entities.parameter = 'temp';
-          } else if (hasHum) {
-            entities.parameter = 'hum';
-          } else if (hasPres) {
-            entities.parameter = 'pres';
-          } else if (hasRain) {
-            entities.parameter = 'lluvia';
-          } else if (hasWind) {
-            entities.parameter = 'wind';
-          } else if (hasAir) {
-            entities.parameter = 'gas';
-          } else {
-            // Por defecto, predice temperatura
-            entities.parameter = 'temp';
-          }
-          
-          // Detecta horizonte temporal
-          if (normalizedMessage.includes('mañana')) {
-            entities.days = 1;
-          } else if (normalizedMessage.includes('pasado mañana')) {
-            entities.days = 2;
-          } else if (normalizedMessage.includes('3 días') || normalizedMessage.includes('tres días') || 
-                     normalizedMessage.includes('3 dias') || normalizedMessage.includes('tres dias')) {
-            entities.days = 3;
-          } else if (normalizedMessage.includes('4 días') || normalizedMessage.includes('cuatro días') || 
-                     normalizedMessage.includes('4 dias') || normalizedMessage.includes('cuatro dias')) {
-            entities.days = 4;
-          } else if (normalizedMessage.includes('5 días') || normalizedMessage.includes('cinco días') || 
-                     normalizedMessage.includes('5 dias') || normalizedMessage.includes('cinco dias')) {
-            entities.days = 5;
-          } else if (normalizedMessage.includes('6 días') || normalizedMessage.includes('seis días') || 
-                     normalizedMessage.includes('6 dias') || normalizedMessage.includes('seis dias')) {
-            entities.days = 6;
-          } else if (normalizedMessage.includes('fin de semana')) {
-            entities.days = 2; // Asumiendo que es para el fin de semana más cercano
-          } else {
-            entities.days = 7; // Por defecto, predicción de una semana
-          }
-        }
-        // Verifica consultas de datos
-        else if (dataQueries.some(word => normalizedMessage.includes(word))) {
-          intentType = 'data_query';
-          
-          // Detecta parámetros de consulta con tolerancia
-          const tempWords = weatherDictionary.temperature;
-          const humWords = weatherDictionary.humidity;
-          const presWords = weatherDictionary.pressure;
-          const rainWords = weatherDictionary.precipitation;
-          const windWords = weatherDictionary.wind;
-          const airWords = weatherDictionary.airQuality;
-          
-          // Buscar coincidencias con tolerancia
-          const hasTemp = tempWords.some(word => 
-            normalizedMessage.includes(word) || 
-            tempWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
-          );
-          
-          const hasHum = humWords.some(word => 
-            normalizedMessage.includes(word) || 
-            humWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
-          );
-          
-          const hasPres = presWords.some(word => 
-            normalizedMessage.includes(word) || 
-            presWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
-          );
-          
-          const hasRain = rainWords.some(word => 
-            normalizedMessage.includes(word) || 
-            rainWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
-          );
-          
-          const hasWind = windWords.some(word => 
-            normalizedMessage.includes(word) || 
-            windWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
-          );
-          
-          const hasAir = airWords.some(word => 
-            normalizedMessage.includes(word) || 
-            airWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
-          );
-          
-          // Detecta parámetros de consulta
-          if (hasTemp) {
-            entities.parameter = 'temp';
-          } else if (hasHum) {
-            entities.parameter = 'hum';
-          } else if (hasPres) {
-            entities.parameter = 'pres';
-          } else if (hasRain) {
-            entities.parameter = 'lluvia';
-          } else if (hasWind) {
-            entities.parameter = 'wind';
-          } else if (hasAir) {
-            entities.parameter = 'gas';
-          } else {
-            // Por defecto, consulta temperatura
-            entities.parameter = 'temp';
-          }
-          
-          // Detecta período de tiempo
-          if (normalizedMessage.includes('última semana') || normalizedMessage.includes('semana pasada') ||
-              normalizedMessage.includes('ultima semana') || normalizedMessage.includes('semana pasado')) {
-            entities.period = 'week';
-          } else if (normalizedMessage.includes('último mes') || normalizedMessage.includes('mes pasado') ||
-                     normalizedMessage.includes('ultimo mes') || normalizedMessage.includes('mes pasado')) {
-            entities.period = 'month';
-          } else if (normalizedMessage.includes('últimas 24 horas') || normalizedMessage.includes('hoy') ||
-                     normalizedMessage.includes('ultimas 24 horas') || normalizedMessage.includes('hoi')) {
-            entities.period = 'day';
-          } else {
-            entities.period = 'week'; // Por defecto, última semana
-          }
-        }
-        // Verifica solicitudes de ayuda
-        else if (helpWords.some(word => normalizedMessage.includes(word))) {
-          intentType = 'help';
-        }
+        // Verificar referencias
+        const references = semanticAnalysis.analyzeReferences(normalizedMessage, conversationContext);
         
-        // Si no se detectó intención clara, intenta adivinar
-        if (intentType === 'unknown') {
-          if (normalizedMessage.length > 5) { // Evitar detección en mensajes muy cortos
-            if (normalizedMessage.includes('cuál') || normalizedMessage.includes('cual') || 
-                normalizedMessage.includes('cómo') || normalizedMessage.includes('como') || 
-                normalizedMessage.includes('qué') || normalizedMessage.includes('que') || 
-                normalizedMessage.includes('dónde') || normalizedMessage.includes('donde') || 
-                normalizedMessage.includes('cuándo') || normalizedMessage.includes('cuando')) {
-              intentType = 'prediction'; // Asumir que es una pregunta de predicción
-            } else {
-              intentType = 'general'; // Por defecto, asume que quiere una pregunta general
-            }
-          }
-        }
+        // Resolver anáforas
+        const resolvedMessage = semanticAnalysis.resolveAnaphora(normalizedMessage, conversationContext);
+        
+        // Verificar si es hipotética
+        const isHypothetical = semanticAnalysis.analyzeHypotheticals(normalizedMessage);
+        
+        // Entidades para la respuesta
+        const detectedEntities = {
+          parameters: entities.parameters,
+          temporal: entities.temporal,
+          comparisons: entities.comparisons,
+          operations: entities.operations,
+          isCompound: compoundQuestions !== null,
+          compoundQuestions: compoundQuestions,
+          references,
+          isHypothetical
+        };
         
         return { 
           type: intentType, 
-          entities,
+          entities: detectedEntities,
           originalMessage,
-          correctedMessage: normalizedMessage
+          correctedMessage: normalizedMessage,
+          resolvedMessage
         };
       };
       
@@ -724,7 +837,7 @@
           greeting = "¡Buenas noches!";
         }
         
-        return `${greeting} Soy Horus AI, tu asistente inteligente con acceso a información actualizada. Puedo ayudarte con consultas meteorológicas especializadas o cualquier otra pregunta que tengas. ¿En qué puedo ayudarte hoy?`;
+        return `${greeting} Soy Horus AI, tu asistente inteligente con análisis semántico avanzado. Puedo entender preguntas complejas, identificar entidades y relaciones, y proporcionar respuestas profundas y contextualizadas. ¿En qué puedo ayudarte hoy?`;
       };
       
       // Generar respuesta de despedida
@@ -747,22 +860,25 @@
       // Generar respuesta de ayuda
       const handleHelp = () => {
         return "Puedo ayudarte con:<br><br>" +
-               "<strong>Consultas meteorológicas:</strong><br>" +
-               "- \"¿Cómo estará el clima mañana?\"<br>" +
-               "- \"Analiza la temperatura de la última semana\"<br>" +
-               "- \"Predice la humedad para el fin de semana\"<br><br>" +
-               "<strong>Consultas generales:</strong><br>" +
-               "- \"¿Qué es la energía solar?\"<br>" +
-               "- \"¿Cuál es la capital de Francia?\"<br>" +
-               "- \"Explica el efecto invernadero\"<br><br>" +
-               "Soy capaz de buscar información en tiempo real para responder a tus preguntas. ¡Hazme cualquier pregunta!";
+               "<strong>Consultas meteorológicas avanzadas:</strong><br>" +
+               "- \"¿Cómo ha sido la tendencia de temperatura en la última semana?\"<br>" +
+               "- \"¿Qué relación hay entre la humedad y la lluvia en los últimos datos?\"<br>" +
+               "- \"Analiza si hay correlación entre el viento y la presión atmosférica\"<br>" +
+               "- \"¿Cómo se compara el clima de hoy con el de hace una semana?\"<br><br>" +
+               "Soy capaz de:<br>" +
+               "- Analizar preguntas compuestas<br>" +
+               "- Identificar entidades y relaciones<br>" +
+               "- Resolver referencias y anáforas<br>" +
+               "- Entender preguntas hipotéticas<br>" +
+               "- Mantener el contexto de la conversación<br><br>" +
+               "¡Hazme cualquier pregunta detallada que necesites!";
       };
       
       // Generar respuesta general usando búsqueda web
-      const handleGeneralQuery = async (message) => {
+      const handleGeneralQuery = async (message, intent) => {
         try {
           // Mostrar mensaje de búsqueda
-          addMessage(`Buscando información sobre "${message}"...`, false, 'web');
+          addMessage(`Analizando tu pregunta en profundidad...`, false, 'web');
           
           // Realizar búsqueda web
           const searchResults = await webSearch(message);
@@ -770,7 +886,7 @@
           // Generar respuesta basada en los resultados
           if (searchResults.results && searchResults.results.length > 0) {
             let response = `<div class="web-results">`;
-            response += `<h3>Resultados de búsqueda para: "${message}"</h3>`;
+            response += `<h3>Análisis de tu pregunta: "${message}"</h3>`;
             
             // Mostrar los primeros 3 resultados
             const resultsToShow = searchResults.results.slice(0, 3);
@@ -786,22 +902,71 @@
             
             response += `</div>`;
             
-            // Añadir información adicional
+            // Añadir análisis inteligente
             response += `<div class="web-summary">`;
-            response += `<p>Basado en los resultados encontrados, puedo proporcionarte la siguiente información:</p>`;
+            response += `<h4>Análisis semántico de tu pregunta</h4>`;
+            
+            // Mostrar entidades identificadas
+            response += `<div class="semantic-analysis">`;
+            response += `<p><strong>Entidades identificadas:</strong></p>`;
+            response += `<ul>`;
+            
+            if (intent.entities.parameters.length > 0) {
+              response += `<li>Parámetros meteorológicos: ${intent.entities.parameters.map(p => 
+                p === 'temp' ? 'temperatura' : 
+                p === 'hum' ? 'humedad' : 
+                p === 'pres' ? 'presión atmosférica' :
+                p === 'lluvia' ? 'precipitación' :
+                p === 'wind' ? 'velocidad del viento' :
+                p === 'gas' ? 'nivel de gas' : p).join(', ')}</li>`;
+            }
+            
+            if (intent.entities.temporal) {
+              let temporalText = '';
+              switch (intent.entities.temporal) {
+                case 'today': temporalText = 'hoy'; break;
+                case 'yesterday': temporalText = 'ayer'; break;
+                case 'week': temporalText = 'la última semana'; break;
+                case 'month': temporalText = 'el último mes'; break;
+                case 'year': temporalText = 'el último año'; break;
+                case 'last_week': temporalText = 'la última semana'; break;
+                case 'last_month': temporalText = 'el último mes'; break;
+                case 'last_year': temporalText = 'el último año'; break;
+                case 'next_day': temporalText = 'mañana'; break;
+                case 'next_week': temporalText = 'la próxima semana'; break;
+                case 'next_month': temporalText = 'el próximo mes'; break;
+                default: temporalText = intent.entities.temporal;
+              }
+              response += `<li>Contexto temporal: ${temporalText}</li>`;
+            }
+            
+            if (intent.entities.comparisons.length > 0) {
+              response += `<li>Tipos de comparación: ${intent.entities.comparisons.map(c => 
+                c === 'vs' ? 'comparación directa' : 
+                c === 'trend' ? 'tendencia' :
+                c === 'correlation' ? 'correlación' : c).join(', ')}</li>`;
+            }
+            
+            if (intent.entities.operations.length > 0) {
+              response += `<li>Operaciones solicitadas: ${intent.entities.operations.join(', ')}</li>`;
+            }
+            
+            response += `</ul>`;
+            response += `</div>`;
             
             // Generar un resumen inteligente basado en los resultados
             if (message.toLowerCase().includes('capital')) {
               response += `<p>La capital de Francia es París, una ciudad con más de 2.1 millones de habitantes. Es el centro político, económico y cultural de Francia y uno de los destinos turísticos más populares del mundo.</p>`;
             }
             else if (message.toLowerCase().includes('energía solar')) {
-              response += `<p>La energía solar es una forma de energía renovable que se obtiene aprovechando la radiación electromagnética del Sol. Se puede convertir en energía térmica (calor) o energía eléctrica mediante paneles solares. Es una fuente de energía limpia y sostenible que está ganando popularidad a nivel mundial.</p>`;
+              response += `<p>La energía solar es una forma de energía renovable que se obtiene aprovechando la radiación electromagnética del Sol. Se puede convertir en energía térmica (calor) o energía eléctrica mediante paneles solares. Es una energía renovable y limpia que está ganando popularidad a nivel mundial.</p>`;
             }
             else if (message.toLowerCase().includes('clima')) {
               response += `<p>El clima se refiere a las condiciones atmosféricas promedio en una región durante un período prolongado. A diferencia del tiempo meteorológico, que describe las condiciones a corto plazo, el clima se analiza a lo largo de años o décadas. Los factores que influyen en el clima incluyen la latitud, la altitud, la proximidad al mar y las corrientes oceánicas.</p>`;
             }
             else {
-              response += `<p>La información proporcionada se basa en los resultados de búsqueda más relevantes. Si necesitas más detalles específicos sobre este tema, no dudes en preguntar.</p>`;
+              response += `<p>Basado en los resultados encontrados, puedo proporcionarte la siguiente información relevante:</p>`;
+              response += `<p>Analizando tu pregunta en profundidad, he identificado los elementos clave y relaciones relevantes. La información proporcionada se basa en fuentes confiables y está contextualizada según tu consulta específica.</p>`;
             }
             
             response += `</div>`;
@@ -1011,6 +1176,219 @@
         };
       };
       
+      // Generar análisis de correlación entre parámetros
+      const generateCorrelationAnalysis = (parameter1, parameter2, historicalData) => {
+        // Filtrar datos válidos para ambos parámetros
+        const validData = historicalData
+          .filter(item => 
+            item[parameter1] !== null && !isNaN(item[parameter1]) &&
+            item[parameter2] !== null && !isNaN(item[parameter2])
+          )
+          .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+        
+        if (validData.length < 5) {
+          return {
+            success: false,
+            message: "No hay suficientes datos históricos para analizar la correlación. Necesito al menos 5 puntos de datos."
+          };
+        }
+        
+        // Extraer valores para ambos parámetros
+        const values1 = validData.map(item => item[parameter1]);
+        const values2 = validData.map(item => item[parameter2]);
+        
+        // Calcular coeficiente de correlación
+        const correlation = calculateCorrelationCoefficient(values1, values2);
+        const rSquared = correlation * correlation;
+        
+        // Determinar la fuerza de la correlación
+        let correlationStrength = "muy débil";
+        let correlationDescription = "";
+        
+        if (Math.abs(correlation) > 0.7) {
+          correlationStrength = "muy fuerte";
+          correlationDescription = "Existe una relación lineal muy clara entre ambos parámetros.";
+        } else if (Math.abs(correlation) > 0.5) {
+          correlationStrength = "fuerte";
+          correlationDescription = "Existe una relación lineal notable entre ambos parámetros.";
+        } else if (Math.abs(correlation) > 0.3) {
+          correlationStrength = "moderada";
+          correlationDescription = "Existe una relación lineal perceptible entre ambos parámetros.";
+        } else {
+          correlationStrength = "débil";
+          correlationDescription = "La relación lineal entre ambos parámetros es muy débil o prácticamente inexistente.";
+        }
+        
+        // Determinar la dirección de la correlación
+        const correlationDirection = correlation > 0 ? "positiva" : "negativa";
+        
+        // Determinar interpretación contextual
+        let contextInterpretation = "";
+        const param1Name = parameter1 === 'temp' ? 'temperatura' : 
+                             parameter1 === 'hum' ? 'humedad' : 
+                             parameter1 === 'pres' ? 'presión atmosférica' :
+                             parameter1 === 'lluvia' ? 'precipitación' :
+                             parameter1 === 'wind' ? 'velocidad del viento' :
+                             parameter1 === 'gas' ? 'nivel de gas' : parameter1;
+                             
+        const param2Name = parameter2 === 'temp' ? 'temperatura' : 
+                           parameter2 === 'hum' ? 'humedad' : 
+                           parameter2 === 'pres' ? 'presión atmosférica' :
+                           parameter2 === 'lluvia' ? 'precipitación' :
+                           parameter2 === 'wind' ? 'velocidad del viento' :
+                           parameter2 === 'gas' ? 'nivel de gas' : parameter2;
+        
+        if (parameter1 === 'temp' && parameter2 === 'hum') {
+          if (correlation < 0) {
+            contextInterpretation = `La correlación negativa entre la temperatura y la humedad es consistente con principios meteorológicos básicos. A medida que aumenta la temperatura, el aire puede contener más vapor de agua, lo que generalmente resulta en una disminución de la humedad relativa.`;
+          } else {
+            contextInterpretation = `La correlación positiva observada entre la temperatura y la humedad es menos común, pero puede ocurrir en ciertas condiciones, como cuando hay una fuente constante de humedad (como un cuerpo de agua cercano) que aumenta tanto la temperatura como la humedad simultáneamente.`;
+          }
+        }
+        else if (parameter1 === 'pres' && parameter2 === 'lluvia') {
+          if (correlation < 0) {
+            contextInterpretation = `La correlación negativa entre la presión atmosférica y la precipitación es consistente con patrones meteorológicos típicos. Las bajas presiones suelen estar asociadas con sistemas de tormenta y mayor probabilidad de lluvia.`;
+          }
+        }
+        else if (parameter1 === 'temp' && parameter2 === 'pres') {
+          contextInterpretation = `La relación entre temperatura y presión atmosférica es compleja y puede variar según las condiciones. En general, la temperatura y la presión no tienen una correlación directa, pero pueden estar relacionadas a través de sistemas meteorológicos más amplios.`;
+        }
+        else {
+          contextInterpretation = `La correlación observada entre ${param1Name} y ${param2Name} sugiere una relación que podría ser útil para comprender mejor los patrones climáticos en tu ubicación.`;
+        }
+        
+        return {
+          success: true,
+          correlation,
+          rSquared,
+          correlationStrength,
+          correlationDirection,
+          correlationDescription,
+          contextInterpretation,
+          param1Name,
+          param2Name
+        };
+      };
+      
+      // Generar análisis comparativo
+      const generateComparativeAnalysis = (parameter, historicalData, period1, period2) => {
+        // Determinar fechas para los períodos
+        const now = new Date();
+        const period1Data = [];
+        const period2Data = [];
+        
+        // Función para obtener datos para un período específico
+        const getPeriodData = (period) => {
+          const data = [];
+          const endDate = new Date();
+          
+          let startDate;
+          if (period === 'week') {
+            startDate = new Date();
+            startDate.setDate(now.getDate() - 7);
+          } else if (period === 'month') {
+            startDate = new Date();
+            startDate.setMonth(now.getMonth() - 1);
+          } else if (period === 'year') {
+            startDate = new Date();
+            startDate.setFullYear(now.getFullYear() - 1);
+          } else if (period === 'last_week') {
+            // Semana anterior a la última semana
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(now.getDate() - 7);
+            startDate = new Date();
+            startDate.setDate(oneWeekAgo.getDate() - 7);
+            endDate = oneWeekAgo;
+          } else if (period === 'last_month') {
+            // Mes anterior al último mes
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(now.getMonth() - 1);
+            startDate = new Date();
+            startDate.setMonth(oneMonthAgo.getMonth() - 1);
+            endDate = oneMonthAgo;
+          } else {
+            // Por defecto, última semana
+            startDate = new Date();
+            startDate.setDate(now.getDate() - 7);
+          }
+          
+          // Filtrar datos para el período
+          return historicalData.filter(item => {
+            const itemDate = new Date(item.fecha);
+            return !isNaN(itemDate.getTime()) && itemDate >= startDate && itemDate <= endDate;
+          });
+        };
+        
+        // Obtener datos para ambos períodos
+        const data1 = getPeriodData(period1);
+        const data2 = getPeriodData(period2);
+        
+        // Preparar datos para análisis
+        const values1 = data1.map(item => item[parameter]).filter(val => val !== null && !isNaN(val));
+        const values2 = data2.map(item => item[parameter]).filter(val => val !== null && !isNaN(val));
+        
+        if (values1.length === 0 || values2.length === 0) {
+          return {
+            success: false,
+            message: "No hay suficientes datos históricos para realizar la comparación."
+          };
+        }
+        
+        // Calcular estadísticas
+        const avg1 = values1.reduce((sum, val) => sum + val, 0) / values1.length;
+        const avg2 = values2.reduce((sum, val) => sum + val, 0) / values2.length;
+        const min1 = Math.min(...values1);
+        const min2 = Math.min(...values2);
+        const max1 = Math.max(...values1);
+        const max2 = Math.max(...values2);
+        
+        // Determinar cambio
+        const change = avg2 - avg1;
+        const changePercent = (change / avg1) * 100;
+        
+        // Determinar interpretación
+        let interpretation = "";
+        const paramName = parameter === 'temp' ? 'temperatura' : 
+                          parameter === 'hum' ? 'humedad' : 
+                          parameter === 'pres' ? 'presión atmosférica' :
+                          parameter === 'lluvia' ? 'precipitación' :
+                          parameter === 'wind' ? 'velocidad del viento' :
+                          parameter === 'gas' ? 'nivel de gas' : parameter;
+        
+        if (change > 0) {
+          interpretation = `La ${paramName} ha aumentado en comparación con el período anterior.`;
+        } else if (change < 0) {
+          interpretation = `La ${paramName} ha disminuido en comparación con el período anterior.`;
+        } else {
+          interpretation = `La ${paramName} se ha mantenido estable en comparación con el período anterior.`;
+        }
+        
+        // Añadir detalles sobre la magnitud del cambio
+        if (Math.abs(changePercent) > 10) {
+          interpretation += ` El cambio es significativo (${changePercent.toFixed(1)}%).`;
+        } else if (Math.abs(changePercent) > 5) {
+          interpretation += ` El cambio es moderado (${changePercent.toFixed(1)}%).`;
+        } else {
+          interpretation += ` El cambio es mínimo (${changePercent.toFixed(1)}%).`;
+        }
+        
+        return {
+          success: true,
+          period1,
+          period2,
+          avg1,
+          avg2,
+          min1,
+          min2,
+          max1,
+          max2,
+          change,
+          changePercent,
+          interpretation,
+          paramName
+        };
+      };
+      
       // Generar predicciones meteorológicas
       const generateWeatherPrediction = async (intent) => {
         const { entities, correctedMessage } = intent;
@@ -1020,8 +1398,9 @@
           return "Actualmente no tengo suficientes datos históricos para realizar un análisis detallado. Necesito al menos 30 días de registros para identificar tendencias climáticas confiables.";
         }
         
-        const parameter = entities.parameter || 'temp';
-        const days = entities.days || 7;
+        // Determinar parámetro (usar el primero si hay múltiples)
+        const parameter = entities.parameters[0] || 'temp';
+        const days = 7; // Por defecto, 7 días
         
         try {
           // Generar predicciones avanzadas
@@ -1084,7 +1463,7 @@
           
           // Generar la respuesta basada en el análisis de los datos
           let response = `<div class="prediction-header">`;
-          response += `<h2>Predicción avanzada de ${paramName} para los próximos ${days} días</h2>`;
+          response += `<h2>Predicción avanzada de ${paramName} para los próximos 7 días</h2>`;
           response += `<p>${description}</p>`;
           response += `</div>`;
           
@@ -1095,16 +1474,6 @@
               ${reliabilityExplanation}
             </div>
           </div>`;
-          
-          // Determinar el período
-          let periodText = '';
-          if (days === 1) {
-            periodText = 'hoy';
-          } else if (days === 2) {
-            periodText = 'los próximos dos días';
-          } else {
-            periodText = `los próximos ${days} días`;
-          }
           
           // Resumen de la predicción
           response += `<div class="prediction-summary">`;
@@ -1174,7 +1543,7 @@
           
           // Actualizar contexto de conversación
           conversationContext.lastParameter = parameter;
-          conversationContext.lastPeriod = days;
+          conversationContext.temporalContext = 'next_week';
           conversationContext.lastQuestionType = 'prediction';
           
           return response;
@@ -1192,8 +1561,18 @@
           return "Actualmente no hay datos históricos disponibles para analizar. Por favor, verifica que la estación esté funcionando correctamente.";
         }
         
-        const parameter = entities.parameter || 'temp';
-        const period = entities.period || 'week';
+        // Determinar parámetro (usar el primero si hay múltiples)
+        const parameter = entities.parameters[0] || 'temp';
+        
+        // Determinar período
+        let period = 'week';
+        if (entities.temporal) {
+          if (entities.temporal.includes('last_month') || entities.temporal.includes('last_year')) {
+            period = entities.temporal.replace('last_', '');
+          } else if (entities.temporal.includes('month') || entities.temporal.includes('year')) {
+            period = entities.temporal;
+          }
+        }
         
         try {
           // Filtra datos según el período
@@ -1217,6 +1596,14 @@
               return !isNaN(itemDate.getTime()) && itemDate >= oneMonthAgo;
             });
             periodInfo = 'el último mes';
+          } else if (period === 'year') {
+            const oneYearAgo = new Date();
+            oneYearAgo.setFullYear(now.getFullYear() - 1);
+            filteredData = historicalData.filter(item => {
+              const itemDate = new Date(item.fecha);
+              return !isNaN(itemDate.getTime()) && itemDate >= oneYearAgo;
+            });
+            periodInfo = 'el último año';
           } else { // day
             const oneDayAgo = new Date();
             oneDayAgo.setDate(now.getDate() - 1);
@@ -1246,13 +1633,203 @@
           
           // Actualizar contexto de conversación
           conversationContext.lastParameter = parameter;
-          conversationContext.lastPeriod = period;
+          conversationContext.temporalContext = entities.temporal;
           conversationContext.lastQuestionType = 'analysis';
           
           return response + chartResponse;
         } catch (error) {
           console.error('Error en análisis de datos:', error);
           return "⚠️ Ocurrió un error al analizar los datos. Por favor, intenta nuevamente.";
+        }
+      };
+      
+      // Analizar correlación entre parámetros
+      const analyzeCorrelation = async (intent) => {
+        if (historicalData.length < 5) {
+          return "Actualmente no hay suficientes datos históricos para analizar correlaciones. Necesito al menos 5 puntos de datos.";
+        }
+        
+        // Determinar parámetros (necesitamos al menos 2)
+        if (intent.entities.parameters.length < 2) {
+          return "Para analizar una correlación, necesito que especifiques al menos dos parámetros meteorológicos. Por ejemplo: '¿Qué relación hay entre la temperatura y la humedad?'";
+        }
+        
+        const parameter1 = intent.entities.parameters[0];
+        const parameter2 = intent.entities.parameters[1];
+        
+        try {
+          // Generar análisis de correlación
+          const correlationResult = generateCorrelationAnalysis(parameter1, parameter2, historicalData);
+          
+          if (!correlationResult.success) {
+            return correlationResult.message;
+          }
+          
+          const { 
+            correlation, 
+            rSquared,
+            correlationStrength,
+            correlationDirection,
+            correlationDescription,
+            contextInterpretation,
+            param1Name,
+            param2Name
+          } = correlationResult;
+          
+          // Generar la respuesta
+          let response = `<div class="correlation-analysis">`;
+          response += `<h2>Análisis de Correlación entre ${param1Name} y ${param2Name}</h2>`;
+          response += `<p>He analizado la relación entre estos dos parámetros utilizando los datos históricos disponibles.</p>`;
+          
+          // Mostrar coeficiente de correlación
+          response += `<div class="correlation-metrics">`;
+          response += `<div class="metric-card">`;
+          response += `<div class="metric-value">${correlation.toFixed(2)}</div>`;
+          response += `<div class="metric-label">Coeficiente de Correlación</div>`;
+          response += `</div>`;
+          
+          response += `<div class="metric-card">`;
+          response += `<div class="metric-value">${(rSquared * 100).toFixed(1)}%</div>`;
+          response += `<div class="metric-label">Varianza Explicada</div>`;
+          response += `</div>`;
+          
+          response += `<div class="metric-card">`;
+          response += `<div class="metric-value">${correlationStrength.charAt(0).toUpperCase() + correlationStrength.slice(1)} ${correlationDirection}</div>`;
+          response += `<div class="metric-label">Tipo de Correlación</div>`;
+          response += `</div>`;
+          
+          response += `</div>`;
+          
+          // Interpretación
+          response += `<div class="interpretation">`;
+          response += `<h3>Interpretación</h3>`;
+          response += `<p>${correlationDescription}</p>`;
+          response += `<p>${contextInterpretation}</p>`;
+          
+          // Consejos prácticos
+          if (Math.abs(correlation) > 0.5) {
+            response += `<div class="practical-tip">`;
+            response += `<h4>Consejo práctico</h4>`;
+            if (correlation > 0) {
+              response += `<p>Al observar cambios en ${param1Name}, puedes esperar cambios similares en ${param2Name}, lo que puede ser útil para anticipar condiciones meteorológicas.</p>`;
+            } else {
+              response += `<p>Al observar cambios en ${param1Name}, puedes esperar cambios opuestos en ${param2Name}, lo que puede ser útil para anticipar condiciones meteorológicas.</p>`;
+            }
+            response += `</div>`;
+          }
+          
+          response += `</div>`;
+          
+          // Actualizar contexto de conversación
+          conversationContext.lastParameter = parameter1;
+          conversationContext.lastQuestionType = 'correlation';
+          
+          return response;
+        } catch (error) {
+          console.error('Error en análisis de correlación:', error);
+          return "⚠️ Ocurrió un error al analizar la correlación. Por favor, intenta nuevamente.";
+        }
+      };
+      
+      // Analizar comparación entre períodos
+      const analyzeComparison = async (intent) => {
+        if (historicalData.length < 14) {
+          return "Actualmente no hay suficientes datos históricos para realizar comparaciones. Necesito al menos 14 días de registros.";
+        }
+        
+        // Determinar parámetro
+        const parameter = intent.entities.parameters[0] || 'temp';
+        
+        // Determinar períodos para comparar
+        let period1 = 'last_week';
+        let period2 = 'week'; // Última semana
+        
+        // Si hay referencias específicas
+        if (intent.entities.references.temporal) {
+          period1 = intent.entities.references.temporal;
+        }
+        
+        try {
+          // Generar análisis comparativo
+          const comparisonResult = generateComparativeAnalysis(parameter, historicalData, period1, period2);
+          
+          if (!comparisonResult.success) {
+            return comparisonResult.message;
+          }
+          
+          const { 
+            avg1,
+            avg2,
+            min1,
+            min2,
+            max1,
+            max2,
+            change,
+            changePercent,
+            interpretation,
+            paramName
+          } = comparisonResult;
+          
+          // Generar la respuesta
+          let response = `<div class="comparison-analysis">`;
+          response += `<h2>Comparación de ${paramName} entre dos períodos</h2>`;
+          response += `<p>He comparado los valores de ${paramName} entre dos períodos diferentes para identificar tendencias y cambios.</p>`;
+          
+          // Mostrar métricas de comparación
+          response += `<div class="comparison-metrics">`;
+          response += `<div class="period-comparison">`;
+          response += `<div class="period period1">`;
+          response += `<h3>Período anterior</h3>`;
+          response += `<div class="stat">Promedio: ${avg1.toFixed(1)}</div>`;
+          response += `<div class="stat">Mínimo: ${min1.toFixed(1)}</div>`;
+          response += `<div class="stat">Máximo: ${max1.toFixed(1)}</div>`;
+          response += `</div>`;
+          
+          response += `<div class="period period2">`;
+          response += `<h3>Período actual</h3>`;
+          response += `<div class="stat">Promedio: ${avg2.toFixed(1)}</div>`;
+          response += `<div class="stat">Mínimo: ${min2.toFixed(1)}</div>`;
+          response += `<div class="stat">Máximo: ${max2.toFixed(1)}</div>`;
+          response += `</div>`;
+          
+          response += `</div>`;
+          
+          response += `<div class="change-summary">`;
+          const changeSign = change >= 0 ? '+' : '';
+          response += `<div class="change-value">${changeSign}${change.toFixed(1)}</div>`;
+          response += `<div class="change-percent">${changeSign}${changePercent.toFixed(1)}%</div>`;
+          response += `<div class="change-label">Cambio respecto al período anterior</div>`;
+          response += `</div>`;
+          
+          response += `</div>`;
+          
+          // Interpretación
+          response += `<div class="interpretation">`;
+          response += `<h3>Interpretación</h3>`;
+          response += `<p>${interpretation}</p>`;
+          
+          // Consejos prácticos
+          if (Math.abs(changePercent) > 5) {
+            response += `<div class="practical-tip">`;
+            response += `<h4>Consejo práctico</h4>`;
+            if (change > 0) {
+              response += `<p>Este cambio significativo en ${paramName} podría afectar tus actividades planificadas. Considera ajustar tus planes según estas condiciones cambiantes.</p>`;
+            } else {
+              response += `<p>Este cambio significativo en ${paramName} podría afectar tus actividades planificadas. Considera ajustar tus planes según estas condiciones cambiantes.</p>`;
+            }
+            response += `</div>`;
+          }
+          
+          response += `</div>`;
+          
+          // Actualizar contexto de conversación
+          conversationContext.lastParameter = parameter;
+          conversationContext.lastQuestionType = 'comparison';
+          
+          return response;
+        } catch (error) {
+          console.error('Error en análisis comparativo:', error);
+          return "⚠️ Ocurrió un error al realizar la comparación. Por favor, intenta nuevamente.";
         }
       };
       
@@ -1434,10 +2011,10 @@
         // Crea el nuevo gráfico
         const chart = new Chart(chartCtx, {
           type: 'line',
-          data: {
+           {
             datasets: [{
               label: paramName,
-              data: chartData,
+               chartData,
               borderColor: color,
               backgroundColor: `${color}40`,
               borderWidth: 3,
@@ -1588,6 +2165,68 @@
           addMessage(`🔍 Entiendo que quizás quisiste decir: "${intent.correctedMessage}"`, false);
         }
         
+        // Actualizar contexto temporal si se identifica uno
+        if (intent.entities.temporal) {
+          conversationContext.temporalContext = intent.entities.temporal;
+        }
+        
+        // Actualizar contexto de parámetros si se identifican
+        if (intent.entities.parameters.length > 0) {
+          conversationContext.lastParameter = intent.entities.parameters[0];
+        }
+        
+        // Si hay referencias, actualizar contexto
+        if (intent.entities.references.parameters.length > 0) {
+          conversationContext.lastParameter = intent.entities.references.parameters[0];
+        }
+        
+        // Si es una pregunta compuesta, procesar cada parte
+        if (intent.entities.isCompound && intent.entities.compoundQuestions) {
+          let response = `<div class="compound-question-analysis">`;
+          response += `<h2>Análisis de pregunta compuesta</h2>`;
+          response += `<p>He identificado que tu pregunta contiene múltiples partes. A continuación, analizo cada una por separado:</p>`;
+          
+          for (let i = 0; i < intent.entities.compoundQuestions.length; i++) {
+            const subQuestion = intent.entities.compoundQuestions[i];
+            response += `<div class="sub-question">`;
+            response += `<h3>Parte ${i+1}:</h3>`;
+            response += `<p><em>"${subQuestion}"</em></p>`;
+            
+            // Analizar la subpregunta
+            const subIntent = detectIntent(subQuestion);
+            let subResponse = "";
+            
+            switch (subIntent.type) {
+              case 'prediction':
+                subResponse = await generateWeatherPrediction(subIntent);
+                break;
+              case 'analysis':
+                subResponse = await analyzeHistoricalData(subIntent);
+                break;
+              case 'correlation':
+                subResponse = await analyzeCorrelation(subIntent);
+                break;
+              case 'comparison':
+                subResponse = await analyzeComparison(subIntent);
+                break;
+              default:
+                subResponse = await handleGeneralQuery(subQuestion, subIntent);
+            }
+            
+            // Extraer el contenido relevante de la respuesta
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = subResponse;
+            const analysisContent = tempDiv.querySelector('.prediction-interpretation, .analysis-interpretation, .interpretation') || tempDiv;
+            
+            response += `<div class="sub-answer">${analysisContent.innerHTML}</div>`;
+            response += `</div>`;
+          }
+          
+          response += `</div>`;
+          
+          return response;
+        }
+        
         // Procesa según la intención
         switch (intent.type) {
           case 'greeting':
@@ -1599,15 +2238,17 @@
           case 'prediction':
             return await generateWeatherPrediction(intent);
           
-          case 'data_query':
+          case 'analysis':
             return await analyzeHistoricalData(intent);
+          
+          case 'correlation':
+            return await analyzeCorrelation(intent);
+          
+          case 'comparison':
+            return await analyzeComparison(intent);
           
           case 'help':
             return handleHelp();
-          
-          case 'general':
-            // Para consultas generales, usamos la búsqueda web
-            return await handleGeneralQuery(message);
           
           default:
             // Intentar detectar contexto de conversación previa
@@ -1627,7 +2268,7 @@
             }
             
             // Si no hay contexto previo, usar búsqueda web para cualquier consulta
-            return await handleGeneralQuery(message);
+            return await handleGeneralQuery(message, intent);
         }
       };
       
