@@ -6,7 +6,6 @@
   <title>Chatbot Meteorológico - Horus</title>
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/chatbot.css" />
-  <!-- CORRECCIÓN: Nombre de archivo correcto con mayúsculas -->
   <script src="../js/PapaParse.js"></script>
   <script src="../js/chart.js"></script>
 </head>
@@ -111,7 +110,6 @@
     </footer>
   </div>
 
-  <!-- CARGA main.js AL FINAL: es CRÍTICO -->
   <script src="../js/main.js"></script>
   
   <script>
@@ -2008,13 +2006,13 @@
             paramName = 'Medición';
         }
         
-        // Crea el nuevo gráfico
+        // Crea el nuevo gráfico - CORRECCIÓN DE SINTAXIS AQUÍ
         const chart = new Chart(chartCtx, {
           type: 'line',
-           {
+          data: {  // ¡CORRECCIÓN: Añadida la propiedad data!
             datasets: [{
               label: paramName,
-               chartData,
+              data: chartData,  // ¡CORRECCIÓN: Añadida la propiedad data!
               borderColor: color,
               backgroundColor: `${color}40`,
               borderWidth: 3,
@@ -2097,13 +2095,13 @@
             paramName = 'Medición';
         }
         
-        // Crea el nuevo gráfico
+        // Crea el nuevo gráfico - CORRECCIÓN DE SINTAXIS AQUÍ
         const chart = new Chart(chartCtx, {
           type: 'line',
-          data: {
+          data: {  // ¡CORRECCIÓN: Añadida la propiedad data!
             datasets: [{
               label: `${paramName} Predicha`,
-              data: predictionData,
+              data: predictionData,  // ¡CORRECCIÓN: Añadida la propiedad data!
               borderColor: color,
               backgroundColor: `${color}40`,
               borderWidth: 3,
