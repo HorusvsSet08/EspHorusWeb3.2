@@ -57,12 +57,12 @@
   <div class="container">
     <header>
       <h1>🤖 Chatbot Meteorológico Horus</h1>
-      <p>Predicciones meteorológicas avanzadas basadas en análisis de tus datos históricos</p>
+      <p>Entiende consultas con errores tipográficos y ofrece análisis profesionales especializados en meteorología</p>
     </header>
 
     <main id="chat-container" class="chat-main-container">
       <div id="chat-messages" class="chat-messages">
-        <div class="message bot">¡Hola! Soy Horus, tu asistente meteorológico. Tengo acceso a tus datos históricos y utilizo técnicas avanzadas de análisis para generar predicciones meteorológicas personalizadas y fiables. ¿En qué puedo ayudarte?</div>
+        <div class="message bot">¡Hola! Soy Horus, tu asistente meteorológico especializado. Tanto si escribes con errores tipográficos como si usas términos técnicos o coloquiales, entenderé tu consulta sobre el clima. ¿En qué puedo ayudarte?</div>
       </div>
       <div class="chat-input">
         <input type="text" id="user-input" placeholder="Escribe tu pregunta sobre el clima...">
@@ -194,17 +194,173 @@
         });
       };
       
-      // Detectar intención del usuario
+      // Calcular distancia de Levenshtein para corrección de errores
+      const levenshteinDistance = (a, b) => {
+        if (a.length === 0) return b.length;
+        if (b.length === 0) return a.length;
+        
+        const matrix = [];
+        
+        // Incrementar fila
+        for (let i = 0; i <= b.length; i++) {
+          matrix[i] = [i];
+        }
+        
+        // Incrementar columna
+        for (let j = 0; j <= a.length; j++) {
+          matrix[0][j] = j;
+        }
+        
+        // Calcular distancia
+        for (let i = 1; i <= b.length; i++) {
+          for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+              matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+              matrix[i][j] = Math.min(
+                matrix[i - 1][j - 1] + 1, // Sustitución
+                matrix[i][j - 1] + 1, // Inserción
+                matrix[i - 1][j] + 1 // Eliminación
+              );
+            }
+          }
+        }
+        
+        return matrix[b.length][a.length];
+      };
+      
+      // Corregir errores tipográficos en palabras
+      const correctSpelling = (word, dictionary) => {
+        const minDistance = 2; // Máxima distancia permitida para considerar una corrección
+        let closestWord = word;
+        let minDist = Infinity;
+        
+        for (const dictWord of dictionary) {
+          const distance = levenshteinDistance(word, dictWord);
+          if (distance < minDist && distance <= minDistance) {
+            minDist = distance;
+            closestWord = dictWord;
+          }
+        }
+        
+        return minDist <= minDistance ? closestWord : word;
+      };
+      
+      // Diccionario meteorológico ampliado
+      const weatherDictionary = {
+        // Términos generales
+        general: [
+          'clima', 'tiempo', 'meteorología', 'atmosférico', 'atmosfera', 'condiciones', 'previsión', 
+          'pronóstico', 'predicción', 'tendencia', 'patrón', 'fenómeno', 'evento', 'sistema', 'masa', 
+          'aire', 'vapor', 'nube', 'lluvia', 'nieve', 'granizo', 'tormenta', 'huracán', 'tornado'
+        ],
+        
+        // Términos de temperatura
+        temperature: [
+          'temperatura', 'grados', 'calor', 'frío', 'termómetro', 'termica', 'termico', 'termicas',
+          'termicos', 'calido', 'calida', 'calidos', 'calidas', 'frio', 'frios', 'frias', 'frios',
+          'calidez', 'frialdad', 'termometro', 'termometría', 'termometria', 'termómetro', 'gradiente'
+        ],
+        
+        // Términos de humedad
+        humidity: [
+          'humedad', 'húmedo', 'humedo', 'humedad relativa', 'vapor', 'saturación', 'saturado',
+          'condensación', 'rocío', 'roció', 'rocio', 'humit', 'humitad', 'humitida', 'humitidad',
+          'humedad absoluta', 'punto de rocío', 'punto de roció', 'punto de rocio'
+        ],
+        
+        // Términos de presión
+        pressure: [
+          'presión', 'presion', 'atmosférica', 'atmosferica', 'barométrica', 'barometrica', 'barómetro',
+          'barometro', 'barometría', 'barometria', 'isobara', 'isobaras', 'alta presión', 'baja presión',
+          'anticiclón', 'anticiclon', 'ciclón', 'ciclon', 'gradiente', 'barica', 'barico'
+        ],
+        
+        // Términos de precipitación
+        precipitation: [
+          'lluvia', 'precipitación', 'precipitacion', 'pluvial', 'pluviales', 'pluviosidad', 'llovizna',
+          'aguacero', 'chubasco', 'tormenta', 'tormentas', 'diluvio', 'aguas', 'lluvioso', 'lluviosa',
+          'pluviómetro', 'pluviometro', 'pluviometría', 'pluviometria', 'precip', 'precips'
+        ],
+        
+        // Términos de viento
+        wind: [
+          'viento', 'velocidad', 'ráfaga', 'ráfagas', 'rafa', 'rafagas', 'anemómetro', 'anemometro',
+          'dirección', 'direccíon', 'direccon', 'direc', 'brisa', 'ráfaga', 'ráfagas', 'velocidad del viento',
+          'dirección del viento', 'circulación', 'circulaciones', 'anemografia', 'anemografía', 'anemometría'
+        ],
+        
+        // Términos de calidad del aire
+        airQuality: [
+          'gas', 'contaminación', 'contaminacion', 'pm25', 'pm10', 'partículas', 'particulas', 'calidad',
+          'calidad del aire', 'aéreo', 'aereo', 'aérea', 'aerea', 'contaminante', 'contaminantes',
+          'polución', 'polucion', 'contaminación atmosférica', 'contaminacion atmosferica'
+        ],
+        
+        // Términos de análisis
+        analysis: [
+          'analizar', 'análisis', 'analisis', 'tendencia', 'tendencias', 'comportamiento', 'patrón',
+          'patrones', 'variación', 'variaciones', 'cambio', 'cambios', 'evolución', 'evolucion',
+          'comparar', 'comparación', 'comparacion', 'evaluar', 'evaluación', 'evaluacion', 'estudiar'
+        ],
+        
+        // Términos de predicción
+        prediction: [
+          'predicción', 'prediccion', 'predecir', 'pronóstico', 'pronostico', 'pronosticar', 'previsión',
+          'prevision', 'prever', 'proyección', 'proyeccion', 'estimación', 'estimacion', 'proyectar',
+          'anticipar', 'anticipación', 'anticipacion', 'proyecciones', 'pronosticos', 'predicciones'
+        ],
+        
+        // Términos de ayuda
+        help: [
+          'ayuda', 'funciona', 'cómo', 'como', 'puedo', 'capaz', 'hacer', 'qué', 'que', 'preguntar',
+          'funcionalidad', 'uso', 'usar', 'ejemplo', 'ejemplos', 'instrucción', 'instrucciones',
+          'comando', 'comandos', 'guía', 'guias', 'tutorial', 'tutoriales', 'soporte', 'soportes'
+        ],
+        
+        // Términos de saludo
+        greeting: [
+          'hola', 'buenos días', 'buenos dias', 'buenas tardes', 'hey', 'saludos', 'buen día',
+          'buen dia', 'hola', 'ola', 'holi', 'holl', 'buenas', 'buenos', 'buenisimo', 'buenisima'
+        ],
+        
+        // Términos de despedida
+        goodbye: [
+          'adiós', 'adios', 'gracias', 'chao', 'hasta luego', 'hasta pronto', 'nos vemos', 'bye',
+          'adioss', 'adioss', 'hasta', 'luego', 'pronto', 'grax', 'gracias', 'gracis', 'grasias'
+        ]
+      };
+      
+      // Detectar intención del usuario con corrección de errores
       const detectIntent = (message) => {
         // Normalizar el mensaje
-        const normalizedMessage = message.toLowerCase().replace(/[.,!?]/g, '');
+        const originalMessage = message;
+        let normalizedMessage = message.toLowerCase().replace(/[.,!?]/g, '');
+        
+        // Corregir errores tipográficos en palabras individuales
+        const words = normalizedMessage.split(' ');
+        const correctedWords = words.map(word => {
+          // Si la palabra es muy corta, no la corregimos
+          if (word.length <= 2) return word;
+          
+          // Buscar en el diccionario
+          let corrected = word;
+          for (const category in weatherDictionary) {
+            corrected = correctSpelling(word, weatherDictionary[category]);
+            if (corrected !== word) break;
+          }
+          
+          return corrected;
+        });
+        
+        normalizedMessage = correctedWords.join(' ');
         
         // Palabras clave para diferentes intenciones
-        const greetings = ['hola', 'buenos días', 'buenas tardes', 'hey', 'saludos', 'buen día'];
-        const predictions = ['predic', 'predec', 'pronóstico', 'pronostico', 'mañana', 'próxim', 'proximo', 'futuro', 'siguiente', 'semana', 'día', 'días'];
-        const dataQueries = ['analiza', 'analizar', 'tendencia', 'historial', 'histórico', 'comportamiento', 'evolución', 'cómo ha estado', 'qué ha pasado', 'comparar', 'evolucion'];
-        const helpWords = ['ayuda', 'funciona', 'puedes', 'capaz', 'hacer', 'qué puedo preguntar', 'como funciona', 'como usar'];
-        const goodbye = ['adiós', 'gracias', 'chao', 'hasta luego', 'hasta pronto'];
+        const greetings = weatherDictionary.greeting;
+        const predictions = weatherDictionary.prediction;
+        const dataQueries = weatherDictionary.analysis;
+        const helpWords = weatherDictionary.help;
+        const goodbye = weatherDictionary.goodbye;
         
         // Detecta tipo de intención
         let intentType = 'unknown';
@@ -222,18 +378,57 @@
         else if (predictions.some(word => normalizedMessage.includes(word))) {
           intentType = 'prediction';
           
+          // Detecta parámetros de predicción con corrección
+          const tempWords = weatherDictionary.temperature;
+          const humWords = weatherDictionary.humidity;
+          const presWords = weatherDictionary.pressure;
+          const rainWords = weatherDictionary.precipitation;
+          const windWords = weatherDictionary.wind;
+          const airWords = weatherDictionary.airQuality;
+          
+          // Buscar coincidencias con tolerancia
+          const hasTemp = tempWords.some(word => 
+            normalizedMessage.includes(word) || 
+            tempWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
+          );
+          
+          const hasHum = humWords.some(word => 
+            normalizedMessage.includes(word) || 
+            humWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
+          );
+          
+          const hasPres = presWords.some(word => 
+            normalizedMessage.includes(word) || 
+            presWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
+          );
+          
+          const hasRain = rainWords.some(word => 
+            normalizedMessage.includes(word) || 
+            rainWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
+          );
+          
+          const hasWind = windWords.some(word => 
+            normalizedMessage.includes(word) || 
+            windWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
+          );
+          
+          const hasAir = airWords.some(word => 
+            normalizedMessage.includes(word) || 
+            airWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
+          );
+          
           // Detecta parámetros de predicción
-          if (normalizedMessage.includes('temperatura') || normalizedMessage.includes('grado') || normalizedMessage.includes('calor') || normalizedMessage.includes('frío')) {
+          if (hasTemp) {
             entities.parameter = 'temp';
-          } else if (normalizedMessage.includes('humedad') || normalizedMessage.includes('húmedo')) {
+          } else if (hasHum) {
             entities.parameter = 'hum';
-          } else if (normalizedMessage.includes('presión') || normalizedMessage.includes('presion') || normalizedMessage.includes('atmosférica')) {
+          } else if (hasPres) {
             entities.parameter = 'pres';
-          } else if (normalizedMessage.includes('lluvia') || normalizedMessage.includes('precipitación') || normalizedMessage.includes('llover')) {
+          } else if (hasRain) {
             entities.parameter = 'lluvia';
-          } else if (normalizedMessage.includes('viento') || normalizedMessage.includes('velocidad') || normalizedMessage.includes('ráfaga')) {
+          } else if (hasWind) {
             entities.parameter = 'wind';
-          } else if (normalizedMessage.includes('gas') || normalizedMessage.includes('contaminación')) {
+          } else if (hasAir) {
             entities.parameter = 'gas';
           } else {
             // Por defecto, predice temperatura
@@ -245,13 +440,17 @@
             entities.days = 1;
           } else if (normalizedMessage.includes('pasado mañana')) {
             entities.days = 2;
-          } else if (normalizedMessage.includes('3 días') || normalizedMessage.includes('tres días')) {
+          } else if (normalizedMessage.includes('3 días') || normalizedMessage.includes('tres días') || 
+                     normalizedMessage.includes('3 dias') || normalizedMessage.includes('tres dias')) {
             entities.days = 3;
-          } else if (normalizedMessage.includes('4 días') || normalizedMessage.includes('cuatro días')) {
+          } else if (normalizedMessage.includes('4 días') || normalizedMessage.includes('cuatro días') || 
+                     normalizedMessage.includes('4 dias') || normalizedMessage.includes('cuatro dias')) {
             entities.days = 4;
-          } else if (normalizedMessage.includes('5 días') || normalizedMessage.includes('cinco días')) {
+          } else if (normalizedMessage.includes('5 días') || normalizedMessage.includes('cinco días') || 
+                     normalizedMessage.includes('5 dias') || normalizedMessage.includes('cinco dias')) {
             entities.days = 5;
-          } else if (normalizedMessage.includes('6 días') || normalizedMessage.includes('seis días')) {
+          } else if (normalizedMessage.includes('6 días') || normalizedMessage.includes('seis días') || 
+                     normalizedMessage.includes('6 dias') || normalizedMessage.includes('seis dias')) {
             entities.days = 6;
           } else if (normalizedMessage.includes('fin de semana')) {
             entities.days = 2; // Asumiendo que es para el fin de semana más cercano
@@ -263,18 +462,57 @@
         else if (dataQueries.some(word => normalizedMessage.includes(word))) {
           intentType = 'data_query';
           
+          // Detecta parámetros de consulta con tolerancia
+          const tempWords = weatherDictionary.temperature;
+          const humWords = weatherDictionary.humidity;
+          const presWords = weatherDictionary.pressure;
+          const rainWords = weatherDictionary.precipitation;
+          const windWords = weatherDictionary.wind;
+          const airWords = weatherDictionary.airQuality;
+          
+          // Buscar coincidencias con tolerancia
+          const hasTemp = tempWords.some(word => 
+            normalizedMessage.includes(word) || 
+            tempWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
+          );
+          
+          const hasHum = humWords.some(word => 
+            normalizedMessage.includes(word) || 
+            humWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
+          );
+          
+          const hasPres = presWords.some(word => 
+            normalizedMessage.includes(word) || 
+            presWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
+          );
+          
+          const hasRain = rainWords.some(word => 
+            normalizedMessage.includes(word) || 
+            rainWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
+          );
+          
+          const hasWind = windWords.some(word => 
+            normalizedMessage.includes(word) || 
+            windWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
+          );
+          
+          const hasAir = airWords.some(word => 
+            normalizedMessage.includes(word) || 
+            airWords.some(dictWord => levenshteinDistance(word, dictWord) <= 2)
+          );
+          
           // Detecta parámetros de consulta
-          if (normalizedMessage.includes('temperatura') || normalizedMessage.includes('grado') || normalizedMessage.includes('calor') || normalizedMessage.includes('frío')) {
+          if (hasTemp) {
             entities.parameter = 'temp';
-          } else if (normalizedMessage.includes('humedad') || normalizedMessage.includes('húmedo')) {
+          } else if (hasHum) {
             entities.parameter = 'hum';
-          } else if (normalizedMessage.includes('presión') || normalizedMessage.includes('presion') || normalizedMessage.includes('atmosférica')) {
+          } else if (hasPres) {
             entities.parameter = 'pres';
-          } else if (normalizedMessage.includes('lluvia') || normalizedMessage.includes('precipitación') || normalizedMessage.includes('llover')) {
+          } else if (hasRain) {
             entities.parameter = 'lluvia';
-          } else if (normalizedMessage.includes('viento') || normalizedMessage.includes('velocidad') || normalizedMessage.includes('ráfaga')) {
+          } else if (hasWind) {
             entities.parameter = 'wind';
-          } else if (normalizedMessage.includes('gas') || normalizedMessage.includes('contaminación')) {
+          } else if (hasAir) {
             entities.parameter = 'gas';
           } else {
             // Por defecto, consulta temperatura
@@ -282,11 +520,14 @@
           }
           
           // Detecta período de tiempo
-          if (normalizedMessage.includes('última semana') || normalizedMessage.includes('semana pasada')) {
+          if (normalizedMessage.includes('última semana') || normalizedMessage.includes('semana pasada') ||
+              normalizedMessage.includes('ultima semana') || normalizedMessage.includes('semana pasado')) {
             entities.period = 'week';
-          } else if (normalizedMessage.includes('último mes') || normalizedMessage.includes('mes pasado')) {
+          } else if (normalizedMessage.includes('último mes') || normalizedMessage.includes('mes pasado') ||
+                     normalizedMessage.includes('ultimo mes') || normalizedMessage.includes('mes pasado')) {
             entities.period = 'month';
-          } else if (normalizedMessage.includes('últimas 24 horas') || normalizedMessage.includes('hoy')) {
+          } else if (normalizedMessage.includes('últimas 24 horas') || normalizedMessage.includes('hoy') ||
+                     normalizedMessage.includes('ultimas 24 horas') || normalizedMessage.includes('hoi')) {
             entities.period = 'day';
           } else {
             entities.period = 'week'; // Por defecto, última semana
@@ -300,9 +541,11 @@
         // Si no se detectó intención clara, intenta adivinar
         if (intentType === 'unknown') {
           if (normalizedMessage.length > 5) { // Evitar detección en mensajes muy cortos
-            if (normalizedMessage.includes('cuál') || normalizedMessage.includes('cómo') || 
-                normalizedMessage.includes('qué') || normalizedMessage.includes('dónde') || 
-                normalizedMessage.includes('cuándo')) {
+            if (normalizedMessage.includes('cuál') || normalizedMessage.includes('cual') || 
+                normalizedMessage.includes('cómo') || normalizedMessage.includes('como') || 
+                normalizedMessage.includes('qué') || normalizedMessage.includes('que') || 
+                normalizedMessage.includes('dónde') || normalizedMessage.includes('donde') || 
+                normalizedMessage.includes('cuándo') || normalizedMessage.includes('cuando')) {
               intentType = 'prediction'; // Asumir que es una pregunta de predicción
             } else {
               intentType = 'prediction'; // Por defecto, asume que quiere una predicción
@@ -310,7 +553,12 @@
           }
         }
         
-        return { type: intentType, entities };
+        return { 
+          type: intentType, 
+          entities,
+          originalMessage,
+          correctedMessage: normalizedMessage
+        };
       };
       
       // Generar respuesta de saludo
@@ -327,7 +575,7 @@
           greeting = "¡Buenas noches!";
         }
         
-        return `${greeting} Soy Horus, tu asistente meteorológico. Tengo acceso a tus datos históricos y utilizo técnicas avanzadas de análisis para generar predicciones meteorológicas personalizadas y fiables. ¿En qué puedo ayudarte?`;
+        return `${greeting} Soy Horus, tu asistente meteorológico especializado. Tanto si escribes con errores tipográficos como si usas términos técnicos o coloquiales, entenderé tu consulta sobre el clima. ¿En qué puedo ayudarte?`;
       };
       
       // Generar respuesta de despedida
@@ -350,10 +598,10 @@
       // Generar respuesta de ayuda
       const handleHelp = () => {
         return "Puedes hacer preguntas específicas sobre el clima como:<br><br>" +
-               "- \"¿Cómo será la temperatura mañana?\"<br>" +
-               "- \"Predice la humedad para el fin de semana\"<br>" +
-               "- \"¿Qué tendencia se observa en la presión atmosférica?\"<br>" +
-               "- \"Analiza los niveles de lluvia de la última semana y predice para los próximos días\"<br><br>" +
+               "- \"¿Cómo será la temp mañana?\" (entiende abreviaciones)<br>" +
+               "- \"Predice la humedad para el fin de smna\" (entiende errores tipográficos)<br>" +
+               "- \"¿Qué tendencia se observa en la presion atm?\" (entiende términos cortos)<br>" +
+               "- \"Analiza los niveles de llvia de la ultima smna\" (entiende errores comunes)<br><br>" +
                "El chatbot analizará tus datos históricos utilizando técnicas avanzadas de análisis para generar predicciones meteorológicas personalizadas y fiables.";
       };
       
@@ -553,7 +801,10 @@
       };
       
       // Generar predicciones meteorológicas
-      const generateWeatherPrediction = async (entities) => {
+      const generateWeatherPrediction = async (intent) => {
+        const { entities, correctedMessage } = intent;
+        const originalMessage = intent.originalMessage;
+        
         if (historicalData.length < 30) {
           return "Actualmente no tengo suficientes datos históricos para realizar un análisis detallado. Necesito al menos 30 días de registros para identificar tendencias climáticas confiables.";
         }
@@ -648,7 +899,7 @@
           response += `<div class="prediction-summary">`;
           response += `<div class="summary-item"><strong>Tendencia</strong><br>La ${paramName} se espera que ${trend}</div>`;
           response += `<div class="summary-item"><strong>Rango esperado</strong><br>${minPredicted.toFixed(1)}${unit} - ${maxPredicted.toFixed(1)}${unit}</div>`;
-          response += `<div class="summary-item"><strong>Promedio</strong><br>${(minPredicted + maxPredicted / 2).toFixed(1)}${unit}</div>`;
+          response += `<div class="summary-item"><strong>Promedio</strong><br>${(minPredicted + maxPredicted) / 2.toFixed(1)}${unit}</div>`;
           response += `</div>`;
           
           // Interpretación contextual
@@ -723,7 +974,9 @@
       };
       
       // Analiza datos históricos
-      const analyzeHistoricalData = async (entities) => {
+      const analyzeHistoricalData = async (intent) => {
+        const { entities } = intent;
+        
         if (historicalData.length === 0) {
           return "Actualmente no hay datos históricos disponibles para analizar. Por favor, verifica que la estación esté funcionando correctamente.";
         }
@@ -1112,6 +1365,11 @@
       const processUserMessage = async (message) => {
         const intent = detectIntent(message);
         
+        // Mostrar mensaje de corrección si hubo correcciones
+        if (intent.correctedMessage !== message.toLowerCase().replace(/[.,!?]/g, '')) {
+          addMessage(`🔍 Entiendo que quizás quisiste decir: "${intent.correctedMessage}"`, false);
+        }
+        
         // Procesa según la intención
         switch (intent.type) {
           case 'greeting':
@@ -1121,10 +1379,10 @@
             return handleGoodbye();
           
           case 'prediction':
-            return await generateWeatherPrediction(intent.entities);
+            return await generateWeatherPrediction(intent);
           
           case 'data_query':
-            return await analyzeHistoricalData(intent.entities);
+            return await analyzeHistoricalData(intent);
           
           case 'help':
             return handleHelp();
