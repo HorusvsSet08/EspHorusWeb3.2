@@ -345,7 +345,7 @@
             </div>
             <div class="detail">
               <span class="label">Puerto:</span>
-              <span class="value">8883</span>
+              <span class="value">8001</span>
             </div>
             <div class="detail">
               <span class="label">Cliente ID:</span>
@@ -773,11 +773,17 @@
       function connectToHiveMQ() {
         // URL del broker HiveMQ
         const brokerUrl = "broker.hivemq.com";
-        const brokerPort = 8883; // Puerto seguro
+        const brokerPort = 8001; // PUERTO CORRECTO PARA WEB SOCKET SEGURO
+        const path = "/mqtt"; // Path necesario para HiveMQ
         
         try {
           // Crear cliente MQTT usando Paho
-          mqttClient = new Paho.MQTT.Client(brokerUrl, brokerPort, clientId);
+          mqttClient = new Paho.MQTT.Client(
+            brokerUrl, 
+            brokerPort, 
+            path,
+            clientId
+          );
           
           // Configurar callbacks
           mqttClient.onConnectionLost = (responseObject) => {
@@ -817,11 +823,60 @@
             },
             onFailure: (error) => {
               console.error("Error al conectar:", error);
-              updateConnectionStatus(false, "Error de conexión");
-              setTimeout(connectToHiveMQ, 5000);
+              
+              // Si falla con puerto 8001, intentar con puerto 8000 (no seguro)
+              if (brokerPort === 8001) {
+                console.log("Intentando con puerto 8000 (WebSocket no seguro)...");
+                mqttClient = new Paho.MQTT.Client(
+                  brokerUrl, 
+                  8000, 
+                  path,
+                  clientId
+                );
+                
+                // Reconfigurar callbacks
+                mqttClient.onConnectionLost = (responseObject) => {
+                  console.log("Conexión perdida:", responseObject.errorMessage);
+                  updateConnectionStatus(false, "Desconectado");
+                  setTimeout(connectToHiveMQ, 5000);
+                };
+                
+                mqttClient.onMessageArrived = (message) => {
+                  const topic = message.destinationName;
+                  const payload = message.payloadString;
+                  updateUI(topic, payload);
+                };
+                
+                // Intentar conectar con puerto 8000
+                mqttClient.connect({
+                  onSuccess: () => {
+                    updateConnectionStatus(true, "Conectado (no seguro)");
+                    
+                    // Suscribirse a todos los topics
+                    mqttClient.subscribe("horus/vvb/temperatura", {qos: 0});
+                    mqttClient.subscribe("horus/vvb/humedad", {qos: 0});
+                    mqttClient.subscribe("horus/vvb/presion", {qos: 0});
+                    mqttClient.subscribe("horus/vvb/altitud", {qos: 0});
+                    mqttClient.subscribe("horus/vvb/pm25", {qos: 0});
+                    mqttClient.subscribe("horus/vvb/pm10", {qos: 0});
+                    mqttClient.subscribe("horus/vvb/wind_direction", {qos: 0});
+                    mqttClient.subscribe("horus/vvb/wind_speed", {qos: 0});
+                    mqttClient.subscribe("horus/vvb/gas", {qos: 0});
+                    mqttClient.subscribe("horus/vvb/lluvia", {qos: 0});
+                  },
+                  onFailure: (error) => {
+                    console.error("Error al conectar con puerto 8000:", error);
+                    updateConnectionStatus(false, "Error de conexión");
+                    setTimeout(connectToHiveMQ, 5000);
+                  },
+                  timeout: 3
+                });
+              } else {
+                updateConnectionStatus(false, "Error de conexión");
+                setTimeout(connectToHiveMQ, 5000);
+              }
             },
-            timeout: 3,
-            useSSL: true // ¡CRUCIAL! Debe ser true para HTTPS
+            timeout: 3
           };
           
           // Conectar
