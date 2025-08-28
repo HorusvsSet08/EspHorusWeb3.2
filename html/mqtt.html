@@ -157,6 +157,7 @@
   </div>
 
   <script src="../js/main.js"></script>
+  <!-- Incluimos MQTT.js desde unpkg -->
   <script src="../js/mqtt.js"></script>
   <script src="../js/chart.js"></script>
   <script>
@@ -188,6 +189,12 @@
       // Estado de conexión
       let isConnected = false;
       let mqttClient = null;
+      let previousValues = {
+        temperature: null,
+        humidity: null,
+        pressure: null,
+        gasLevel: null
+      };
       
       // Datos históricos para el gráfico
       const chartData = {
@@ -274,29 +281,37 @@
       
       // Actualizar métricas
       function updateMetrics(data) {
+        // Almacenar valores anteriores para tendencias
+        const prevValues = {
+          temperature: previousValues.temperature,
+          humidity: previousValues.humidity,
+          pressure: previousValues.pressure,
+          gasLevel: previousValues.gasLevel
+        };
+        
         // Actualizar temperatura
-        const prevTemp = parseFloat(temperatureEl.textContent);
         temperatureEl.textContent = `${data.temperature.toFixed(1)} °C`;
-        updateTrendIndicator(tempTrend, prevTemp, data.temperature);
+        previousValues.temperature = data.temperature;
+        updateTrendIndicator(tempTrend, prevValues.temperature, data.temperature);
         
         // Actualizar humedad
-        const prevHumidity = parseFloat(humidityEl.textContent);
         humidityEl.textContent = `${data.humidity.toFixed(1)} %`;
-        updateTrendIndicator(humidityTrend, prevHumidity, data.humidity);
+        previousValues.humidity = data.humidity;
+        updateTrendIndicator(humidityTrend, prevValues.humidity, data.humidity);
         
         // Actualizar presión
-        const prevPressure = parseFloat(pressureEl.textContent);
         pressureEl.textContent = `${data.pressure.toFixed(1)} hPa`;
-        updateTrendIndicator(pressureTrend, prevPressure, data.pressure);
+        previousValues.pressure = data.pressure;
+        updateTrendIndicator(pressureTrend, prevValues.pressure, data.pressure);
         
         // Actualizar viento
         windSpeedEl.textContent = `${data.windSpeed.toFixed(1)} km/h`;
         windDirectionEl.textContent = data.windDirection;
         
         // Actualizar nivel de gas
-        const prevGas = parseFloat(gasLevelEl.textContent);
         gasLevelEl.textContent = data.gasLevel;
-        updateTrendIndicator(gasTrend, prevGas, data.gasLevel);
+        previousValues.gasLevel = data.gasLevel;
+        updateTrendIndicator(gasTrend, prevValues.gasLevel, data.gasLevel);
         
         // Actualizar gráfico
         updateChart(data);
@@ -308,7 +323,7 @@
       
       // Actualizar indicador de tendencia
       function updateTrendIndicator(element, prevValue, newValue) {
-        if (prevValue === undefined || isNaN(prevValue)) return;
+        if (prevValue === null || prevValue === undefined) return;
         
         if (newValue > prevValue) {
           element.innerHTML = '↑';
@@ -344,84 +359,104 @@
         mqttChart.update();
       }
       
-      // Conectar a MQTT
+      // Conectar a MQTT usando MQTT.js
       function connectToMqtt() {
         try {
           mqttStatusText.textContent = 'Conexión: Conectando...';
           mqttStatusDot.style.backgroundColor = '#FFC107';
           
-          // Usar la librería Paho MQTT
-          mqttClient = new Paho.MQTT.Client(
-            'mqtt.eclipseprojects.io', 
-            80, 
-            '/mqtt',
-            'horus_client_' + Math.random().toString(36).substr(2, 9)
-          );
+          // Usar la librería MQTT.js
+          const brokerUrl = 'wss://mqtt.eclipseprojects.io:443/mqtt';
+          const clientId = 'horus_client_' + Math.random().toString(36).substr(2, 9);
           
-          // Configurar callbacks
-          mqttClient.onConnectionLost = (responseObject) => {
-            if (responseObject.errorCode !== 0) {
-              console.log("Conexión MQTT perdida: " + responseObject.errorMessage);
-              addToLog(`Conexión MQTT perdida: ${responseObject.errorMessage}`, 'error');
-              isConnected = false;
-              mqttStatusText.textContent = 'Conexión: Desconectado';
-              mqttStatusDot.style.backgroundColor = '#e74c3c';
-              mqttStatusDot.style.animation = 'none';
-              connectBtn.disabled = false;
-              disconnectBtn.disabled = true;
-            }
+          const options = {
+            clientId: clientId,
+            clean: true,
+            connectTimeout: 30000,
+            reconnectPeriod: 5000,
+            protocolVersion: 5,
+            keepalive: 60
           };
           
-          mqttClient.onMessageArrived = (message) => {
+          addToLog(`Intentando conectar a ${brokerUrl} con ID ${clientId}`, 'info');
+          
+          // Crear cliente MQTT.js
+          mqttClient = mqtt.connect(brokerUrl, options);
+          
+          // Configurar callbacks
+          mqttClient.on('connect', () => {
+            console.log("Conexión MQTT establecida");
+            addToLog("Conexión MQTT establecida con éxito", 'success');
+            
+            isConnected = true;
+            mqttStatusText.textContent = 'Conexión: Conectado';
+            mqttStatusDot.style.backgroundColor = '#4CAF50';
+            mqttStatusDot.style.animation = 'pulse 2s infinite';
+            connectBtn.disabled = true;
+            disconnectBtn.disabled = false;
+            
+            // Suscribirse al topic
+            const topic = 'horus/sensor/data';
+            mqttClient.subscribe(topic, (err) => {
+              if (!err) {
+                console.log("Suscrito al topic", topic);
+                addToLog(`Suscrito al topic ${topic}`, 'info');
+              } else {
+                console.error("Error al suscribirse:", err);
+                addToLog(`Error al suscribirse: ${err.message}`, 'error');
+              }
+            });
+          });
+          
+          mqttClient.on('error', (err) => {
+            console.error("Error MQTT:", err);
+            addToLog(`Error MQTT: ${err.message}`, 'error');
+            mqttStatusText.textContent = 'Conexión: Error';
+            mqttStatusDot.style.backgroundColor = '#e74c3c';
+            mqttStatusDot.style.animation = 'none';
+            isConnected = false;
+          });
+          
+          mqttClient.on('message', (topic, message) => {
             try {
-              const data = JSON.parse(message.payloadString);
+              const data = JSON.parse(message.toString());
               console.log("Datos recibidos:", data);
               
-              // Actualizar la interfaz con los datos
-              updateMetrics(data);
-              
-              // Agregar al registro
-              addToLog(`Nuevos datos recibidos: Temp=${data.temperature}°C, Hum=${data.humidity}%, Pres=${data.pressure}hPa`);
+              // Verificar que los datos contengan los campos necesarios
+              if (data.temperature !== undefined && 
+                  data.humidity !== undefined && 
+                  data.pressure !== undefined) {
+                // Actualizar la interfaz con los datos
+                updateMetrics(data);
+                
+                // Agregar al registro
+                addToLog(`Nuevos datos recibidos: Temp=${data.temperature}°C, Hum=${data.humidity}%, Pres=${data.pressure}hPa`);
+              } else {
+                addToLog("Datos recibidos incompletos", 'warning');
+                console.warn("Datos recibidos incompletos:", data);
+              }
             } catch (e) {
               console.error("Error al procesar mensaje MQTT:", e);
               addToLog(`Error al procesar mensaje: ${e.message}`, 'error');
             }
-          };
+          });
           
-          // Conectar
-          mqttClient.connect({
-            onSuccess: () => {
-              console.log("Conexión MQTT establecida");
-              addToLog("Conexión MQTT establecida con éxito", 'success');
-              
-              isConnected = true;
-              mqttStatusText.textContent = 'Conexión: Conectado';
-              mqttStatusDot.style.backgroundColor = '#4CAF50';
-              mqttStatusDot.style.animation = 'pulse 2s infinite';
-              connectBtn.disabled = true;
-              disconnectBtn.disabled = false;
-              
-              // Suscribirse al topic
-              mqttClient.subscribe('horus/sensor/data', {
-                onSuccess: () => {
-                  console.log("Suscrito al topic horus/sensor/data");
-                  addToLog("Suscrito al topic horus/sensor/data", 'info');
-                },
-                onFailure: (error) => {
-                  console.error("Error al suscribirse:", error);
-                  addToLog(`Error al suscribirse: ${error.errorMessage}`, 'error');
-                }
-              });
-            },
-            onFailure: (error) => {
-              console.error("Error al conectar MQTT:", error);
-              addToLog(`Error al conectar: ${error.errorMessage}`, 'error');
-              mqttStatusText.textContent = 'Conexión: Error';
+          mqttClient.on('reconnect', () => {
+            console.log("Intentando reconectar...");
+            addToLog("Intentando reconectar al broker MQTT...", 'info');
+            mqttStatusText.textContent = 'Conexión: Reconectando...';
+          });
+          
+          mqttClient.on('offline', () => {
+            console.log("Cliente MQTT offline");
+            addToLog("Cliente MQTT offline", 'warning');
+            if (isConnected) {
+              isConnected = false;
+              mqttStatusText.textContent = 'Conexión: Offline';
               mqttStatusDot.style.backgroundColor = '#e74c3c';
               mqttStatusDot.style.animation = 'none';
-            },
-            reconnect: true,
-            timeout: 30
+              connectBtn.disabled = false;
+            }
           });
           
         } catch (error) {
@@ -436,7 +471,7 @@
       // Desconectar de MQTT
       function disconnectFromMqtt() {
         if (mqttClient && isConnected) {
-          mqttClient.disconnect();
+          mqttClient.end();
           isConnected = false;
           mqttClient = null;
           
@@ -482,18 +517,7 @@
       }
       
       // Event listeners
-      connectBtn.addEventListener('click', () => {
-        connectToMqtt();
-        // Si queremos simular datos en lugar de usar MQTT real:
-        // addToLog("Modo simulación activado (sin conexión MQTT real)", 'info');
-        // isConnected = true;
-        // connectBtn.disabled = true;
-        // disconnectBtn.disabled = false;
-        // mqttStatusText.textContent = 'Conexión: Simulación';
-        // mqttStatusDot.style.backgroundColor = '#4CAF50';
-        // mqttStatusDot.style.animation = 'pulse 2s infinite';
-        // setTimeout(simulateMqttData, 1000);
-      });
+      connectBtn.addEventListener('click', connectToMqtt);
       
       disconnectBtn.addEventListener('click', disconnectFromMqtt);
       
