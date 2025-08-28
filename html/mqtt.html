@@ -4,8 +4,503 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Horus - Datos en Vivo MQTT</title>
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/mqtt.css" />
+  <style>
+    /* Variables de tema */
+    :root {
+      --primary-color: #4a90e2;
+      --card-bg: #ffffff;
+      --background-color: #f8f9fa;
+      --text-color: #212529;
+      --text-muted: #6c757d;
+      --border-color: #dee2e6;
+      --input-bg: #ffffff;
+    }
+
+    /* Modo oscuro */
+    [data-theme="dark"], .dark-mode {
+      --primary-color: #5a9ee2;
+      --card-bg: #2d3748;
+      --background-color: #1a202c;
+      --text-color: #e2e8f0;
+      --text-muted: #a0aec0;
+      --border-color: #4a5568;
+      --input-bg: #2d3748;
+    }
+
+    /* Estilos globales */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--text-color);
+      background-color: var(--background-color);
+      transition: background-color 0.3s ease;
+    }
+
+    .light-mode {
+      background-color: #f5f7fa;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    header {
+      text-align: center;
+      margin: 2rem 0;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-color);
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Estilos específicos para la página MQTT */
+    .mqtt-status {
+      grid-column: 1 / -1;
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      border: 1px solid var(--border-color);
+      min-width: 120px;
+      justify-content: center;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #e74c3c;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    .broker-info {
+      background-color: var(--background-color);
+      border-radius: 8px;
+      padding: 0.75rem;
+      flex: 1;
+      border: 1px solid var(--border-color);
+      font-size: 0.95rem;
+    }
+
+    .connection-controls {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .control-btn {
+      flex: 1;
+      padding: 0.5rem;
+      border: none;
+      border-radius: 6px;
+      background-color: var(--primary-color);
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .control-btn:hover {
+      background-color: #3a7bcd;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .control-btn:active {
+      transform: translateY(0);
+    }
+
+    .control-btn:disabled {
+      background-color: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      grid-column: 1 / -1;
+    }
+
+    .metric-card {
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      padding: 1.25rem;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      border: 1px solid var(--border-color);
+      height: 100%;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .metric-icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .metric-label {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+    }
+
+    .metric-value {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin: 0.25rem 0;
+      min-height: 1.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .data-log {
+      grid-column: 1 / -1;
+    }
+
+    .log-content {
+      max-height: 300px;
+      overflow-y: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      padding: 0.5rem;
+      background-color: var(--background-color);
+    }
+
+    .log-entry {
+      padding: 0.5rem;
+      margin-bottom: 0.25rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      transition: all 0.2s ease;
+    }
+
+    .log-entry:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .log-entry:last-child {
+      margin-bottom: 0;
+    }
+
+    .log-timestamp {
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+
+    .log-message {
+      color: var(--text-color);
+    }
+
+    .log-success {
+      background-color: rgba(39, 174, 96, 0.1);
+      border-left: 3px solid #27ae60;
+    }
+
+    .log-error {
+      background-color: rgba(231, 76, 60, 0.1);
+      border-left: 3px solid #e74c3c;
+    }
+
+    .log-info {
+      background-color: rgba(52, 152, 219, 0.1);
+      border-left: 3px solid #3498db;
+    }
+
+    .log-warning {
+      background-color: rgba(243, 156, 18, 0.1);
+      border-left: 3px solid #f39c12;
+    }
+
+    /* Navegación */
+    .nav {
+      background-color: var(--card-bg);
+      padding: 0.75rem 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--text-color);
+      transition: all 0.2s ease;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .nav-btn:hover {
+      background-color: var(--background-color);
+    }
+
+    .nav-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .nav-icon {
+      font-size: 1.1rem;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1.5rem;
+    }
+
+    /* Switch de tema */
+    .theme-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .theme-switch__checkbox {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .theme-switch__container {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    .theme-switch__clouds {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, #fff 0%, #e0e0e0 25%, #fff 50%, #e0e0e0 75%, #fff 100%);
+      animation: clouds 15s linear infinite;
+      opacity: 0.7;
+    }
+
+    .theme-switch__stars-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .theme-switch__circle-container {
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #fff;
+      transition: .4s;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-switch__moon {
+      width: 14px;
+      height: 14px;
+      background-color: #fbd062;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-switch__spot {
+      position: absolute;
+      background-color: #fbd062;
+      border-radius: 50%;
+      width: 3px;
+      height: 3px;
+    }
+
+    .theme-switch__spot:nth-child(1) {
+      top: 2px;
+      left: 3px;
+    }
+
+    .theme-switch__spot:nth-child(2) {
+      top: 5px;
+      right: 2px;
+    }
+
+    .theme-switch__spot:nth-child(3) {
+      bottom: 3px;
+      left: 3px;
+    }
+
+    .theme-switch__sun-moon-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-switch__checkbox:checked + .theme-switch__container {
+      background-color: #4a90e2;
+    }
+
+    .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container {
+      transform: translateX(26px);
+    }
+
+    .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__stars-container {
+      opacity: 1;
+    }
+
+    .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__clouds {
+      opacity: 0;
+    }
+
+    @keyframes clouds {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-100%);
+      }
+    }
+
+    /* Ajustes para modo oscuro */
+    @media (prefers-color-scheme: dark) {
+      .log-content {
+        background-color: #2a2a2a;
+      }
+      
+      .log-success {
+        border-left-color: #27ae60;
+      }
+      
+      .log-error {
+        border-left-color: #e74c3c;
+      }
+      
+      .log-info {
+        border-left-color: #3498db;
+      }
+      
+      .log-warning {
+        border-left-color: #f39c12;
+      }
+    }
+  </style>
 </head>
 <body class="light-mode">
   <nav class="nav">
@@ -63,7 +558,7 @@
         <div class="connection-status">
           <div class="status-indicator">
             <div class="status-dot" id="mqtt-status-dot"></div>
-            <span id="mqtt-status-text">Desconectado</span>
+            <span id="mqtt-status-text">Conectando...</span>
           </div>
           <div class="broker-info">
             <p><strong>Dispositivo:</strong> <span id="device-id">espHORUS</span></p>
@@ -72,8 +567,8 @@
           </div>
         </div>
         <div class="connection-controls">
-          <button id="connect-btn" class="control-btn">Conectar</button>
-          <button id="disconnect-btn" class="control-btn" disabled>Desconectar</button>
+          <button id="connect-btn" class="control-btn" disabled>Conectar</button>
+          <button id="disconnect-btn" class="control-btn">Desconectar</button>
         </div>
       </div>
 
@@ -135,7 +630,7 @@
         <div class="log-content" id="data-log">
           <div class="log-entry">
             <span class="log-timestamp">[Ahora]</span>
-            <span class="log-message">Sistema iniciado. Esperando conexión...</span>
+            <span class="log-message">Sistema iniciado. Conectando a HiveMQ...</span>
           </div>
         </div>
       </div>
@@ -398,12 +893,30 @@
       connectBtn.addEventListener('click', connectToHiveMQ);
       disconnectBtn.addEventListener('click', disconnectFromHiveMQ);
       
-      // Inicializar con estado desconectado
-      mqttStatusDot.style.backgroundColor = '#e74c3c';
-      mqttStatusDot.style.animation = 'none';
+      // Conexión automática al cargar la página
+      connectToHiveMQ();
       
-      // Si queremos iniciar conectado automáticamente para demostración:
-      // setTimeout(connectToHiveMQ, 500);
+      // Toggle tema oscuro/claro
+      const themeSwitch = document.querySelector('.theme-switch__checkbox');
+      themeSwitch.addEventListener('change', function() {
+        if (this.checked) {
+          document.body.classList.remove('light-mode');
+          document.body.classList.add('dark-mode');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.body.classList.remove('dark-mode');
+          document.body.classList.add('light-mode');
+          localStorage.setItem('theme', 'light');
+        }
+      });
+      
+      // Cargar tema guardado
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      if (savedTheme === 'dark') {
+        document.body.classList.remove('light-mode');
+        document.body.classList.add('dark-mode');
+        themeSwitch.checked = true;
+      }
     });
   </script>
 </body>
