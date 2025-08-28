@@ -777,7 +777,10 @@
         const path = "/mqtt"; // Path necesario para HiveMQ
         
         try {
-          // Crear cliente MQTT usando Paho
+          // Crear cliente MQTT usando Paho con la URL completa para WSS
+          // La clave está en usar el protocolo WSS explícitamente
+          const clientId = "espHorus_" + Math.random().toString(36).substr(2, 8);
+          
           mqttClient = new Paho.MQTT.Client(
             brokerUrl, 
             brokerPort, 
