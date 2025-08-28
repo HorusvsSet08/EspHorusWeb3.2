@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="../css/mqtt.css">
   
   <!-- Cargar librerías esenciales desde la carpeta js/ -->
-  <script src="../js/paho.js"></script>
+  <script src="../js/mqtt.js"></script>
   <script src="../js/aframe.js"></script>
   <script src="../js/nipple.js"></script>
   
@@ -608,7 +608,7 @@
       const vrRainValue = document.getElementById('vr-rain-value');
       
       // Generar un ID de cliente único
-      const clientId = "espHorus";
+      const clientId = "espHorus_" + Math.random().toString(36).substr(2, 8);
       clientIdElement.textContent = clientId;
       
       // Eliminar cualquier elemento residual de A-Frame
@@ -769,7 +769,7 @@
         }
       }
       
-      // Conectar al broker HiveMQ usando PAHO.MQTT
+      // Conectar al broker HiveMQ usando mqtt.min.js
       function connectToHiveMQ() {
         // URL del broker HiveMQ
         const brokerUrl = "broker.hivemq.com";
@@ -777,16 +777,9 @@
         const path = "/mqtt"; // Path necesario para HiveMQ
         
         try {
-          // Crear cliente MQTT usando Paho con la URL completa para WSS
-          // La clave está en usar el protocolo WSS explícitamente
-          const clientId = "espHorus_" + Math.random().toString(36).substr(2, 8);
-          
-          mqttClient = new Paho.MQTT.Client(
-            brokerUrl, 
-            brokerPort, 
-            path,
-            clientId
-          );
+          // Crear cliente MQTT usando mqtt.min.js con configuración específica para WSS
+          // Usamos un ID de cliente único para evitar conflictos
+          mqttClient = new Paho.MQTT.Client(brokerUrl, brokerPort, path, clientId);
           
           // Configurar callbacks
           mqttClient.onConnectionLost = (responseObject) => {
@@ -879,7 +872,8 @@
                 setTimeout(connectToHiveMQ, 5000);
               }
             },
-            timeout: 3
+            timeout: 3,
+            useSSL: true  // ¡CRUCIAL! Esto fuerza el uso de WSS
           };
           
           // Conectar
