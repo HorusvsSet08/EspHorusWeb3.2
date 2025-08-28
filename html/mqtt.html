@@ -172,6 +172,7 @@
       border: 1px solid rgba(0, 234, 255, 0.12);
       transform-style: preserve-3d;
       perspective: 1000px;
+      width: 1.2;
     }
     
     .sensor-card:hover {
@@ -217,43 +218,6 @@
       font-weight: 400;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-    }
-    
-    /* Estilo para el loader */
-    .loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--dark-bg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-    }
-    
-    .loader-spinner {
-      width: 55px;
-      height: 55px;
-      border: 4px solid rgba(0, 234, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: var(--primary-color);
-      animation: spin 1s ease-in-out infinite;
-      margin-bottom: 20px;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .loader-text {
-      color: var(--primary-color);
-      font-size: 17px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-shadow: 0 0 8px var(--primary-glow);
     }
     
     /* Asegurar que los elementos de A-Frame estén ocultos cuando no están en VR */
@@ -381,230 +345,191 @@
             </div>
             <div class="detail">
               <span class="label">Puerto:</span>
-              <span class="value">8884</span>
+              <span class="value">1883</span>
             </div>
             <div class="detail">
               <span class="label">Cliente ID:</span>
-              <span class="value" id="client-id">horus_client_XXXX</span>
+              <span class="value" id="client-id">espHorus</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="card">
-        <h2>Visualización 3D de Datos</h2>
-        <div class="chart-container">
-          <!-- Panel de datos en 2D para escritorio -->
-          <div class="data-grid">
-            <div class="data-item">
-              <div class="data-icon">🌡️</div>
-              <div class="data-label">Temperatura</div>
-              <div class="data-value" id="temp-2d">-- °C</div>
-            </div>
-            <div class="data-item">
-              <div class="data-icon">💧</div>
-              <div class="data-label">Humedad</div>
-              <div class="data-value" id="hum-2d">-- %</div>
-            </div>
-            <div class="data-item">
-              <div class="data-icon">⛰️</div>
-              <div class="data-label">Presión</div>
-              <div class="data-value" id="press-2d">-- hPa</div>
-            </div>
-            <div class="data-item">
-              <div class="data-icon">⛰️</div>
-              <div class="data-label">Altitud</div>
-              <div class="data-value" id="alt-2d">-- m</div>
-            </div>
-            <div class="data-item">
-              <div class="data-icon">🌫️</div>
-              <div class="data-label">PM2.5</div>
-              <div class="data-value" id="pm25-2d">-- μg/m³</div>
-            </div>
-            <div class="data-item">
-              <div class="data-icon">🌫️</div>
-              <div class="data-label">PM10</div>
-              <div class="data-value" id="pm10-2d">-- μg/m³</div>
-            </div>
-            <div class="data-item">
-              <div class="data-icon">🌀</div>
-              <div class="data-label">Dirección del Viento</div>
-              <div class="data-value" id="wind-2d">-- °</div>
-            </div>
-            <div class="data-item">
-              <div class="data-icon">💨</div>
-              <div class="data-label">Velocidad del Viento</div>
-              <div class="data-value" id="wind-speed-2d">-- km/h</div>
-            </div>
-            <div class="data-item">
-              <div class="data-icon">⛽</div>
-              <div class="data-label">Nivel de Gas</div>
-              <div class="data-value" id="gas-2d">-- kΩ</div>
-            </div>
-            <div class="data-item">
-              <div class="data-icon">🌧️</div>
-              <div class="data-label">Lluvia</div>
-              <div class="data-value" id="rain-2d">-- mm</div>
-            </div>
-          </div>
+      <!-- Interfaz simple como en la web original -->
+      <div class="data-grid">
+        <div class="data-item">
+          <div class="data-icon">🌡️</div>
+          <div class="data-label">Temperatura</div>
+          <div class="data-value" id="temp-value">-- °C</div>
+        </div>
+        <div class="data-item">
+          <div class="data-icon">💧</div>
+          <div class="data-label">Humedad</div>
+          <div class="data-value" id="hum-value">-- %</div>
+        </div>
+        <div class="data-item">
+          <div class="data-icon">⛰️</div>
+          <div class="data-label">Presión</div>
+          <div class="data-value" id="press-value">-- hPa</div>
+        </div>
+        <div class="data-item">
+          <div class="data-icon">⛰️</div>
+          <div class="data-label">Altitud</div>
+          <div class="data-value" id="alt-value">-- m</div>
+        </div>
+        <div class="data-item">
+          <div class="data-icon">🌫️</div>
+          <div class="data-label">PM2.5</div>
+          <div class="data-value" id="pm25-value">-- μg/m³</div>
+        </div>
+        <div class="data-item">
+          <div class="data-icon">🌫️</div>
+          <div class="data-label">PM10</div>
+          <div class="data-value" id="pm10-value">-- μg/m³</div>
+        </div>
+        <div class="data-item">
+          <div class="data-icon">🌀</div>
+          <div class="data-label">Dirección del Viento</div>
+          <div class="data-value" id="wind-dir-value">-- °</div>
+        </div>
+        <div class="data-item">
+          <div class="data-icon">💨</div>
+          <div class="data-label">Velocidad del Viento</div>
+          <div class="data-value" id="wind-speed-value">-- km/h</div>
+        </div>
+        <div class="data-item">
+          <div class="data-icon">⛽</div>
+          <div class="data-label">Nivel de Gas</div>
+          <div class="data-value" id="gas-value">-- kΩ</div>
+        </div>
+        <div class="data-item">
+          <div class="data-icon">🌧️</div>
+          <div class="data-label">Lluvia</div>
+          <div class="data-value" id="rain-value">-- mm</div>
+        </div>
+      </div>
+
+      <!-- Escena 3D para VR - CONFIGURACIÓN CORRECTA PARA A-FRAME -->
+      <a-scene embedded style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: none;" 
+               vr-mode-ui="enabled: false"
+               loading-screen="enabled: false">
+        
+        <!-- Configuración de la cámara -->
+        <a-entity id="camera-rig" position="0 1.6 0">
+          <a-entity id="camera" camera="fov: 85" look-controls>
+            <a-cursor 
+              raycaster="objects: .sensor-card" 
+              color="#00eaff" 
+              opacity="0.5"
+              radiusInner="0.01"
+              radiusOuter="0.02">
+            </a-cursor>
+          </a-entity>
+        </a-entity>
+        
+        <!-- Cilindro de datos 3D -->
+        <a-entity id="cylinder-dashboard">
+          <!-- Temperatura - 0 grados (frente) -->
+          <a-entity position="1.8 1.0 0" rotation="0 -90 0" class="sensor-card">
+            <a-entity class="sensor-header">
+              <a-text value="🌡️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+              <a-text value="TEMP" color="#FF5722" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+            </a-entity>
+            <a-text id="vr-temp-value" value="--" color="#FF5722" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+            <a-text value="°C" color="#a0a0a0" position="0.35 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+          </a-entity>
           
-          <!-- Escena 3D para VR - CONFIGURACIÓN CORRECTA PARA A-FRAME -->
-          <a-scene embedded style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: none;" 
-                   vr-mode-ui="enabled: false"
-                   loading-screen="enabled: false">
-            
-            <!-- Configuración de la cámara -->
-            <a-entity id="camera-rig" position="0 1.6 0">
-              <a-entity id="camera" camera="fov: 85" look-controls>
-                <a-cursor 
-                  raycaster="objects: .sensor-card" 
-                  color="#00eaff" 
-                  opacity="0.5"
-                  radiusInner="0.01"
-                  radiusOuter="0.02">
-                </a-cursor>
-              </a-entity>
+          <!-- Humedad - 45 grados -->
+          <a-entity position="1.27 1.0 1.27" rotation="0 -135 0" class="sensor-card">
+            <a-entity class="sensor-header">
+              <a-text value="💧" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+              <a-text value="HUM" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
             </a-entity>
-            
-            <!-- Panel de datos 3D -->
-            <a-entity id="dashboard" position="0 1.5 -1.2" rotation="0 0 0">
-              <!-- Temperatura -->
-              <a-entity position="-1.6 0.7 0.1" class="sensor-card">
-                <a-entity class="sensor-header">
-                  <a-text value="🌡️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                  <a-text value="TEMP" color="#FF5722" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                </a-entity>
-                <a-text id="temp-value" value="--" color="#FF5722" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-                <a-text value="°C" color="#a0a0a0" position="0.35 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-              </a-entity>
-              
-              <!-- Humedad -->
-              <a-entity position="-0.5 0.7 0.1" class="sensor-card">
-                <a-entity class="sensor-header">
-                  <a-text value="💧" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                  <a-text value="HUM" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                </a-entity>
-                <a-text id="hum-value" value="--" color="#2196F3" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-                <a-text value="%" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-              </a-entity>
-              
-              <!-- Presión -->
-              <a-entity position="0.6 0.7 0.1" class="sensor-card">
-                <a-entity class="sensor-header">
-                  <a-text value="🔽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                  <a-text value="PRES" color="#9E9E9E" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                </a-entity>
-                <a-text id="press-value" value="--" color="#9E9E9E" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-                <a-text value="hPa" color="#a0a0a0" position="0.4 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-              </a-entity>
-              
-              <!-- Altitud -->
-              <a-entity position="-1.6 0 0.1" class="sensor-card">
-                <a-entity class="sensor-header">
-                  <a-text value="⛰️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                  <a-text value="ALT" color="#673AB7" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                </a-entity>
-                <a-text id="alt-value" value="--" color="#673AB7" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-                <a-text value="m" color="#a0a0a0" position="0.25 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-              </a-entity>
-              
-              <!-- Gas -->
-              <a-entity position="-0.5 0 0.1" class="sensor-card">
-                <a-entity class="sensor-header">
-                  <a-text value="⛽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                  <a-text value="GAS" color="#FFEB3B" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                </a-entity>
-                <a-text id="gas-value" value="--" color="#FFEB3B" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-                <a-text value="kΩ" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-              </a-entity>
-              
-              <!-- Lluvia -->
-              <a-entity position="0.6 0 0.1" class="sensor-card">
-                <a-entity class="sensor-header">
-                  <a-text value="🌧️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                  <a-text value="LLUVIA" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                </a-entity>
-                <a-text id="rain-value" value="no" color="#2196F3" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-                <a-text value="mm" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-              </a-entity>
-              
-              <!-- PM2.5 -->
-              <a-entity position="-1.6 -0.7 0.1" class="sensor-card">
-                <a-entity class="sensor-header">
-                  <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                  <a-text value="PM2.5" color="#9C27B0" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                </a-entity>
-                <a-text id="pm25-value" value="--" color="#9C27B0" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-                <a-text value="μg/m³" color="#a0a0a0" position="0.5 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-              </a-entity>
-              
-              <!-- PM10 -->
-              <a-entity position="-0.5 -0.7 0.1" class="sensor-card">
-                <a-entity class="sensor-header">
-                  <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                  <a-text value="PM10" color="#673AB7" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                </a-entity>
-                <a-text id="pm10-value" value="--" color="#673AB7" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-                <a-text value="μg/m³" color="#a0a0a0" position="0.5 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-              </a-entity>
-              
-              <!-- Dirección del Viento -->
-              <a-entity position="0.6 -0.7 0.1" class="sensor-card">
-                <a-entity class="sensor-header">
-                  <a-text value="🌀" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                  <a-text value="VIENTO" color="#03A9F4" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                </a-entity>
-                <a-text id="wind-value" value="--" color="#03A9F4" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-                <a-text value="°" color="#a0a0a0" position="0.25 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-              </a-entity>
-              
-              <!-- Velocidad del Viento -->
-              <a-entity position="-1.6 -1.4 0.1" class="sensor-card">
-                <a-entity class="sensor-header">
-                  <a-text value="💨" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                  <a-text value="VEL. VIENTO" color="#4CAF50" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-                </a-entity>
-                <a-text id="wind-speed-value" value="--" color="#4CAF50" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-                <a-text value="km/h" color="#a0a0a0" position="0.4 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-              </a-entity>
+            <a-text id="vr-hum-value" value="--" color="#2196F3" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+            <a-text value="%" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+          </a-entity>
+          
+          <!-- Presión - 90 grados (derecha) -->
+          <a-entity position="0 1.0 1.8" rotation="0 -180 0" class="sensor-card">
+            <a-entity class="sensor-header">
+              <a-text value="🔽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+              <a-text value="PRES" color="#9E9E9E" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
             </a-entity>
-          </a-scene>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Datos en Tiempo Real</h2>
-        <div class="metrics-grid">
-          <div class="metric">
-            <div class="metric-icon">🌡️</div>
-            <div class="metric-info">
-              <div class="metric-value" id="temp-metric">-- °C</div>
-              <div class="metric-label">Temperatura</div>
-            </div>
-          </div>
-          <div class="metric">
-            <div class="metric-icon">💧</div>
-            <div class="metric-info">
-              <div class="metric-value" id="hum-metric">-- %</div>
-              <div class="metric-label">Humedad</div>
-            </div>
-          </div>
-          <div class="metric">
-            <div class="metric-icon">⛰️</div>
-            <div class="metric-info">
-              <div class="metric-value" id="press-metric">-- hPa</div>
-              <div class="metric-label">Presión</div>
-            </div>
-          </div>
-          <div class="metric">
-            <div class="metric-icon">💨</div>
-            <div class="metric-info">
-              <div class="metric-value" id="wind-metric">-- km/h</div>
-              <div class="metric-label">Viento</div>
-            </div>
-          </div>
-        </div>
-      </div>
+            <a-text id="vr-press-value" value="--" color="#9E9E9E" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+            <a-text value="hPa" color="#a0a0a0" position="0.4 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+          </a-entity>
+          
+          <!-- Altitud - 135 grados -->
+          <a-entity position="-1.27 1.0 1.27" rotation="0 -225 0" class="sensor-card">
+            <a-entity class="sensor-header">
+              <a-text value="⛰️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+              <a-text value="ALT" color="#673AB7" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+            </a-entity>
+            <a-text id="vr-alt-value" value="--" color="#673AB7" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+            <a-text value="m" color="#a0a0a0" position="0.25 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+          </a-entity>
+          
+          <!-- Gas - 180 grados (atrás) -->
+          <a-entity position="-1.8 1.0 0" rotation="0 -270 0" class="sensor-card">
+            <a-entity class="sensor-header">
+              <a-text value="⛽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+              <a-text value="GAS" color="#FFEB3B" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+            </a-entity>
+            <a-text id="vr-gas-value" value="--" color="#FFEB3B" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+            <a-text value="kΩ" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+          </a-entity>
+          
+          <!-- Lluvia - 225 grados -->
+          <a-entity position="-1.27 1.0 -1.27" rotation="0 -315 0" class="sensor-card">
+            <a-entity class="sensor-header">
+              <a-text value="🌧️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+              <a-text value="LLUVIA" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+            </a-entity>
+            <a-text id="vr-rain-value" value="no" color="#2196F3" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+            <a-text value="mm" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+          </a-entity>
+          
+          <!-- PM2.5 - 270 grados (izquierda) -->
+          <a-entity position="0 1.0 -1.8" rotation="0 0 0" class="sensor-card">
+            <a-entity class="sensor-header">
+              <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+              <a-text value="PM2.5" color="#9C27B0" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+            </a-entity>
+            <a-text id="vr-pm25-value" value="--" color="#9C27B0" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+            <a-text value="μg/m³" color="#a0a0a0" position="0.5 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+          </a-entity>
+          
+          <!-- PM10 - 315 grados -->
+          <a-entity position="1.27 1.0 -1.27" rotation="0 -45 0" class="sensor-card">
+            <a-entity class="sensor-header">
+              <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+              <a-text value="PM10" color="#673AB7" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+            </a-entity>
+            <a-text id="vr-pm10-value" value="--" color="#673AB7" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+            <a-text value="μg/m³" color="#a0a0a0" position="0.5 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+          </a-entity>
+          
+          <!-- Dirección del Viento - 0 grados (frente) - nivel inferior -->
+          <a-entity position="1.8 0.2 0" rotation="0 -90 0" class="sensor-card">
+            <a-entity class="sensor-header">
+              <a-text value="🌀" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+              <a-text value="VIENTO" color="#03A9F4" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+            </a-entity>
+            <a-text id="vr-wind-dir-value" value="--" color="#03A9F4" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+            <a-text value="°" color="#a0a0a0" position="0.25 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+          </a-entity>
+          
+          <!-- Velocidad del Viento - 90 grados (derecha) - nivel inferior -->
+          <a-entity position="0 0.2 1.8" rotation="0 -180 0" class="sensor-card">
+            <a-entity class="sensor-header">
+              <a-text value="💨" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+              <a-text value="VEL. VIENTO" color="#4CAF50" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+            </a-entity>
+            <a-text id="vr-wind-speed-value" value="--" color="#4CAF50" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+            <a-text value="km/h" color="#a0a0a0" position="0.4 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+          </a-entity>
+        </a-entity>
+      </a-scene>
     </main>
 
     <footer>
@@ -632,12 +557,6 @@
     <button class="orientation-btn" id="orientation-btn">Permitir</button>
   </div>
 
-  <!-- Loader de conexión -->
-  <div class="loader" id="loader">
-    <div class="loader-spinner"></div>
-    <div class="loader-text">CONECTANDO A HIVE MQ</div>
-  </div>
-
   <script src="../js/main.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
@@ -658,31 +577,38 @@
       const connectionStatusElement = document.getElementById('connection-status');
       const connectionLed = document.getElementById('connection-led');
       const connectionText = document.getElementById('connection-text');
-      const loader = document.getElementById('loader');
-      const vrButton = document.getElementById('vr-button');
-      const joystickContainer = document.getElementById('joystick-container');
-      const orientationPermission = document.getElementById('orientation-permission');
-      const orientationBtn = document.getElementById('orientation-btn');
       
       // Elementos de estado MQTT
       const mqttStatusDot = document.getElementById('mqtt-status-dot');
       const mqttStatusText = document.getElementById('mqtt-status-text');
       const clientIdElement = document.getElementById('client-id');
       
-      // Elementos de datos 2D
-      const temp2d = document.getElementById('temp-2d');
-      const hum2d = document.getElementById('hum-2d');
-      const press2d = document.getElementById('press-2d');
-      const alt2d = document.getElementById('alt-2d');
-      const pm252d = document.getElementById('pm25-2d');
-      const pm102d = document.getElementById('pm10-2d');
-      const wind2d = document.getElementById('wind-2d');
-      const windSpeed2d = document.getElementById('wind-speed-2d');
-      const gas2d = document.getElementById('gas-2d');
-      const rain2d = document.getElementById('rain-2d');
+      // Elementos de datos
+      const tempValue = document.getElementById('temp-value');
+      const humValue = document.getElementById('hum-value');
+      const pressValue = document.getElementById('press-value');
+      const altValue = document.getElementById('alt-value');
+      const pm25Value = document.getElementById('pm25-value');
+      const pm10Value = document.getElementById('pm10-value');
+      const windDirValue = document.getElementById('wind-dir-value');
+      const windSpeedValue = document.getElementById('wind-speed-value');
+      const gasValue = document.getElementById('gas-value');
+      const rainValue = document.getElementById('rain-value');
+      
+      // Elementos de datos VR
+      const vrTempValue = document.getElementById('vr-temp-value');
+      const vrHumValue = document.getElementById('vr-hum-value');
+      const vrPressValue = document.getElementById('vr-press-value');
+      const vrAltValue = document.getElementById('vr-alt-value');
+      const vrPm25Value = document.getElementById('vr-pm25-value');
+      const vrPm10Value = document.getElementById('vr-pm10-value');
+      const vrWindDirValue = document.getElementById('vr-wind-dir-value');
+      const vrWindSpeedValue = document.getElementById('vr-wind-speed-value');
+      const vrGasValue = document.getElementById('vr-gas-value');
+      const vrRainValue = document.getElementById('vr-rain-value');
       
       // Generar un ID de cliente único
-      const clientId = "web-client-" + Math.random().toString(16).substr(2, 8);
+      const clientId = "espHorus";
       clientIdElement.textContent = clientId;
       
       // Eliminar cualquier elemento residual de A-Frame
@@ -695,18 +621,6 @@
           element.style.pointerEvents = 'none';
           element.style.visibility = 'hidden';
         });
-        
-        // Eliminar cualquier estilo residual
-        const style = document.createElement('style');
-        style.innerHTML = `
-          .a-enter-vr, .a-canvas, .a-loader, .a-enter-ar, .a-fullscreen, .a-no-cursor, .a-cursor {
-            display: none !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            visibility: hidden !important;
-          }
-        `;
-        document.head.appendChild(style);
       }
       
       // Actualizar estado de conexión con animación
@@ -719,35 +633,16 @@
         mqttStatusDot.style.backgroundColor = connected ? '#4CAF50' : '#e74c3c';
         mqttStatusDot.style.animation = connected ? 'pulse 2s infinite' : 'none';
         mqttStatusText.textContent = connected ? "Conexión establecida con éxito" : (message || "Conexión perdida");
-        
-        if (connected) {
-          // Animación de conexión exitosa
-          connectionStatusElement.style.transform = 'scale(1.05)';
-          setTimeout(() => {
-            connectionStatusElement.style.transform = 'scale(1)';
-          }, 200);
-          
-          // Ocultar loader después de conexión
-          setTimeout(() => {
-            loader.style.opacity = '0';
-            setTimeout(() => {
-              loader.style.display = 'none';
-            }, 500);
-          }, 800);
-        } else {
-          loader.style.display = 'flex';
-          loader.style.opacity = '1';
-        }
       }
       
       // Solicitar permiso de orientación para VR en móviles
       function requestOrientationPermission() {
-        orientationPermission.style.display = 'flex';
+        document.getElementById('orientation-permission').style.display = 'flex';
       }
       
       // Inicializar VR después de obtener permisos
       function initVR() {
-        orientationPermission.style.display = 'none';
+        document.getElementById('orientation-permission').style.display = 'none';
         vrPermissionRequested = true;
         
         const scene = document.querySelector('a-scene');
@@ -756,22 +651,14 @@
             .then(() => {
               console.log("Entró a VR exitosamente");
               isVRMode = true;
-              
-              // Ajustar posición para VR
-              const dashboard = document.getElementById('dashboard');
-              if (dashboard) {
-                dashboard.setAttribute('position', '0 1.6 -1.0');
-              }
             })
             .catch(error => {
               console.error("Error al entrar a VR:", error);
-              isVRMode = false;
-              orientationPermission.style.display = 'flex';
+              document.getElementById('orientation-permission').style.display = 'flex';
             });
         } else {
           console.error("No se encontró la escena de A-Frame");
-          isVRMode = false;
-          orientationPermission.style.display = 'flex';
+          document.getElementById('orientation-permission').style.display = 'flex';
         }
       }
       
@@ -780,7 +667,7 @@
         if (!isMobile) return;
         
         // Mostrar joystick solo en móviles
-        joystickContainer.style.display = 'block';
+        document.getElementById('joystick-container').style.display = 'block';
         
         // Obtener referencias a la cámara
         cameraRig = document.getElementById('camera-rig');
@@ -793,7 +680,7 @@
         
         // Configurar el joystick con apariencia REALISTA
         joystick = nipplejs.create({
-          zone: joystickContainer,
+          zone: document.getElementById('joystick-container'),
           size: 85,
           threshold: 0.2,
           color: 'rgba(0, 234, 255, 0.6)',
@@ -827,62 +714,19 @@
         });
       }
       
-      // Ajustar posición del dashboard para VR
-      function adjustDashboardForVR() {
-        const dashboard = document.getElementById('dashboard');
-        const cameraRig = document.getElementById('camera-rig');
-        
-        if (dashboard) {
-          dashboard.setAttribute('position', '0 1.6 -1.0');
-        }
-        
-        if (cameraRig) {
-          // BAJAR LA CÁMARA EN VR (de 1.4 a 1.2 metros)
-          cameraRig.setAttribute('position', '0 1.2 0');
-        }
-      }
-      
-      // Restaurar posición del dashboard
-      function restoreDashboardPosition() {
-        const dashboard = document.getElementById('dashboard');
-        const cameraRig = document.getElementById('camera-rig');
-        
-        if (dashboard) {
-          // POSICIÓN AJUSTADA PARA ESCRITORIO (más cerca y ligeramente más baja)
-          dashboard.setAttribute('position', '0 1.5 -1.2');
-        }
-        
-        if (cameraRig) {
-          cameraRig.setAttribute('position', '0 1.6 0');
-        }
-      }
-      
       // Configurar la interfaz según el dispositivo
       function setupDeviceInterface() {
         if (isMobile) {
           // Mostrar botón VR solo en móviles
-          vrButton.style.display = 'flex';
+          document.getElementById('vr-button').style.display = 'flex';
           
           // Inicializar joystick para móviles
           initJoystick();
         }
-        
-        // Asegurar que el dashboard esté visible
-        const dashboard = document.getElementById('dashboard');
-        const cameraRig = document.getElementById('camera-rig');
-        
-        if (dashboard) {
-          // POSICIÓN AJUSTADA PARA ESCRITORIO (más cerca y ligeramente más baja)
-          dashboard.setAttribute('position', '0 1.5 -1.2');
-        }
-        
-        if (cameraRig) {
-          cameraRig.setAttribute('position', '0 1.6 0');
-        }
       }
       
-      // Actualizar datos en la interfaz 2D
-      function update2DInterface(topic, payload) {
+      // Actualizar datos en la interfaz
+      function updateUI(topic, payload) {
         const now = Date.now();
         
         // Solo actualizar si ha pasado suficiente tiempo
@@ -890,33 +734,38 @@
         
         lastDataUpdate = now;
         
-        // Actualizar interfaz 2D
+        // Actualizar interfaz según el topic
         if (topic === "horus/vvb/temperatura") {
-          temp2d.textContent = `${payload} °C`;
-          document.getElementById('temp-metric').textContent = `${payload} °C`;
+          tempValue.textContent = `${payload} °C`;
+          if (vrTempValue) vrTempValue.setAttribute('text', `value: ${payload}`);
         } else if (topic === "horus/vvb/humedad") {
-          hum2d.textContent = `${payload} %`;
-          document.getElementById('hum-metric').textContent = `${payload} %`;
+          humValue.textContent = `${payload} %`;
+          if (vrHumValue) vrHumValue.setAttribute('text', `value: ${payload}`);
         } else if (topic === "horus/vvb/presion") {
-          press2d.textContent = `${payload} hPa`;
-          document.getElementById('press-metric').textContent = `${payload} hPa`;
+          pressValue.textContent = `${payload} hPa`;
+          if (vrPressValue) vrPressValue.setAttribute('text', `value: ${payload}`);
         } else if (topic === "horus/vvb/altitud") {
-          alt2d.textContent = `${payload} m`;
+          altValue.textContent = `${payload} m`;
+          if (vrAltValue) vrAltValue.setAttribute('text', `value: ${payload}`);
         } else if (topic === "horus/vvb/pm25") {
-          pm252d.textContent = `${payload} μg/m³`;
+          pm25Value.textContent = `${payload} μg/m³`;
+          if (vrPm25Value) vrPm25Value.setAttribute('text', `value: ${payload}`);
         } else if (topic === "horus/vvb/pm10") {
-          pm102d.textContent = `${payload} μg/m³`;
+          pm10Value.textContent = `${payload} μg/m³`;
+          if (vrPm10Value) vrPm10Value.setAttribute('text', `value: ${payload}`);
         } else if (topic === "horus/vvb/wind_direction") {
-          wind2d.textContent = `${payload} °`;
-          document.getElementById('wind-metric').textContent = `${payload} °`;
+          windDirValue.textContent = `${payload} °`;
+          if (vrWindDirValue) vrWindDirValue.setAttribute('text', `value: ${payload}`);
         } else if (topic === "horus/vvb/wind_speed") {
-          windSpeed2d.textContent = `${payload} km/h`;
-          document.getElementById('wind-speed-metric').textContent = `${payload} km/h`;
+          windSpeedValue.textContent = `${payload} km/h`;
+          if (vrWindSpeedValue) vrWindSpeedValue.setAttribute('text', `value: ${payload}`);
         } else if (topic === "horus/vvb/gas") {
-          gas2d.textContent = `${payload} kΩ`;
+          gasValue.textContent = `${payload} kΩ`;
+          if (vrGasValue) vrGasValue.setAttribute('text', `value: ${payload}`);
         } else if (topic === "horus/vvb/lluvia") {
           const raining = ["1", "true", "si", "yes", "sí", "rain"].includes(payload.toLowerCase());
-          rain2d.textContent = raining ? 'Sí' : 'No';
+          rainValue.textContent = raining ? 'Sí' : 'No';
+          if (vrRainValue) vrRainValue.setAttribute('text', `value: ${raining ? 'sí' : 'no'}`);
         }
       }
       
@@ -924,7 +773,7 @@
       function connectToHiveMQ() {
         // URL del broker HiveMQ
         const brokerUrl = "broker.hivemq.com";
-        const brokerPort = 8884;
+        const brokerPort = 1883;
         
         try {
           // Crear cliente MQTT usando Paho
@@ -943,49 +792,28 @@
             const topic = message.destinationName;
             const payload = message.payloadString;
             
-            // Mapeo de topics a elementos
-            const topicMap = {
-              "horus/vvb/temperatura": "temp-value",
-              "horus/vvb/humedad": "hum-value",
-              "horus/vvb/presion": "press-value",
-              "horus/vvb/altitud": "alt-value",
-              "horus/vvb/gas": "gas-value",
-              "horus/vvb/lluvia": "rain-value",
-              "horus/vvb/pm25": "pm25-value",
-              "horus/vvb/pm10": "pm10-value",
-              "horus/vvb/wind_direction": "wind-value",
-              "horus/vvb/wind_speed": "wind-speed-value"
-            };
-            
-            const elementId = topicMap[topic];
-            if (!elementId) {
-              // Actualizar interfaz 2D
-              update2DInterface(topic, payload);
-              return;
-            }
-            
-            const element = document.getElementById(elementId);
-            if (!element) return;
-            
-            // Actualizar el valor
-            if (topic === "horus/vvb/lluvia") {
-              const raining = ["1", "true", "si", "yes", "sí", "rain"].includes(payload.toLowerCase());
-              element.setAttribute('text', `value: ${raining ? 'sí' : 'no'}`);
-              element.parentNode.querySelector('.unit').setAttribute('text', 'value: mm');
-            } else {
-              element.setAttribute('text', `value: ${payload}`);
-            }
-            
-            // Actualizar interfaz 2D
-            update2DInterface(topic, payload);
+            // Actualizar interfaz
+            updateUI(topic, payload);
           };
           
           // Manejar conexión exitosa
           const connectOptions = {
             onSuccess: () => {
               updateConnectionStatus(true, "Conectado");
-              mqttClient.subscribe("horus/#", {qos: 0});
-              console.log("Suscrito a horus/#");
+              
+              // Suscribirse a todos los topics
+              mqttClient.subscribe("horus/vvb/temperatura", {qos: 0});
+              mqttClient.subscribe("horus/vvb/humedad", {qos: 0});
+              mqttClient.subscribe("horus/vvb/presion", {qos: 0});
+              mqttClient.subscribe("horus/vvb/altitud", {qos: 0});
+              mqttClient.subscribe("horus/vvb/pm25", {qos: 0});
+              mqttClient.subscribe("horus/vvb/pm10", {qos: 0});
+              mqttClient.subscribe("horus/vvb/wind_direction", {qos: 0});
+              mqttClient.subscribe("horus/vvb/wind_speed", {qos: 0});
+              mqttClient.subscribe("horus/vvb/gas", {qos: 0});
+              mqttClient.subscribe("horus/vvb/lluvia", {qos: 0});
+              
+              console.log("Suscrito a todos los topics de Horus");
             },
             onFailure: (error) => {
               console.error("Error al conectar:", error);
@@ -993,7 +821,7 @@
               setTimeout(connectToHiveMQ, 5000);
             },
             timeout: 3,
-            useSSL: true
+            useSSL: false
           };
           
           // Conectar
@@ -1015,7 +843,7 @@
         setupDeviceInterface();
         
         // Configurar botón VR
-        vrButton.addEventListener('click', () => {
+        document.getElementById('vr-button').addEventListener('click', () => {
           if (isMobile && !vrPermissionRequested) {
             requestOrientationPermission();
           } else {
@@ -1024,7 +852,6 @@
               scene.enterVR()
                 .then(() => {
                   isVRMode = true;
-                  adjustDashboardForVR();
                   
                   // Mostrar la escena 3D y ocultar la interfaz principal
                   document.querySelector('.mqtt-dashboard').style.display = 'none';
@@ -1032,14 +859,14 @@
                 })
                 .catch(error => {
                   console.error("Error al entrar a VR:", error);
-                  orientationPermission.style.display = 'flex';
+                  document.getElementById('orientation-permission').style.display = 'flex';
                 });
             }
           }
         });
         
         // Configurar botón de permisos
-        orientationBtn.addEventListener('click', () => {
+        document.getElementById('orientation-btn').addEventListener('click', () => {
           if (isMobile && /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
             // Para iOS, necesitamos un evento de usuario para solicitar permisos
             if (typeof DeviceOrientationEvent !== 'undefined' && 
@@ -1064,7 +891,6 @@
         if (scene) {
           scene.addEventListener('enter-vr', () => {
             isVRMode = true;
-            adjustDashboardForVR();
             
             // Mostrar la escena 3D y ocultar la interfaz principal
             document.querySelector('.mqtt-dashboard').style.display = 'none';
@@ -1073,36 +899,12 @@
           
           scene.addEventListener('exit-vr', () => {
             isVRMode = false;
-            restoreDashboardPosition();
             
             // Mostrar la interfaz principal y ocultar la escena 3D
             document.querySelector('.mqtt-dashboard').style.display = 'block';
             scene.style.display = 'none';
           });
         }
-        
-        // Asegurar que el dashboard sea siempre visible
-        setTimeout(() => {
-          const dashboard = document.getElementById('dashboard');
-          const cameraRig = document.getElementById('camera-rig');
-          
-          if (dashboard) {
-            // POSICIÓN AJUSTADA PARA ESCRITORIO (más cerca y ligeramente más baja)
-            dashboard.setAttribute('position', '0 1.5 -1.2');
-          }
-          
-          if (cameraRig) {
-            cameraRig.setAttribute('position', '0 1.6 0');
-          }
-          
-          // Asegurar que el loader desaparezca después de 3 segundos
-          setTimeout(() => {
-            loader.style.opacity = '0';
-            setTimeout(() => {
-              loader.style.display = 'none';
-            }, 500);
-          }, 3000);
-        }, 1000);
         
         // Conectar al broker HiveMQ
         connectToHiveMQ();
