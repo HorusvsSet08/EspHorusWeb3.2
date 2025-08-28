@@ -54,20 +54,22 @@
   <div class="container">
     <header>
       <h1>Datos en Tiempo Real - MQTT</h1>
-      <p>Visualización de datos meteorológicos en tiempo real a través de MQTT</p>
+      <p>Visualización de datos meteorológicos en tiempo real a través de HiveMQ</p>
     </header>
 
     <main class="dashboard">
       <div class="card mqtt-status">
-        <h2>Estado de Conexión MQTT</h2>
-        <div class="status-indicator">
-          <div class="status-dot" id="mqtt-status-dot"></div>
-          <span id="mqtt-status-text">Conexión: Desconectado</span>
-        </div>
-        <div class="broker-info">
-          <p><strong>Broker:</strong> <span id="broker-address">mqtt.eclipseprojects.io</span></p>
-          <p><strong>Topic:</strong> <span id="mqtt-topic">horus/sensor/data</span></p>
-          <p><strong>Última actualización:</strong> <span id="last-update">Nunca</span></p>
+        <h2>Estado de Conexión</h2>
+        <div class="connection-status">
+          <div class="status-indicator">
+            <div class="status-dot" id="mqtt-status-dot"></div>
+            <span id="mqtt-status-text">Desconectado</span>
+          </div>
+          <div class="broker-info">
+            <p><strong>Dispositivo:</strong> <span id="device-id">espHORUS</span></p>
+            <p><strong>Broker:</strong> <span id="broker-address">broker.hivemq.com:1883</span></p>
+            <p><strong>Última actualización:</strong> <span id="last-update">Nunca</span></p>
+          </div>
         </div>
         <div class="connection-controls">
           <button id="connect-btn" class="control-btn">Conectar</button>
@@ -80,71 +82,60 @@
           <div class="metric-icon">🌡️</div>
           <div class="metric-label">Temperatura</div>
           <div class="metric-value" id="temperature">-- °C</div>
-          <div class="metric-trend" id="temp-trend">-</div>
         </div>
         <div class="metric-card">
           <div class="metric-icon">💧</div>
           <div class="metric-label">Humedad</div>
           <div class="metric-value" id="humidity">-- %</div>
-          <div class="metric-trend" id="humidity-trend">-</div>
         </div>
         <div class="metric-card">
           <div class="metric-icon">⛰️</div>
           <div class="metric-label">Presión</div>
           <div class="metric-value" id="pressure">-- hPa</div>
-          <div class="metric-trend" id="pressure-trend">-</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">⛰️</div>
+          <div class="metric-label">Altitud</div>
+          <div class="metric-value" id="altitude">-- m</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">🌫️</div>
+          <div class="metric-label">PM2.5</div>
+          <div class="metric-value" id="pm25">-- µg/m³</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">🌫️</div>
+          <div class="metric-label">PM10</div>
+          <div class="metric-value" id="pm10">-- µg/m³</div>
         </div>
         <div class="metric-card">
           <div class="metric-icon">💨</div>
           <div class="metric-label">Velocidad Viento</div>
           <div class="metric-value" id="wind-speed">-- km/h</div>
-          <div class="metric-trend" id="wind-trend">-</div>
         </div>
         <div class="metric-card">
           <div class="metric-icon">🧭</div>
           <div class="metric-label">Dirección Viento</div>
           <div class="metric-value" id="wind-direction">--</div>
-          <div class="metric-trend">-</div>
         </div>
         <div class="metric-card">
           <div class="metric-icon">⛽</div>
           <div class="metric-label">Nivel de Gas</div>
-          <div class="metric-value" id="gas-level">--</div>
-          <div class="metric-trend" id="gas-trend">-</div>
+          <div class="metric-value" id="gas-level">-- kΩ</div>
         </div>
-      </div>
-
-      <div class="card chart-container">
-        <h2>Tendencia de los Últimos 10 Minutos</h2>
-        <div class="chart-filters">
-          <button class="filter-btn active" data-chart="all">Todos</button>
-          <button class="filter-btn" data-chart="temp">Temperatura</button>
-          <button class="filter-btn" data-chart="humidity">Humedad</button>
-          <button class="filter-btn" data-chart="pressure">Presión</button>
-        </div>
-        <div class="chart-wrapper">
-          <canvas id="mqtt-chart" width="400" height="200"></canvas>
+        <div class="metric-card">
+          <div class="metric-icon">🌧️</div>
+          <div class="metric-label">Lluvia</div>
+          <div class="metric-value" id="rain">-- mm</div>
         </div>
       </div>
 
       <div class="card data-log">
-        <h2>Registro de Datos Recientes</h2>
-        <div class="log-controls">
-          <button id="clear-log-btn" class="control-btn">Limpiar Registro</button>
-          <div class="log-filter">
-            <label for="log-filter">Filtrar por:</label>
-            <select id="log-filter">
-              <option value="all">Todos los datos</option>
-              <option value="temperature">Temperatura</option>
-              <option value="humidity">Humedad</option>
-              <option value="pressure">Presión</option>
-            </select>
-          </div>
-        </div>
+        <h2>Registro de Datos</h2>
         <div class="log-content" id="data-log">
           <div class="log-entry">
-            <span class="log-timestamp">[10:30:45]</span>
-            <span class="log-message">Sistema iniciado. Esperando datos...</span>
+            <span class="log-timestamp">[Ahora]</span>
+            <span class="log-message">Sistema iniciado. Esperando conexión...</span>
           </div>
         </div>
       </div>
@@ -152,14 +143,12 @@
 
     <footer>
       <p>Horus - Estación Meteorológica Inteligente &copy; 2025</p>
-      <p>Visualización de datos en tiempo real a través de protocolo MQTT</p>
+      <p>Visualización de datos en tiempo real a través de HiveMQ Cloud</p>
     </footer>
   </div>
 
   <script src="../js/main.js"></script>
-  <!-- Incluimos MQTT.js desde unpkg -->
   <script src="../js/mqtt.js"></script>
-  <script src="../js/chart.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       // Elementos del DOM
@@ -169,100 +158,22 @@
       const connectBtn = document.getElementById('connect-btn');
       const disconnectBtn = document.getElementById('disconnect-btn');
       const dataLog = document.getElementById('data-log');
-      const clearLogBtn = document.getElementById('clear-log-btn');
       
       // Elementos de métricas
       const temperatureEl = document.getElementById('temperature');
       const humidityEl = document.getElementById('humidity');
       const pressureEl = document.getElementById('pressure');
+      const altitudeEl = document.getElementById('altitude');
+      const pm25El = document.getElementById('pm25');
+      const pm10El = document.getElementById('pm10');
       const windSpeedEl = document.getElementById('wind-speed');
       const windDirectionEl = document.getElementById('wind-direction');
       const gasLevelEl = document.getElementById('gas-level');
-      
-      // Elementos de tendencias
-      const tempTrend = document.getElementById('temp-trend');
-      const humidityTrend = document.getElementById('humidity-trend');
-      const pressureTrend = document.getElementById('pressure-trend');
-      const windTrend = document.getElementById('wind-trend');
-      const gasTrend = document.getElementById('gas-trend');
+      const rainEl = document.getElementById('rain');
       
       // Estado de conexión
       let isConnected = false;
       let mqttClient = null;
-      let previousValues = {
-        temperature: null,
-        humidity: null,
-        pressure: null,
-        gasLevel: null
-      };
-      
-      // Datos históricos para el gráfico
-      const chartData = {
-        labels: [],
-        datasets: [
-          {
-            label: 'Temperatura (°C)',
-            data: [],
-            borderColor: '#4a90e2',
-            tension: 0.3,
-            pointRadius: 3
-          },
-          {
-            label: 'Humedad (%)',
-            data: [],
-            borderColor: '#77ca77',
-            tension: 0.3,
-            pointRadius: 3
-          },
-          {
-            label: 'Presión (hPa)',
-            data: [],
-            borderColor: '#e67e22',
-            tension: 0.3,
-            pointRadius: 3
-          }
-        ]
-      };
-      
-      // Configuración del gráfico
-      const chartConfig = {
-        type: 'line',
-        data: chartData,
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'top',
-            },
-            tooltip: {
-              mode: 'index',
-              intersect: false
-            }
-          },
-          scales: {
-            x: {
-              display: true,
-              title: {
-                display: true,
-                text: 'Tiempo'
-              }
-            },
-            y: {
-              beginAtZero: false,
-              display: true,
-              title: {
-                display: true,
-                text: 'Valor'
-              }
-            }
-          }
-        }
-      };
-      
-      // Inicializar el gráfico
-      const ctx = document.getElementById('mqtt-chart').getContext('2d');
-      const mqttChart = new Chart(ctx, chartConfig);
       
       // Agregar entrada al registro
       function addToLog(message, type = 'info') {
@@ -274,99 +185,68 @@
         dataLog.prepend(logEntry);
         
         // Limitar el número de entradas en el registro
-        if (dataLog.children.length > 50) {
+        if (dataLog.children.length > 30) {
           dataLog.removeChild(dataLog.lastChild);
         }
       }
       
       // Actualizar métricas
-      function updateMetrics(data) {
-        // Almacenar valores anteriores para tendencias
-        const prevValues = {
-          temperature: previousValues.temperature,
-          humidity: previousValues.humidity,
-          pressure: previousValues.pressure,
-          gasLevel: previousValues.gasLevel
-        };
-        
+      function updateMetrics(sensor, value) {
         // Actualizar temperatura
-        temperatureEl.textContent = `${data.temperature.toFixed(1)} °C`;
-        previousValues.temperature = data.temperature;
-        updateTrendIndicator(tempTrend, prevValues.temperature, data.temperature);
-        
+        if (sensor === 'temperatura') {
+          temperatureEl.textContent = `${value} °C`;
+        }
         // Actualizar humedad
-        humidityEl.textContent = `${data.humidity.toFixed(1)} %`;
-        previousValues.humidity = data.humidity;
-        updateTrendIndicator(humidityTrend, prevValues.humidity, data.humidity);
-        
+        else if (sensor === 'humedad') {
+          humidityEl.textContent = `${value} %`;
+        }
         // Actualizar presión
-        pressureEl.textContent = `${data.pressure.toFixed(1)} hPa`;
-        previousValues.pressure = data.pressure;
-        updateTrendIndicator(pressureTrend, prevValues.pressure, data.pressure);
-        
-        // Actualizar viento
-        windSpeedEl.textContent = `${data.windSpeed.toFixed(1)} km/h`;
-        windDirectionEl.textContent = data.windDirection;
-        
+        else if (sensor === 'presion') {
+          pressureEl.textContent = `${value} hPa`;
+        }
+        // Actualizar altitud
+        else if (sensor === 'altitud') {
+          altitudeEl.textContent = `${value} m`;
+        }
+        // Actualizar PM2.5
+        else if (sensor === 'pm25') {
+          pm25El.textContent = `${value} µg/m³`;
+        }
+        // Actualizar PM10
+        else if (sensor === 'pm10') {
+          pm10El.textContent = `${value} µg/m³`;
+        }
+        // Actualizar velocidad del viento
+        else if (sensor === 'wind_speed') {
+          windSpeedEl.textContent = `${value} km/h`;
+        }
+        // Actualizar dirección del viento
+        else if (sensor === 'wind_direction') {
+          windDirectionEl.textContent = value;
+        }
         // Actualizar nivel de gas
-        gasLevelEl.textContent = data.gasLevel;
-        previousValues.gasLevel = data.gasLevel;
-        updateTrendIndicator(gasTrend, prevValues.gasLevel, data.gasLevel);
-        
-        // Actualizar gráfico
-        updateChart(data);
+        else if (sensor === 'gas') {
+          gasLevelEl.textContent = `${value} kΩ`;
+        }
+        // Actualizar lluvia
+        else if (sensor === 'lluvia') {
+          rainEl.textContent = `${value} mm`;
+        }
         
         // Actualizar última actualización
         const now = new Date();
         lastUpdate.textContent = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
       }
       
-      // Actualizar indicador de tendencia
-      function updateTrendIndicator(element, prevValue, newValue) {
-        if (prevValue === null || prevValue === undefined) return;
-        
-        if (newValue > prevValue) {
-          element.innerHTML = '↑';
-          element.className = 'metric-trend up';
-        } else if (newValue < prevValue) {
-          element.innerHTML = '↓';
-          element.className = 'metric-trend down';
-        } else {
-          element.innerHTML = '→';
-          element.className = 'metric-trend stable';
-        }
-      }
-      
-      // Actualizar gráfico
-      function updateChart(data) {
-        const now = new Date();
-        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-        
-        // Añadir nuevo punto de datos
-        chartData.labels.push(timeStr);
-        chartData.datasets[0].data.push(data.temperature);
-        chartData.datasets[1].data.push(data.humidity);
-        chartData.datasets[2].data.push(data.pressure);
-        
-        // Mantener solo los últimos 15 puntos
-        if (chartData.labels.length > 15) {
-          chartData.labels.shift();
-          chartData.datasets[0].data.shift();
-          chartData.datasets[1].data.shift();
-          chartData.datasets[2].data.shift();
-        }
-        
-        mqttChart.update();
-      }
-      
-      // Conectar a MQTT usando MQTT.js
-      function connectToMqtt() {
+      // Conectar a HiveMQ
+      function connectToHiveMQ() {
         try {
-          mqttStatusText.textContent = 'Conexión: Conectando...';
+          mqttStatusText.textContent = 'Conectando...';
           mqttStatusDot.style.backgroundColor = '#FFC107';
+          mqttStatusDot.style.animation = 'none';
           
-          // Usar la librería MQTT.js
-          const brokerUrl = 'wss://mqtt.eclipseprojects.io:443/mqtt';
+          // Configuración para HiveMQ
+          const brokerUrl = 'wss://broker.hivemq.com:8000/mqtt';
           const clientId = 'horus_client_' + Math.random().toString(36).substr(2, 9);
           
           const options = {
@@ -374,33 +254,44 @@
             clean: true,
             connectTimeout: 30000,
             reconnectPeriod: 5000,
-            protocolVersion: 5,
-            keepalive: 60
+            protocolVersion: 5
           };
           
-          addToLog(`Intentando conectar a ${brokerUrl} con ID ${clientId}`, 'info');
+          addToLog(`Intentando conectar a HiveMQ (${brokerUrl})`, 'info');
           
           // Crear cliente MQTT.js
           mqttClient = mqtt.connect(brokerUrl, options);
           
           // Configurar callbacks
           mqttClient.on('connect', () => {
-            console.log("Conexión MQTT establecida");
-            addToLog("Conexión MQTT establecida con éxito", 'success');
+            console.log("Conexión MQTT establecida con HiveMQ");
+            addToLog("Conexión establecida con éxito con HiveMQ", 'success');
             
             isConnected = true;
-            mqttStatusText.textContent = 'Conexión: Conectado';
+            mqttStatusText.textContent = 'Conectado';
             mqttStatusDot.style.backgroundColor = '#4CAF50';
             mqttStatusDot.style.animation = 'pulse 2s infinite';
             connectBtn.disabled = true;
             disconnectBtn.disabled = false;
             
-            // Suscribirse al topic
-            const topic = 'horus/sensor/data';
-            mqttClient.subscribe(topic, (err) => {
+            // Suscribirse a todos los topics
+            const topics = [
+              'horus/vvb/temperatura',
+              'horus/vvb/humedad',
+              'horus/vvb/presion',
+              'horus/vvb/altitud',
+              'horus/vvb/pm25',
+              'horus/vvb/pm10',
+              'horus/vvb/wind_direction',
+              'horus/vvb/wind_speed',
+              'horus/vvb/gas',
+              'horus/vvb/lluvia'
+            ];
+            
+            mqttClient.subscribe(topics, (err) => {
               if (!err) {
-                console.log("Suscrito al topic", topic);
-                addToLog(`Suscrito al topic ${topic}`, 'info');
+                console.log("Suscrito a todos los topics de HiveMQ");
+                addToLog("Suscrito a todos los topics de sensores", 'info');
               } else {
                 console.error("Error al suscribirse:", err);
                 addToLog(`Error al suscribirse: ${err.message}`, 'error');
@@ -411,7 +302,7 @@
           mqttClient.on('error', (err) => {
             console.error("Error MQTT:", err);
             addToLog(`Error MQTT: ${err.message}`, 'error');
-            mqttStatusText.textContent = 'Conexión: Error';
+            mqttStatusText.textContent = 'Error de conexión';
             mqttStatusDot.style.backgroundColor = '#e74c3c';
             mqttStatusDot.style.animation = 'none';
             isConnected = false;
@@ -419,22 +310,37 @@
           
           mqttClient.on('message', (topic, message) => {
             try {
-              const data = JSON.parse(message.toString());
-              console.log("Datos recibidos:", data);
+              const value = message.toString();
+              let sensorName = '';
               
-              // Verificar que los datos contengan los campos necesarios
-              if (data.temperature !== undefined && 
-                  data.humidity !== undefined && 
-                  data.pressure !== undefined) {
-                // Actualizar la interfaz con los datos
-                updateMetrics(data);
-                
-                // Agregar al registro
-                addToLog(`Nuevos datos recibidos: Temp=${data.temperature}°C, Hum=${data.humidity}%, Pres=${data.pressure}hPa`);
-              } else {
-                addToLog("Datos recibidos incompletos", 'warning');
-                console.warn("Datos recibidos incompletos:", data);
+              // Determinar qué sensor es según el topic
+              if (topic.includes('temperatura')) {
+                sensorName = 'temperatura';
+              } else if (topic.includes('humedad')) {
+                sensorName = 'humedad';
+              } else if (topic.includes('presion')) {
+                sensorName = 'presion';
+              } else if (topic.includes('altitud')) {
+                sensorName = 'altitud';
+              } else if (topic.includes('pm25')) {
+                sensorName = 'pm25';
+              } else if (topic.includes('pm10')) {
+                sensorName = 'pm10';
+              } else if (topic.includes('wind_direction')) {
+                sensorName = 'wind_direction';
+              } else if (topic.includes('wind_speed')) {
+                sensorName = 'wind_speed';
+              } else if (topic.includes('gas')) {
+                sensorName = 'gas';
+              } else if (topic.includes('lluvia')) {
+                sensorName = 'lluvia';
               }
+              
+              // Actualizar la interfaz con los datos
+              updateMetrics(sensorName, value);
+              
+              // Agregar al registro
+              addToLog(`[${sensorName}] Nuevo dato: ${value}`);
             } catch (e) {
               console.error("Error al procesar mensaje MQTT:", e);
               addToLog(`Error al procesar mensaje: ${e.message}`, 'error');
@@ -443,8 +349,10 @@
           
           mqttClient.on('reconnect', () => {
             console.log("Intentando reconectar...");
-            addToLog("Intentando reconectar al broker MQTT...", 'info');
-            mqttStatusText.textContent = 'Conexión: Reconectando...';
+            addToLog("Intentando reconectar al broker HiveMQ...", 'info');
+            mqttStatusText.textContent = 'Reconectando...';
+            mqttStatusDot.style.backgroundColor = '#FFC107';
+            mqttStatusDot.style.animation = 'pulse 2s infinite';
           });
           
           mqttClient.on('offline', () => {
@@ -452,7 +360,7 @@
             addToLog("Cliente MQTT offline", 'warning');
             if (isConnected) {
               isConnected = false;
-              mqttStatusText.textContent = 'Conexión: Offline';
+              mqttStatusText.textContent = 'Offline';
               mqttStatusDot.style.backgroundColor = '#e74c3c';
               mqttStatusDot.style.animation = 'none';
               connectBtn.disabled = false;
@@ -462,20 +370,20 @@
         } catch (error) {
           console.error("Error al inicializar MQTT:", error);
           addToLog(`Error al inicializar MQTT: ${error.message}`, 'error');
-          mqttStatusText.textContent = 'Conexión: Error';
+          mqttStatusText.textContent = 'Error';
           mqttStatusDot.style.backgroundColor = '#e74c3c';
           mqttStatusDot.style.animation = 'none';
         }
       }
       
-      // Desconectar de MQTT
-      function disconnectFromMqtt() {
+      // Desconectar de HiveMQ
+      function disconnectFromHiveMQ() {
         if (mqttClient && isConnected) {
           mqttClient.end();
           isConnected = false;
           mqttClient = null;
           
-          mqttStatusText.textContent = 'Conexión: Desconectado';
+          mqttStatusText.textContent = 'Desconectado';
           mqttStatusDot.style.backgroundColor = '#e74c3c';
           mqttStatusDot.style.animation = 'none';
           
@@ -486,83 +394,16 @@
         }
       }
       
-      // Simular datos para demostración si no hay conexión real
-      function simulateMqttData() {
-        if (!isConnected) return;
-        
-        // Generar datos simulados
-        const now = new Date();
-        const baseTemp = 25 + 10 * Math.sin(now.getHours() / 24 * 2 * Math.PI);
-        const baseHumidity = 60 + 20 * Math.cos(now.getHours() / 24 * 2 * Math.PI);
-        const basePressure = 1013 + 5 * Math.sin((now.getHours() + 3) / 24 * 2 * Math.PI);
-        
-        const data = {
-          temperature: baseTemp + (Math.random() - 0.5) * 2,
-          humidity: baseHumidity + (Math.random() - 0.5) * 5,
-          pressure: basePressure + (Math.random() - 0.5) * 2,
-          windSpeed: 5 + Math.random() * 15,
-          windDirection: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(Math.random() * 8)],
-          gasLevel: Math.floor(Math.random() * 100),
-          timestamp: now.toISOString()
-        };
-        
-        // Actualizar la interfaz
-        updateMetrics(data);
-        
-        // Agregar al registro
-        addToLog(`[SIMULADO] Temp=${data.temperature.toFixed(1)}°C, Hum=${data.humidity.toFixed(1)}%, Pres=${data.pressure.toFixed(1)}hPa`);
-        
-        // Programar la próxima actualización
-        setTimeout(simulateMqttData, 3000);
-      }
-      
       // Event listeners
-      connectBtn.addEventListener('click', connectToMqtt);
-      
-      disconnectBtn.addEventListener('click', disconnectFromMqtt);
-      
-      clearLogBtn.addEventListener('click', () => {
-        dataLog.innerHTML = '<div class="log-entry"><span class="log-timestamp">[Ahora]</span> <span class="log-message">Registro limpiado</span></div>';
-        addToLog("Registro limpiado por el usuario", 'info');
-      });
-      
-      // Filtros de gráfico
-      document.querySelectorAll('.filter-btn').forEach(button => {
-        button.addEventListener('click', function() {
-          document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-          this.classList.add('active');
-          
-          const chartType = this.getAttribute('data-chart');
-          
-          // Mostrar/ocultar datasets según el filtro
-          if (chartType === 'all') {
-            mqttChart.data.datasets.forEach(dataset => {
-              dataset.hidden = false;
-            });
-          } else if (chartType === 'temp') {
-            mqttChart.data.datasets[0].hidden = false;
-            mqttChart.data.datasets[1].hidden = true;
-            mqttChart.data.datasets[2].hidden = true;
-          } else if (chartType === 'humidity') {
-            mqttChart.data.datasets[0].hidden = true;
-            mqttChart.data.datasets[1].hidden = false;
-            mqttChart.data.datasets[2].hidden = true;
-          } else if (chartType === 'pressure') {
-            mqttChart.data.datasets[0].hidden = true;
-            mqttChart.data.datasets[1].hidden = true;
-            mqttChart.data.datasets[2].hidden = false;
-          }
-          
-          mqttChart.update();
-        });
-      });
+      connectBtn.addEventListener('click', connectToHiveMQ);
+      disconnectBtn.addEventListener('click', disconnectFromHiveMQ);
       
       // Inicializar con estado desconectado
       mqttStatusDot.style.backgroundColor = '#e74c3c';
       mqttStatusDot.style.animation = 'none';
       
       // Si queremos iniciar conectado automáticamente para demostración:
-      // setTimeout(connectToMqtt, 500);
+      // setTimeout(connectToHiveMQ, 500);
     });
   </script>
 </body>
