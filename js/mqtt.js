@@ -23882,6 +23882,69 @@ var mqtt = (() => {
   });
   return require_index();
 })();
+// Conectar al broker HiveMQ usando mqtt.js
+function connectToHiveMQ() {
+  // URL completa con protocolo WSS
+  const brokerUrl = "wss://broker.hivemq.com:8001/mqtt";
+  const clientId = "espHorus_" + Math.random().toString(36).substr(2, 8);
+  
+  try {
+    // Configurar opciones para mqtt.js
+    const options = {
+      clientId: clientId,
+      clean: true,
+      reconnectPeriod: 5000,
+      keepalive: 60,
+      protocolId: 'MQTT',
+      protocolVersion: 4
+    };
+    
+    // Crear cliente MQTT usando mqtt.js (NO Paho)
+    mqttClient = mqtt.connect(brokerUrl, options);
+    
+    // Configurar callbacks
+    mqttClient.on('connect', () => {
+      console.log("Conexión establecida con éxito");
+      updateConnectionStatus(true, "Conectado");
+      
+      // Suscribirse a todos los topics
+      mqttClient.subscribe("horus/vvb/temperatura", {qos: 0});
+      mqttClient.subscribe("horus/vvb/humedad", {qos: 0});
+      mqttClient.subscribe("horus/vvb/presion", {qos: 0});
+      mqttClient.subscribe("horus/vvb/altitud", {qos: 0});
+      mqttClient.subscribe("horus/vvb/pm25", {qos: 0});
+      mqttClient.subscribe("horus/vvb/pm10", {qos: 0});
+      mqttClient.subscribe("horus/vvb/wind_direction", {qos: 0});
+      mqttClient.subscribe("horus/vvb/wind_speed", {qos: 0});
+      mqttClient.subscribe("horus/vvb/gas", {qos: 0});
+      mqttClient.subscribe("horus/vvb/lluvia", {qos: 0});
+      
+      console.log("Suscrito a todos los topics de Horus");
+    });
+    
+    mqttClient.on('error', (error) => {
+      console.error("Error al conectar:", error);
+      updateConnectionStatus(false, "Error de conexión");
+      setTimeout(connectToHiveMQ, 5000);
+    });
+    
+    mqttClient.on('message', (topic, message) => {
+      const payload = message.toString();
+      updateUI(topic, payload);
+    });
+    
+    mqttClient.on('close', () => {
+      console.log("Conexión cerrada");
+      updateConnectionStatus(false, "Desconectado");
+      setTimeout(connectToHiveMQ, 5000);
+    });
+    
+  } catch (error) {
+    console.error("Error al crear cliente MQTT:", error);
+    updateConnectionStatus(false, "Error de librería");
+    setTimeout(connectToHiveMQ, 5000);
+  }
+}
 /*! Bundled license information:
 
 @jspm/core/nodelibs/browser/chunk-DtuTasat.js:
