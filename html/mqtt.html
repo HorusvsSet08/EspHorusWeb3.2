@@ -345,7 +345,7 @@
             </div>
             <div class="detail">
               <span class="label">Puerto:</span>
-              <span class="value">1883</span>
+              <span class="value">8883</span>
             </div>
             <div class="detail">
               <span class="label">Cliente ID:</span>
@@ -427,10 +427,10 @@
           </a-entity>
         </a-entity>
         
-        <!-- Cilindro de datos 3D -->
+        <!-- Cilindro de datos 3D a altura de los ojos (una sola fila) -->
         <a-entity id="cylinder-dashboard">
           <!-- Temperatura - 0 grados (frente) -->
-          <a-entity position="1.8 1.0 0" rotation="0 -90 0" class="sensor-card">
+          <a-entity position="1.8 1.6 0" rotation="0 -90 0" class="sensor-card">
             <a-entity class="sensor-header">
               <a-text value="🌡️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
               <a-text value="TEMP" color="#FF5722" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -439,8 +439,8 @@
             <a-text value="°C" color="#a0a0a0" position="0.35 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
           </a-entity>
           
-          <!-- Humedad - 45 grados -->
-          <a-entity position="1.27 1.0 1.27" rotation="0 -135 0" class="sensor-card">
+          <!-- Humedad - 36 grados -->
+          <a-entity position="1.45 1.6 1.06" rotation="0 -126 0" class="sensor-card">
             <a-entity class="sensor-header">
               <a-text value="💧" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
               <a-text value="HUM" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -449,8 +449,8 @@
             <a-text value="%" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
           </a-entity>
           
-          <!-- Presión - 90 grados (derecha) -->
-          <a-entity position="0 1.0 1.8" rotation="0 -180 0" class="sensor-card">
+          <!-- Presión - 72 grados -->
+          <a-entity position="0.56 1.6 1.71" rotation="0 -162 0" class="sensor-card">
             <a-entity class="sensor-header">
               <a-text value="🔽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
               <a-text value="PRES" color="#9E9E9E" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -459,8 +459,8 @@
             <a-text value="hPa" color="#a0a0a0" position="0.4 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
           </a-entity>
           
-          <!-- Altitud - 135 grados -->
-          <a-entity position="-1.27 1.0 1.27" rotation="0 -225 0" class="sensor-card">
+          <!-- Altitud - 108 grados -->
+          <a-entity position="-0.56 1.6 1.71" rotation="0 162 0" class="sensor-card">
             <a-entity class="sensor-header">
               <a-text value="⛰️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
               <a-text value="ALT" color="#673AB7" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -469,8 +469,8 @@
             <a-text value="m" color="#a0a0a0" position="0.25 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
           </a-entity>
           
-          <!-- Gas - 180 grados (atrás) -->
-          <a-entity position="-1.8 1.0 0" rotation="0 -270 0" class="sensor-card">
+          <!-- Gas - 144 grados -->
+          <a-entity position="-1.45 1.6 1.06" rotation="0 126 0" class="sensor-card">
             <a-entity class="sensor-header">
               <a-text value="⛽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
               <a-text value="GAS" color="#FFEB3B" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -479,8 +479,8 @@
             <a-text value="kΩ" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
           </a-entity>
           
-          <!-- Lluvia - 225 grados -->
-          <a-entity position="-1.27 1.0 -1.27" rotation="0 -315 0" class="sensor-card">
+          <!-- Lluvia - 180 grados (atrás) -->
+          <a-entity position="-1.8 1.6 0" rotation="0 90 0" class="sensor-card">
             <a-entity class="sensor-header">
               <a-text value="🌧️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
               <a-text value="LLUVIA" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -489,8 +489,8 @@
             <a-text value="mm" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
           </a-entity>
           
-          <!-- PM2.5 - 270 grados (izquierda) -->
-          <a-entity position="0 1.0 -1.8" rotation="0 0 0" class="sensor-card">
+          <!-- PM2.5 - 216 grados -->
+          <a-entity position="-1.45 1.6 -1.06" rotation="0 54 0" class="sensor-card">
             <a-entity class="sensor-header">
               <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
               <a-text value="PM2.5" color="#9C27B0" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -499,8 +499,8 @@
             <a-text value="μg/m³" color="#a0a0a0" position="0.5 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
           </a-entity>
           
-          <!-- PM10 - 315 grados -->
-          <a-entity position="1.27 1.0 -1.27" rotation="0 -45 0" class="sensor-card">
+          <!-- PM10 - 252 grados -->
+          <a-entity position="-0.56 1.6 -1.71" rotation="0 18 0" class="sensor-card">
             <a-entity class="sensor-header">
               <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
               <a-text value="PM10" color="#673AB7" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -509,8 +509,8 @@
             <a-text value="μg/m³" color="#a0a0a0" position="0.5 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
           </a-entity>
           
-          <!-- Dirección del Viento - 0 grados (frente) - nivel inferior -->
-          <a-entity position="1.8 0.2 0" rotation="0 -90 0" class="sensor-card">
+          <!-- Dirección del Viento - 288 grados -->
+          <a-entity position="0.56 1.6 -1.71" rotation="0 -18 0" class="sensor-card">
             <a-entity class="sensor-header">
               <a-text value="🌀" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
               <a-text value="VIENTO" color="#03A9F4" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -519,8 +519,8 @@
             <a-text value="°" color="#a0a0a0" position="0.25 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
           </a-entity>
           
-          <!-- Velocidad del Viento - 90 grados (derecha) - nivel inferior -->
-          <a-entity position="0 0.2 1.8" rotation="0 -180 0" class="sensor-card">
+          <!-- Velocidad del Viento - 324 grados -->
+          <a-entity position="1.45 1.6 -1.06" rotation="0 -54 0" class="sensor-card">
             <a-entity class="sensor-header">
               <a-text value="💨" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
               <a-text value="VEL. VIENTO" color="#4CAF50" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -773,7 +773,7 @@
       function connectToHiveMQ() {
         // URL del broker HiveMQ
         const brokerUrl = "broker.hivemq.com";
-        const brokerPort = 1883;
+        const brokerPort = 8883; // Puerto seguro
         
         try {
           // Crear cliente MQTT usando Paho
@@ -821,7 +821,7 @@
               setTimeout(connectToHiveMQ, 5000);
             },
             timeout: 3,
-            useSSL: false
+            useSSL: true // ¡CRUCIAL! Debe ser true para HTTPS
           };
           
           // Conectar
