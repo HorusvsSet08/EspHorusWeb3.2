@@ -1,284 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Horus - Datos en Tiempo Real</title>
-  <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="../css/mqtt.css">
-  
-  <!-- Cargar librerías esenciales desde la carpeta js/ -->
-  <script src="../js/mqtt.js"></script>
-  <script src="../js/aframe.js"></script>
-  <script src="../js/nipple.js"></script>
-  
-  <style>
-    /* Estilos específicos para el botón VR */
-    #vr-button {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: rgba(0, 234, 255, 0.2);
-      color: var(--primary-color);
-      border: none;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 12px rgba(0, 234, 255, 0.4);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      z-index: 1000;
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(0, 234, 255, 0.3);
-      display: none;
-    }
-    
-    #vr-button:hover {
-      transform: scale(1.15);
-      background: rgba(0, 234, 255, 0.3);
-      box-shadow: 0 0 18px rgba(0, 234, 255, 0.6);
-    }
-    
-    /* Overlay para solicitar permisos de orientación */
-    .orientation-permission {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 10, 30, 0.95);
-      z-index: 3000;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 25px;
-      text-align: center;
-    }
-    
-    .orientation-permission h3 {
-      color: var(--primary-color);
-      margin-bottom: 15px;
-      font-size: 20px;
-    }
-    
-    .orientation-permission p {
-      margin-bottom: 20px;
-      font-size: 15px;
-      color: #a0a0a0;
-      max-width: 300px;
-      line-height: 1.5;
-    }
-    
-    .orientation-btn {
-      background: var(--primary-color);
-      color: #000;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 25px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 0 12px rgba(0, 234, 255, 0.5);
-    }
-    
-    .orientation-btn:hover {
-      transform: scale(1.08);
-      box-shadow: 0 0 18px rgba(0, 234, 255, 0.7);
-    }
-    
-    /* Indicador de conexión */
-    #connection-status {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      z-index: 1000;
-      padding: 8px 12px;
-      background: rgba(0, 15, 40, 0.85);
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid rgba(0, 234, 255, 0.3);
-      backdrop-filter: blur(5px);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
-    
-    .led {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #f00;
-      box-shadow: 0 0 6px rgba(255, 0, 0, 0.7);
-      transition: var(--transition);
-      position: relative;
-    }
-    
-    .led:after {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: inherit;
-      animation: pulse-inner 2s infinite;
-      opacity: 0.7;
-    }
-    
-    @keyframes pulse-inner {
-      0% { transform: scale(1); opacity: 0.7; }
-      70% { transform: scale(1.4); opacity: 0; }
-      100% { transform: scale(1); opacity: 0; }
-    }
-    
-    .led.connected {
-      background: #0f0;
-      box-shadow: 0 0 6px rgba(0, 255, 0, 0.7);
-    }
-    
-    #connection-text {
-      color: white;
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.3px;
-    }
-    
-    /* Joystick REALISTA - SOLO PARA MÓVILES */
-    #joystick-container {
-      position: fixed;
-      left: 25px;
-      bottom: 25px;
-      width: 90px;
-      height: 90px;
-      z-index: 1000;
-      display: none;
-    }
-    
-    /* Panel de datos 3D */
-    .sensor-card {
-      position: relative;
-      overflow: hidden;
-      border-radius: var(--border-radius);
-      background: var(--card-bg);
-      padding: 16px 20px;
-      text-align: center;
-      box-shadow: var(--inner-shadow), 0 5px 12px rgba(0, 0, 0, 0.18);
-      transition: var(--transition);
-      border: 1px solid rgba(0, 234, 255, 0.12);
-      transform-style: preserve-3d;
-      perspective: 1000px;
-      width: 1.2;
-    }
-    
-    .sensor-card:hover {
-      transform: translateY(-5px) scale(var(--hover-scale));
-      box-shadow: var(--inner-shadow), 0 8px 20px rgba(0, 100, 200, 0.3);
-      border-color: var(--primary-color);
-    }
-    
-    .sensor-icon {
-      font-size: 28px;
-      width: 44px;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0, 71, 119, 0.25);
-      border-radius: 10px;
-      margin: 0 auto 10px;
-      border: 1px solid rgba(0, 234, 255, 0.25);
-    }
-    
-    .sensor-name {
-      color: var(--text-secondary);
-      font-size: 15px;
-      font-weight: 500;
-      letter-spacing: 0.3px;
-      margin-bottom: 7px;
-      text-transform: uppercase;
-    }
-    
-    .sensor-value {
-      font-size: 24px;
-      font-weight: bold;
-      color: var(--primary-color);
-      line-height: 1.2;
-      text-shadow: 0 0 6px var(--primary-glow);
-      transition: var(--transition);
-    }
-    
-    .unit {
-      font-size: 16px;
-      color: var(--text-secondary);
-      font-weight: 400;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    /* Asegurar que los elementos de A-Frame estén ocultos cuando no están en VR */
-    .a-enter-vr, .a-canvas, .a-loader, .a-enter-ar, .a-fullscreen, .a-no-cursor, .a-cursor {
-      display: none !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-      visibility: hidden !important;
-    }
-    
-    /* Estilos para el dashboard en modo VR */
-    .vr-dashboard {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 80%;
-      background: rgba(0, 10, 30, 0.85);
-      border-radius: 12px;
-      padding: 15px;
-      z-index: 100;
-      display: none;
-    }
-    
-    .vr-dashboard h2 {
-      color: var(--primary-color);
-      text-align: center;
-      margin-bottom: 15px;
-    }
-    
-    .vr-metrics {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-    
-    .vr-metric {
-      background: rgba(0, 30, 60, 0.6);
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-    }
-    
-    .vr-metric-value {
-      font-size: 20px;
-      font-weight: bold;
-      color: var(--primary-color);
-    }
-    
-    .vr-metric-label {
-      font-size: 14px;
-      color: var(--text-secondary);
-    }
-    
-    /* Para móviles, ajustar el layout */
-    @media (max-width: 768px) {
-      .vr-metrics {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Horus - Datos en Vivo MQTT</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/mqtt.css" />
 </head>
 <body class="light-mode">
   <nav class="nav">
@@ -290,10 +17,10 @@
         <a href="mqtt.html" class="nav-btn active">
           <span class="nav-icon">📡</span> Datos en Vivo
         </a>
-        <a href="../html/analisis.html" class="nav-btn">
+        <a href="analisis.html" class="nav-btn">
           <span class="nav-icon">📊</span> Análisis
         </a>
-        <a href="../html/chatbot.html" class="nav-btn">
+        <a href="chatbot.html" class="nav-btn">
           <span class="nav-icon">🤖</span> Chatbot
         </a>
       </div>
@@ -326,659 +53,492 @@
 
   <div class="container">
     <header>
-      <h1>Datos en Tiempo Real</h1>
-      <p>Visualización de datos meteorológicos en vivo desde los sensores</p>
+      <h1>Datos en Tiempo Real - MQTT</h1>
+      <p>Visualización de datos meteorológicos en tiempo real a través de MQTT</p>
     </header>
 
-    <main class="mqtt-dashboard">
-      <div class="card">
-        <h2>Estado de Conexión</h2>
-        <div class="connection-status">
-          <div class="status-indicator">
-            <div class="status-dot" id="mqtt-status-dot"></div>
-            <span id="mqtt-status-text">Conectando a broker MQTT...</span>
-          </div>
-          <div class="connection-details">
-            <div class="detail">
-              <span class="label">Broker:</span>
-              <span class="value">broker.hivemq.com</span>
-            </div>
-            <div class="detail">
-              <span class="label">Puerto:</span>
-              <span class="value">8001</span>
-            </div>
-            <div class="detail">
-              <span class="label">Cliente ID:</span>
-              <span class="value" id="client-id">espHorus</span>
-            </div>
-          </div>
+    <main class="dashboard">
+      <div class="card mqtt-status">
+        <h2>Estado de Conexión MQTT</h2>
+        <div class="status-indicator">
+          <div class="status-dot" id="mqtt-status-dot"></div>
+          <span id="mqtt-status-text">Conexión: Desconectado</span>
+        </div>
+        <div class="broker-info">
+          <p><strong>Broker:</strong> <span id="broker-address">mqtt.eclipseprojects.io</span></p>
+          <p><strong>Topic:</strong> <span id="mqtt-topic">horus/sensor/data</span></p>
+          <p><strong>Última actualización:</strong> <span id="last-update">Nunca</span></p>
+        </div>
+        <div class="connection-controls">
+          <button id="connect-btn" class="control-btn">Conectar</button>
+          <button id="disconnect-btn" class="control-btn" disabled>Desconectar</button>
         </div>
       </div>
 
-      <!-- Interfaz simple como en la web original -->
-      <div class="data-grid">
-        <div class="data-item">
-          <div class="data-icon">🌡️</div>
-          <div class="data-label">Temperatura</div>
-          <div class="data-value" id="temp-value">-- °C</div>
+      <div class="card metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon">🌡️</div>
+          <div class="metric-label">Temperatura</div>
+          <div class="metric-value" id="temperature">-- °C</div>
+          <div class="metric-trend" id="temp-trend">-</div>
         </div>
-        <div class="data-item">
-          <div class="data-icon">💧</div>
-          <div class="data-label">Humedad</div>
-          <div class="data-value" id="hum-value">-- %</div>
+        <div class="metric-card">
+          <div class="metric-icon">💧</div>
+          <div class="metric-label">Humedad</div>
+          <div class="metric-value" id="humidity">-- %</div>
+          <div class="metric-trend" id="humidity-trend">-</div>
         </div>
-        <div class="data-item">
-          <div class="data-icon">⛰️</div>
-          <div class="data-label">Presión</div>
-          <div class="data-value" id="press-value">-- hPa</div>
+        <div class="metric-card">
+          <div class="metric-icon">⛰️</div>
+          <div class="metric-label">Presión</div>
+          <div class="metric-value" id="pressure">-- hPa</div>
+          <div class="metric-trend" id="pressure-trend">-</div>
         </div>
-        <div class="data-item">
-          <div class="data-icon">⛰️</div>
-          <div class="data-label">Altitud</div>
-          <div class="data-value" id="alt-value">-- m</div>
+        <div class="metric-card">
+          <div class="metric-icon">💨</div>
+          <div class="metric-label">Velocidad Viento</div>
+          <div class="metric-value" id="wind-speed">-- km/h</div>
+          <div class="metric-trend" id="wind-trend">-</div>
         </div>
-        <div class="data-item">
-          <div class="data-icon">🌫️</div>
-          <div class="data-label">PM2.5</div>
-          <div class="data-value" id="pm25-value">-- μg/m³</div>
+        <div class="metric-card">
+          <div class="metric-icon">🧭</div>
+          <div class="metric-label">Dirección Viento</div>
+          <div class="metric-value" id="wind-direction">--</div>
+          <div class="metric-trend">-</div>
         </div>
-        <div class="data-item">
-          <div class="data-icon">🌫️</div>
-          <div class="data-label">PM10</div>
-          <div class="data-value" id="pm10-value">-- μg/m³</div>
-        </div>
-        <div class="data-item">
-          <div class="data-icon">🌀</div>
-          <div class="data-label">Dirección del Viento</div>
-          <div class="data-value" id="wind-dir-value">-- °</div>
-        </div>
-        <div class="data-item">
-          <div class="data-icon">💨</div>
-          <div class="data-label">Velocidad del Viento</div>
-          <div class="data-value" id="wind-speed-value">-- km/h</div>
-        </div>
-        <div class="data-item">
-          <div class="data-icon">⛽</div>
-          <div class="data-label">Nivel de Gas</div>
-          <div class="data-value" id="gas-value">-- kΩ</div>
-        </div>
-        <div class="data-item">
-          <div class="data-icon">🌧️</div>
-          <div class="data-label">Lluvia</div>
-          <div class="data-value" id="rain-value">-- mm</div>
+        <div class="metric-card">
+          <div class="metric-icon">⛽</div>
+          <div class="metric-label">Nivel de Gas</div>
+          <div class="metric-value" id="gas-level">--</div>
+          <div class="metric-trend" id="gas-trend">-</div>
         </div>
       </div>
 
-      <!-- Escena 3D para VR - CONFIGURACIÓN CORRECTA PARA A-FRAME -->
-      <a-scene embedded style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: none;" 
-               vr-mode-ui="enabled: false"
-               loading-screen="enabled: false">
-        
-        <!-- Configuración de la cámara -->
-        <a-entity id="camera-rig" position="0 1.6 0">
-          <a-entity id="camera" camera="fov: 85" look-controls>
-            <a-cursor 
-              raycaster="objects: .sensor-card" 
-              color="#00eaff" 
-              opacity="0.5"
-              radiusInner="0.01"
-              radiusOuter="0.02">
-            </a-cursor>
-          </a-entity>
-        </a-entity>
-        
-        <!-- Cilindro de datos 3D a altura de los ojos (una sola fila) -->
-        <a-entity id="cylinder-dashboard">
-          <!-- Temperatura - 0 grados (frente) -->
-          <a-entity position="1.8 1.6 0" rotation="0 -90 0" class="sensor-card">
-            <a-entity class="sensor-header">
-              <a-text value="🌡️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-              <a-text value="TEMP" color="#FF5722" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-            </a-entity>
-            <a-text id="vr-temp-value" value="--" color="#FF5722" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-            <a-text value="°C" color="#a0a0a0" position="0.35 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-          </a-entity>
-          
-          <!-- Humedad - 36 grados -->
-          <a-entity position="1.45 1.6 1.06" rotation="0 -126 0" class="sensor-card">
-            <a-entity class="sensor-header">
-              <a-text value="💧" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-              <a-text value="HUM" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-            </a-entity>
-            <a-text id="vr-hum-value" value="--" color="#2196F3" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-            <a-text value="%" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-          </a-entity>
-          
-          <!-- Presión - 72 grados -->
-          <a-entity position="0.56 1.6 1.71" rotation="0 -162 0" class="sensor-card">
-            <a-entity class="sensor-header">
-              <a-text value="🔽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-              <a-text value="PRES" color="#9E9E9E" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-            </a-entity>
-            <a-text id="vr-press-value" value="--" color="#9E9E9E" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-            <a-text value="hPa" color="#a0a0a0" position="0.4 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-          </a-entity>
-          
-          <!-- Altitud - 108 grados -->
-          <a-entity position="-0.56 1.6 1.71" rotation="0 162 0" class="sensor-card">
-            <a-entity class="sensor-header">
-              <a-text value="⛰️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-              <a-text value="ALT" color="#673AB7" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-            </a-entity>
-            <a-text id="vr-alt-value" value="--" color="#673AB7" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-            <a-text value="m" color="#a0a0a0" position="0.25 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-          </a-entity>
-          
-          <!-- Gas - 144 grados -->
-          <a-entity position="-1.45 1.6 1.06" rotation="0 126 0" class="sensor-card">
-            <a-entity class="sensor-header">
-              <a-text value="⛽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-              <a-text value="GAS" color="#FFEB3B" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-            </a-entity>
-            <a-text id="vr-gas-value" value="--" color="#FFEB3B" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-            <a-text value="kΩ" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-          </a-entity>
-          
-          <!-- Lluvia - 180 grados (atrás) -->
-          <a-entity position="-1.8 1.6 0" rotation="0 90 0" class="sensor-card">
-            <a-entity class="sensor-header">
-              <a-text value="🌧️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-              <a-text value="LLUVIA" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-            </a-entity>
-            <a-text id="vr-rain-value" value="no" color="#2196F3" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-            <a-text value="mm" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-          </a-entity>
-          
-          <!-- PM2.5 - 216 grados -->
-          <a-entity position="-1.45 1.6 -1.06" rotation="0 54 0" class="sensor-card">
-            <a-entity class="sensor-header">
-              <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-              <a-text value="PM2.5" color="#9C27B0" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-            </a-entity>
-            <a-text id="vr-pm25-value" value="--" color="#9C27B0" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-            <a-text value="μg/m³" color="#a0a0a0" position="0.5 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-          </a-entity>
-          
-          <!-- PM10 - 252 grados -->
-          <a-entity position="-0.56 1.6 -1.71" rotation="0 18 0" class="sensor-card">
-            <a-entity class="sensor-header">
-              <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-              <a-text value="PM10" color="#673AB7" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-            </a-entity>
-            <a-text id="vr-pm10-value" value="--" color="#673AB7" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-            <a-text value="μg/m³" color="#a0a0a0" position="0.5 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-          </a-entity>
-          
-          <!-- Dirección del Viento - 288 grados -->
-          <a-entity position="0.56 1.6 -1.71" rotation="0 -18 0" class="sensor-card">
-            <a-entity class="sensor-header">
-              <a-text value="🌀" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-              <a-text value="VIENTO" color="#03A9F4" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-            </a-entity>
-            <a-text id="vr-wind-dir-value" value="--" color="#03A9F4" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-            <a-text value="°" color="#a0a0a0" position="0.25 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-          </a-entity>
-          
-          <!-- Velocidad del Viento - 324 grados -->
-          <a-entity position="1.45 1.6 -1.06" rotation="0 -54 0" class="sensor-card">
-            <a-entity class="sensor-header">
-              <a-text value="💨" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-              <a-text value="VEL. VIENTO" color="#4CAF50" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
-            </a-entity>
-            <a-text id="vr-wind-speed-value" value="--" color="#4CAF50" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-            <a-text value="km/h" color="#a0a0a0" position="0.4 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
-          </a-entity>
-        </a-entity>
-      </a-scene>
+      <div class="card chart-container">
+        <h2>Tendencia de los Últimos 10 Minutos</h2>
+        <div class="chart-filters">
+          <button class="filter-btn active" data-chart="all">Todos</button>
+          <button class="filter-btn" data-chart="temp">Temperatura</button>
+          <button class="filter-btn" data-chart="humidity">Humedad</button>
+          <button class="filter-btn" data-chart="pressure">Presión</button>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="mqtt-chart" width="400" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="card data-log">
+        <h2>Registro de Datos Recientes</h2>
+        <div class="log-controls">
+          <button id="clear-log-btn" class="control-btn">Limpiar Registro</button>
+          <div class="log-filter">
+            <label for="log-filter">Filtrar por:</label>
+            <select id="log-filter">
+              <option value="all">Todos los datos</option>
+              <option value="temperature">Temperatura</option>
+              <option value="humidity">Humedad</option>
+              <option value="pressure">Presión</option>
+            </select>
+          </div>
+        </div>
+        <div class="log-content" id="data-log">
+          <div class="log-entry">
+            <span class="log-timestamp">[10:30:45]</span>
+            <span class="log-message">Sistema iniciado. Esperando datos...</span>
+          </div>
+        </div>
+      </div>
     </main>
 
     <footer>
       <p>Horus - Estación Meteorológica Inteligente &copy; 2025</p>
-      <p>Datos proporcionados por sensores IoT en tiempo real</p>
+      <p>Visualización de datos en tiempo real a través de protocolo MQTT</p>
     </footer>
   </div>
 
-  <!-- Indicador de conexión -->
-  <div id="connection-status">
-    <span class="led" id="connection-led"></span>
-    <span id="connection-text">Conectando...</span>
-  </div>
-  
-  <!-- Botón VR - SOLO PARA MÓVILES -->
-  <button id="vr-button" title="Modo VR">🕶️</button>
-  
-  <!-- Joystick REALISTA - SOLO PARA MÓVILES -->
-  <div id="joystick-container" class="mobile-only"></div>
-  
-  <!-- Overlay para solicitar permisos de orientación -->
-  <div class="orientation-permission" id="orientation-permission">
-    <h3>📱 Permiso Necesario</h3>
-    <p>Para usar el modo VR, necesitamos acceso a la orientación de tu dispositivo.</p>
-    <button class="orientation-btn" id="orientation-btn">Permitir</button>
-  </div>
-
   <script src="../js/main.js"></script>
+  <script src="../js/mqtt.js"></script>
+  <script src="../js/chart.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // Variables globales
-      let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      let isDesktop = !isMobile;
-      let mqttClient;
-      let mqttConnected = false;
-      let cameraRig, camera;
-      let isVRMode = false;
-      let joystick;
-      let movementSpeed = 0.06;
-      let vrPermissionRequested = false;
-      let lastDataUpdate = 0;
-      let dataUpdateInterval = 1000; // Actualizar cada segundo
-      
-      // Elementos UI
-      const connectionStatusElement = document.getElementById('connection-status');
-      const connectionLed = document.getElementById('connection-led');
-      const connectionText = document.getElementById('connection-text');
-      
-      // Elementos de estado MQTT
+      // Elementos del DOM
       const mqttStatusDot = document.getElementById('mqtt-status-dot');
       const mqttStatusText = document.getElementById('mqtt-status-text');
-      const clientIdElement = document.getElementById('client-id');
+      const lastUpdate = document.getElementById('last-update');
+      const connectBtn = document.getElementById('connect-btn');
+      const disconnectBtn = document.getElementById('disconnect-btn');
+      const dataLog = document.getElementById('data-log');
+      const clearLogBtn = document.getElementById('clear-log-btn');
       
-      // Elementos de datos
-      const tempValue = document.getElementById('temp-value');
-      const humValue = document.getElementById('hum-value');
-      const pressValue = document.getElementById('press-value');
-      const altValue = document.getElementById('alt-value');
-      const pm25Value = document.getElementById('pm25-value');
-      const pm10Value = document.getElementById('pm10-value');
-      const windDirValue = document.getElementById('wind-dir-value');
-      const windSpeedValue = document.getElementById('wind-speed-value');
-      const gasValue = document.getElementById('gas-value');
-      const rainValue = document.getElementById('rain-value');
+      // Elementos de métricas
+      const temperatureEl = document.getElementById('temperature');
+      const humidityEl = document.getElementById('humidity');
+      const pressureEl = document.getElementById('pressure');
+      const windSpeedEl = document.getElementById('wind-speed');
+      const windDirectionEl = document.getElementById('wind-direction');
+      const gasLevelEl = document.getElementById('gas-level');
       
-      // Elementos de datos VR
-      const vrTempValue = document.getElementById('vr-temp-value');
-      const vrHumValue = document.getElementById('vr-hum-value');
-      const vrPressValue = document.getElementById('vr-press-value');
-      const vrAltValue = document.getElementById('vr-alt-value');
-      const vrPm25Value = document.getElementById('vr-pm25-value');
-      const vrPm10Value = document.getElementById('vr-pm10-value');
-      const vrWindDirValue = document.getElementById('vr-wind-dir-value');
-      const vrWindSpeedValue = document.getElementById('vr-wind-speed-value');
-      const vrGasValue = document.getElementById('vr-gas-value');
-      const vrRainValue = document.getElementById('vr-rain-value');
+      // Elementos de tendencias
+      const tempTrend = document.getElementById('temp-trend');
+      const humidityTrend = document.getElementById('humidity-trend');
+      const pressureTrend = document.getElementById('pressure-trend');
+      const windTrend = document.getElementById('wind-trend');
+      const gasTrend = document.getElementById('gas-trend');
       
-      // Generar un ID de cliente único
-      const clientId = "espHorus_" + Math.random().toString(36).substr(2, 8);
-      clientIdElement.textContent = clientId;
+      // Estado de conexión
+      let isConnected = false;
+      let mqttClient = null;
       
-      // Eliminar cualquier elemento residual de A-Frame
-      function removeAFrameResiduals() {
-        // Asegurar que los elementos de A-Frame están ocultos
-        const aframeElements = document.querySelectorAll('.a-enter-vr, .a-canvas, .a-loader, .a-enter-ar, .a-fullscreen, .a-no-cursor, .a-cursor');
-        aframeElements.forEach(element => {
-          element.style.display = 'none';
-          element.style.opacity = '0';
-          element.style.pointerEvents = 'none';
-          element.style.visibility = 'hidden';
-        });
-      }
+      // Datos históricos para el gráfico
+      const chartData = {
+        labels: [],
+        datasets: [
+          {
+            label: 'Temperatura (°C)',
+            data: [],
+            borderColor: '#4a90e2',
+            tension: 0.3,
+            pointRadius: 3
+          },
+          {
+            label: 'Humedad (%)',
+            data: [],
+            borderColor: '#77ca77',
+            tension: 0.3,
+            pointRadius: 3
+          },
+          {
+            label: 'Presión (hPa)',
+            data: [],
+            borderColor: '#e67e22',
+            tension: 0.3,
+            pointRadius: 3
+          }
+        ]
+      };
       
-      // Actualizar estado de conexión con animación
-      function updateConnectionStatus(connected, message = "") {
-        mqttConnected = connected;
-        connectionLed.className = connected ? "led connected" : "led";
-        connectionText.textContent = connected ? "Conectado" : (message || "Desconectado");
+      // Configuración del gráfico
+      const chartConfig = {
+        type: 'line',
+        data: chartData,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Tiempo'
+              }
+            },
+            y: {
+              beginAtZero: false,
+              display: true,
+              title: {
+                display: true,
+                text: 'Valor'
+              }
+            }
+          }
+        }
+      };
+      
+      // Inicializar el gráfico
+      const ctx = document.getElementById('mqtt-chart').getContext('2d');
+      const mqttChart = new Chart(ctx, chartConfig);
+      
+      // Agregar entrada al registro
+      function addToLog(message, type = 'info') {
+        const now = new Date();
+        const timestamp = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}]`;
+        const logEntry = document.createElement('div');
+        logEntry.className = `log-entry log-${type}`;
+        logEntry.innerHTML = `<span class="log-timestamp">${timestamp}</span> <span class="log-message">${message}</span>`;
+        dataLog.prepend(logEntry);
         
-        // Actualizar estado en la UI principal
-        mqttStatusDot.style.backgroundColor = connected ? '#4CAF50' : '#e74c3c';
-        mqttStatusDot.style.animation = connected ? 'pulse 2s infinite' : 'none';
-        mqttStatusText.textContent = connected ? "Conexión establecida con éxito" : (message || "Conexión perdida");
+        // Limitar el número de entradas en el registro
+        if (dataLog.children.length > 50) {
+          dataLog.removeChild(dataLog.lastChild);
+        }
       }
       
-      // Solicitar permiso de orientación para VR en móviles
-      function requestOrientationPermission() {
-        document.getElementById('orientation-permission').style.display = 'flex';
-      }
-      
-      // Inicializar VR después de obtener permisos
-      function initVR() {
-        document.getElementById('orientation-permission').style.display = 'none';
-        vrPermissionRequested = true;
+      // Actualizar métricas
+      function updateMetrics(data) {
+        // Actualizar temperatura
+        const prevTemp = parseFloat(temperatureEl.textContent);
+        temperatureEl.textContent = `${data.temperature.toFixed(1)} °C`;
+        updateTrendIndicator(tempTrend, prevTemp, data.temperature);
         
-        const scene = document.querySelector('a-scene');
-        if (scene && scene.enterVR) {
-          scene.enterVR()
-            .then(() => {
-              console.log("Entró a VR exitosamente");
-              isVRMode = true;
-            })
-            .catch(error => {
-              console.error("Error al entrar a VR:", error);
-              document.getElementById('orientation-permission').style.display = 'flex';
-            });
+        // Actualizar humedad
+        const prevHumidity = parseFloat(humidityEl.textContent);
+        humidityEl.textContent = `${data.humidity.toFixed(1)} %`;
+        updateTrendIndicator(humidityTrend, prevHumidity, data.humidity);
+        
+        // Actualizar presión
+        const prevPressure = parseFloat(pressureEl.textContent);
+        pressureEl.textContent = `${data.pressure.toFixed(1)} hPa`;
+        updateTrendIndicator(pressureTrend, prevPressure, data.pressure);
+        
+        // Actualizar viento
+        windSpeedEl.textContent = `${data.windSpeed.toFixed(1)} km/h`;
+        windDirectionEl.textContent = data.windDirection;
+        
+        // Actualizar nivel de gas
+        const prevGas = parseFloat(gasLevelEl.textContent);
+        gasLevelEl.textContent = data.gasLevel;
+        updateTrendIndicator(gasTrend, prevGas, data.gasLevel);
+        
+        // Actualizar gráfico
+        updateChart(data);
+        
+        // Actualizar última actualización
+        const now = new Date();
+        lastUpdate.textContent = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+      }
+      
+      // Actualizar indicador de tendencia
+      function updateTrendIndicator(element, prevValue, newValue) {
+        if (prevValue === undefined || isNaN(prevValue)) return;
+        
+        if (newValue > prevValue) {
+          element.innerHTML = '↑';
+          element.className = 'metric-trend up';
+        } else if (newValue < prevValue) {
+          element.innerHTML = '↓';
+          element.className = 'metric-trend down';
         } else {
-          console.error("No se encontró la escena de A-Frame");
-          document.getElementById('orientation-permission').style.display = 'flex';
+          element.innerHTML = '→';
+          element.className = 'metric-trend stable';
         }
       }
       
-      // Inicializar el joystick REALISTA para móviles
-      function initJoystick() {
-        if (!isMobile) return;
+      // Actualizar gráfico
+      function updateChart(data) {
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         
-        // Mostrar joystick solo en móviles
-        document.getElementById('joystick-container').style.display = 'block';
+        // Añadir nuevo punto de datos
+        chartData.labels.push(timeStr);
+        chartData.datasets[0].data.push(data.temperature);
+        chartData.datasets[1].data.push(data.humidity);
+        chartData.datasets[2].data.push(data.pressure);
         
-        // Obtener referencias a la cámara
-        cameraRig = document.getElementById('camera-rig');
-        camera = document.getElementById('camera');
-        
-        if (!cameraRig || !camera) {
-          console.error("No se encontraron elementos de cámara");
-          return;
+        // Mantener solo los últimos 15 puntos
+        if (chartData.labels.length > 15) {
+          chartData.labels.shift();
+          chartData.datasets[0].data.shift();
+          chartData.datasets[1].data.shift();
+          chartData.datasets[2].data.shift();
         }
         
-        // Configurar el joystick con apariencia REALISTA
-        joystick = nipplejs.create({
-          zone: document.getElementById('joystick-container'),
-          size: 85,
-          threshold: 0.2,
-          color: 'rgba(0, 234, 255, 0.6)',
-          fadeTime: 200,
-          position: {left: '50%', top: '50%'},
-          dynamic: true,
-          restOpacity: 0.4,
-          lockY: false,
-          mode: 'dynamic'
-        });
-        
-        // Manejar el movimiento del joystick REALISTA
-        joystick.on('move', (evt, data) => {
-          if (!cameraRig || !camera) return;
-          
-          const angle = data.angle.radian;
-          const force = data.force;
-          
-          // Ajustar velocidad de movimiento para mejor control en móviles
-          const moveSpeed = movementSpeed * force * 2.0;
-          const dx = Math.sin(angle) * moveSpeed;
-          const dz = Math.cos(angle) * moveSpeed;
-          
-          // Actualizar posición
-          const currentPos = cameraRig.getAttribute('position');
-          cameraRig.setAttribute('position', {
-            x: currentPos.x - dx,
-            y: currentPos.y,
-            z: currentPos.z - dz
-          });
-        });
+        mqttChart.update();
       }
       
-      // Configurar la interfaz según el dispositivo
-      function setupDeviceInterface() {
-        if (isMobile) {
-          // Mostrar botón VR solo en móviles
-          document.getElementById('vr-button').style.display = 'flex';
-          
-          // Inicializar joystick para móviles
-          initJoystick();
-        }
-      }
-      
-      // Actualizar datos en la interfaz
-      function updateUI(topic, payload) {
-        const now = Date.now();
-        
-        // Solo actualizar si ha pasado suficiente tiempo
-        if (now - lastDataUpdate < dataUpdateInterval) return;
-        
-        lastDataUpdate = now;
-        
-        // Actualizar interfaz según el topic
-        if (topic === "horus/vvb/temperatura") {
-          tempValue.textContent = `${payload} °C`;
-          if (vrTempValue) vrTempValue.setAttribute('text', `value: ${payload}`);
-        } else if (topic === "horus/vvb/humedad") {
-          humValue.textContent = `${payload} %`;
-          if (vrHumValue) vrHumValue.setAttribute('text', `value: ${payload}`);
-        } else if (topic === "horus/vvb/presion") {
-          pressValue.textContent = `${payload} hPa`;
-          if (vrPressValue) vrPressValue.setAttribute('text', `value: ${payload}`);
-        } else if (topic === "horus/vvb/altitud") {
-          altValue.textContent = `${payload} m`;
-          if (vrAltValue) vrAltValue.setAttribute('text', `value: ${payload}`);
-        } else if (topic === "horus/vvb/pm25") {
-          pm25Value.textContent = `${payload} μg/m³`;
-          if (vrPm25Value) vrPm25Value.setAttribute('text', `value: ${payload}`);
-        } else if (topic === "horus/vvb/pm10") {
-          pm10Value.textContent = `${payload} μg/m³`;
-          if (vrPm10Value) vrPm10Value.setAttribute('text', `value: ${payload}`);
-        } else if (topic === "horus/vvb/wind_direction") {
-          windDirValue.textContent = `${payload} °`;
-          if (vrWindDirValue) vrWindDirValue.setAttribute('text', `value: ${payload}`);
-        } else if (topic === "horus/vvb/wind_speed") {
-          windSpeedValue.textContent = `${payload} km/h`;
-          if (vrWindSpeedValue) vrWindSpeedValue.setAttribute('text', `value: ${payload}`);
-        } else if (topic === "horus/vvb/gas") {
-          gasValue.textContent = `${payload} kΩ`;
-          if (vrGasValue) vrGasValue.setAttribute('text', `value: ${payload}`);
-        } else if (topic === "horus/vvb/lluvia") {
-          const raining = ["1", "true", "si", "yes", "sí", "rain"].includes(payload.toLowerCase());
-          rainValue.textContent = raining ? 'Sí' : 'No';
-          if (vrRainValue) vrRainValue.setAttribute('text', `value: ${raining ? 'sí' : 'no'}`);
-        }
-      }
-      
-      // Conectar al broker HiveMQ usando mqtt.min.js
-      function connectToHiveMQ() {
-        // URL del broker HiveMQ
-        const brokerUrl = "broker.hivemq.com";
-        const brokerPort = 8001; // PUERTO CORRECTO PARA WEB SOCKET SEGURO
-        const path = "/mqtt"; // Path necesario para HiveMQ
-        
+      // Conectar a MQTT
+      function connectToMqtt() {
         try {
-          // Crear cliente MQTT usando mqtt.min.js con configuración específica para WSS
-          // Usamos un ID de cliente único para evitar conflictos
-          mqttClient = new Paho.MQTT.Client(brokerUrl, brokerPort, path, clientId);
+          mqttStatusText.textContent = 'Conexión: Conectando...';
+          mqttStatusDot.style.backgroundColor = '#FFC107';
+          
+          // Usar la librería Paho MQTT
+          mqttClient = new Paho.MQTT.Client(
+            'mqtt.eclipseprojects.io', 
+            80, 
+            '/mqtt',
+            'horus_client_' + Math.random().toString(36).substr(2, 9)
+          );
           
           // Configurar callbacks
           mqttClient.onConnectionLost = (responseObject) => {
-            console.log("Conexión perdida:", responseObject.errorMessage);
-            updateConnectionStatus(false, "Desconectado");
-            
-            // Intentar reconectar después de 5 segundos
-            setTimeout(connectToHiveMQ, 5000);
+            if (responseObject.errorCode !== 0) {
+              console.log("Conexión MQTT perdida: " + responseObject.errorMessage);
+              addToLog(`Conexión MQTT perdida: ${responseObject.errorMessage}`, 'error');
+              isConnected = false;
+              mqttStatusText.textContent = 'Conexión: Desconectado';
+              mqttStatusDot.style.backgroundColor = '#e74c3c';
+              mqttStatusDot.style.animation = 'none';
+              connectBtn.disabled = false;
+              disconnectBtn.disabled = true;
+            }
           };
           
           mqttClient.onMessageArrived = (message) => {
-            const topic = message.destinationName;
-            const payload = message.payloadString;
-            
-            // Actualizar interfaz
-            updateUI(topic, payload);
-          };
-          
-          // Manejar conexión exitosa
-          const connectOptions = {
-            onSuccess: () => {
-              updateConnectionStatus(true, "Conectado");
+            try {
+              const data = JSON.parse(message.payloadString);
+              console.log("Datos recibidos:", data);
               
-              // Suscribirse a todos los topics
-              mqttClient.subscribe("horus/vvb/temperatura", {qos: 0});
-              mqttClient.subscribe("horus/vvb/humedad", {qos: 0});
-              mqttClient.subscribe("horus/vvb/presion", {qos: 0});
-              mqttClient.subscribe("horus/vvb/altitud", {qos: 0});
-              mqttClient.subscribe("horus/vvb/pm25", {qos: 0});
-              mqttClient.subscribe("horus/vvb/pm10", {qos: 0});
-              mqttClient.subscribe("horus/vvb/wind_direction", {qos: 0});
-              mqttClient.subscribe("horus/vvb/wind_speed", {qos: 0});
-              mqttClient.subscribe("horus/vvb/gas", {qos: 0});
-              mqttClient.subscribe("horus/vvb/lluvia", {qos: 0});
+              // Actualizar la interfaz con los datos
+              updateMetrics(data);
               
-              console.log("Suscrito a todos los topics de Horus");
-            },
-            onFailure: (error) => {
-              console.error("Error al conectar:", error);
-              
-              // Si falla con puerto 8001, intentar con puerto 8000 (no seguro)
-              if (brokerPort === 8001) {
-                console.log("Intentando con puerto 8000 (WebSocket no seguro)...");
-                mqttClient = new Paho.MQTT.Client(
-                  brokerUrl, 
-                  8000, 
-                  path,
-                  clientId
-                );
-                
-                // Reconfigurar callbacks
-                mqttClient.onConnectionLost = (responseObject) => {
-                  console.log("Conexión perdida:", responseObject.errorMessage);
-                  updateConnectionStatus(false, "Desconectado");
-                  setTimeout(connectToHiveMQ, 5000);
-                };
-                
-                mqttClient.onMessageArrived = (message) => {
-                  const topic = message.destinationName;
-                  const payload = message.payloadString;
-                  updateUI(topic, payload);
-                };
-                
-                // Intentar conectar con puerto 8000
-                mqttClient.connect({
-                  onSuccess: () => {
-                    updateConnectionStatus(true, "Conectado (no seguro)");
-                    
-                    // Suscribirse a todos los topics
-                    mqttClient.subscribe("horus/vvb/temperatura", {qos: 0});
-                    mqttClient.subscribe("horus/vvb/humedad", {qos: 0});
-                    mqttClient.subscribe("horus/vvb/presion", {qos: 0});
-                    mqttClient.subscribe("horus/vvb/altitud", {qos: 0});
-                    mqttClient.subscribe("horus/vvb/pm25", {qos: 0});
-                    mqttClient.subscribe("horus/vvb/pm10", {qos: 0});
-                    mqttClient.subscribe("horus/vvb/wind_direction", {qos: 0});
-                    mqttClient.subscribe("horus/vvb/wind_speed", {qos: 0});
-                    mqttClient.subscribe("horus/vvb/gas", {qos: 0});
-                    mqttClient.subscribe("horus/vvb/lluvia", {qos: 0});
-                  },
-                  onFailure: (error) => {
-                    console.error("Error al conectar con puerto 8000:", error);
-                    updateConnectionStatus(false, "Error de conexión");
-                    setTimeout(connectToHiveMQ, 5000);
-                  },
-                  timeout: 3
-                });
-              } else {
-                updateConnectionStatus(false, "Error de conexión");
-                setTimeout(connectToHiveMQ, 5000);
-              }
-            },
-            timeout: 3,
-            useSSL: true  // ¡CRUCIAL! Esto fuerza el uso de WSS
+              // Agregar al registro
+              addToLog(`Nuevos datos recibidos: Temp=${data.temperature}°C, Hum=${data.humidity}%, Pres=${data.pressure}hPa`);
+            } catch (e) {
+              console.error("Error al procesar mensaje MQTT:", e);
+              addToLog(`Error al procesar mensaje: ${e.message}`, 'error');
+            }
           };
           
           // Conectar
-          mqttClient.connect(connectOptions);
+          mqttClient.connect({
+            onSuccess: () => {
+              console.log("Conexión MQTT establecida");
+              addToLog("Conexión MQTT establecida con éxito", 'success');
+              
+              isConnected = true;
+              mqttStatusText.textContent = 'Conexión: Conectado';
+              mqttStatusDot.style.backgroundColor = '#4CAF50';
+              mqttStatusDot.style.animation = 'pulse 2s infinite';
+              connectBtn.disabled = true;
+              disconnectBtn.disabled = false;
+              
+              // Suscribirse al topic
+              mqttClient.subscribe('horus/sensor/data', {
+                onSuccess: () => {
+                  console.log("Suscrito al topic horus/sensor/data");
+                  addToLog("Suscrito al topic horus/sensor/data", 'info');
+                },
+                onFailure: (error) => {
+                  console.error("Error al suscribirse:", error);
+                  addToLog(`Error al suscribirse: ${error.errorMessage}`, 'error');
+                }
+              });
+            },
+            onFailure: (error) => {
+              console.error("Error al conectar MQTT:", error);
+              addToLog(`Error al conectar: ${error.errorMessage}`, 'error');
+              mqttStatusText.textContent = 'Conexión: Error';
+              mqttStatusDot.style.backgroundColor = '#e74c3c';
+              mqttStatusDot.style.animation = 'none';
+            },
+            reconnect: true,
+            timeout: 30
+          });
           
         } catch (error) {
-          console.error("Error al crear cliente MQTT:", error);
-          updateConnectionStatus(false, "Error de librería");
-          setTimeout(connectToHiveMQ, 5000);
+          console.error("Error al inicializar MQTT:", error);
+          addToLog(`Error al inicializar MQTT: ${error.message}`, 'error');
+          mqttStatusText.textContent = 'Conexión: Error';
+          mqttStatusDot.style.backgroundColor = '#e74c3c';
+          mqttStatusDot.style.animation = 'none';
         }
       }
       
-      // Inicializar la aplicación
-      function initApp() {
-        // Eliminar cualquier elemento residual de A-Frame
-        removeAFrameResiduals();
-        
-        // Configurar interfaz según el dispositivo
-        setupDeviceInterface();
-        
-        // Configurar botón VR
-        document.getElementById('vr-button').addEventListener('click', () => {
-          if (isMobile && !vrPermissionRequested) {
-            requestOrientationPermission();
-          } else {
-            const scene = document.querySelector('a-scene');
-            if (scene && scene.enterVR) {
-              scene.enterVR()
-                .then(() => {
-                  isVRMode = true;
-                  
-                  // Mostrar la escena 3D y ocultar la interfaz principal
-                  document.querySelector('.mqtt-dashboard').style.display = 'none';
-                  document.querySelector('a-scene').style.display = 'block';
-                })
-                .catch(error => {
-                  console.error("Error al entrar a VR:", error);
-                  document.getElementById('orientation-permission').style.display = 'flex';
-                });
-            }
-          }
-        });
-        
-        // Configurar botón de permisos
-        document.getElementById('orientation-btn').addEventListener('click', () => {
-          if (isMobile && /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-            // Para iOS, necesitamos un evento de usuario para solicitar permisos
-            if (typeof DeviceOrientationEvent !== 'undefined' && 
-                typeof DeviceOrientationEvent.requestPermission === 'function') {
-              DeviceOrientationEvent.requestPermission()
-                .then(permissionState => {
-                  if (permissionState === 'granted') {
-                    initVR();
-                  }
-                })
-                .catch(console.error);
-            } else {
-              initVR();
-            }
-          } else {
-            initVR();
-          }
-        });
-        
-        // Configurar eventos de VR
-        const scene = document.querySelector('a-scene');
-        if (scene) {
-          scene.addEventListener('enter-vr', () => {
-            isVRMode = true;
-            
-            // Mostrar la escena 3D y ocultar la interfaz principal
-            document.querySelector('.mqtt-dashboard').style.display = 'none';
-            scene.style.display = 'block';
-          });
+      // Desconectar de MQTT
+      function disconnectFromMqtt() {
+        if (mqttClient && isConnected) {
+          mqttClient.disconnect();
+          isConnected = false;
+          mqttClient = null;
           
-          scene.addEventListener('exit-vr', () => {
-            isVRMode = false;
-            
-            // Mostrar la interfaz principal y ocultar la escena 3D
-            document.querySelector('.mqtt-dashboard').style.display = 'block';
-            scene.style.display = 'none';
-          });
+          mqttStatusText.textContent = 'Conexión: Desconectado';
+          mqttStatusDot.style.backgroundColor = '#e74c3c';
+          mqttStatusDot.style.animation = 'none';
+          
+          connectBtn.disabled = false;
+          disconnectBtn.disabled = true;
+          
+          addToLog("Conexión MQTT cerrada", 'info');
         }
+      }
+      
+      // Simular datos para demostración si no hay conexión real
+      function simulateMqttData() {
+        if (!isConnected) return;
         
-        // Conectar al broker HiveMQ
-        connectToHiveMQ();
+        // Generar datos simulados
+        const now = new Date();
+        const baseTemp = 25 + 10 * Math.sin(now.getHours() / 24 * 2 * Math.PI);
+        const baseHumidity = 60 + 20 * Math.cos(now.getHours() / 24 * 2 * Math.PI);
+        const basePressure = 1013 + 5 * Math.sin((now.getHours() + 3) / 24 * 2 * Math.PI);
+        
+        const data = {
+          temperature: baseTemp + (Math.random() - 0.5) * 2,
+          humidity: baseHumidity + (Math.random() - 0.5) * 5,
+          pressure: basePressure + (Math.random() - 0.5) * 2,
+          windSpeed: 5 + Math.random() * 15,
+          windDirection: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(Math.random() * 8)],
+          gasLevel: Math.floor(Math.random() * 100),
+          timestamp: now.toISOString()
+        };
+        
+        // Actualizar la interfaz
+        updateMetrics(data);
+        
+        // Agregar al registro
+        addToLog(`[SIMULADO] Temp=${data.temperature.toFixed(1)}°C, Hum=${data.humidity.toFixed(1)}%, Pres=${data.pressure.toFixed(1)}hPa`);
+        
+        // Programar la próxima actualización
+        setTimeout(simulateMqttData, 3000);
       }
       
-      // Inicializar la aplicación después de que se cargue A-Frame
-      if (typeof AFRAME !== 'undefined') {
-        initApp();
-      } else {
-        // Si A-Frame no está cargado, esperar a que se cargue
-        window.addEventListener('load', initApp);
-      }
-      
-      // Manejar el botón de regreso en VR
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && isVRMode) {
-          const scene = document.querySelector('a-scene');
-          if (scene && scene.exitVR) {
-            scene.exitVR();
-          }
-        }
+      // Event listeners
+      connectBtn.addEventListener('click', () => {
+        connectToMqtt();
+        // Si queremos simular datos en lugar de usar MQTT real:
+        // addToLog("Modo simulación activado (sin conexión MQTT real)", 'info');
+        // isConnected = true;
+        // connectBtn.disabled = true;
+        // disconnectBtn.disabled = false;
+        // mqttStatusText.textContent = 'Conexión: Simulación';
+        // mqttStatusDot.style.backgroundColor = '#4CAF50';
+        // mqttStatusDot.style.animation = 'pulse 2s infinite';
+        // setTimeout(simulateMqttData, 1000);
       });
+      
+      disconnectBtn.addEventListener('click', disconnectFromMqtt);
+      
+      clearLogBtn.addEventListener('click', () => {
+        dataLog.innerHTML = '<div class="log-entry"><span class="log-timestamp">[Ahora]</span> <span class="log-message">Registro limpiado</span></div>';
+        addToLog("Registro limpiado por el usuario", 'info');
+      });
+      
+      // Filtros de gráfico
+      document.querySelectorAll('.filter-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+          this.classList.add('active');
+          
+          const chartType = this.getAttribute('data-chart');
+          
+          // Mostrar/ocultar datasets según el filtro
+          if (chartType === 'all') {
+            mqttChart.data.datasets.forEach(dataset => {
+              dataset.hidden = false;
+            });
+          } else if (chartType === 'temp') {
+            mqttChart.data.datasets[0].hidden = false;
+            mqttChart.data.datasets[1].hidden = true;
+            mqttChart.data.datasets[2].hidden = true;
+          } else if (chartType === 'humidity') {
+            mqttChart.data.datasets[0].hidden = true;
+            mqttChart.data.datasets[1].hidden = false;
+            mqttChart.data.datasets[2].hidden = true;
+          } else if (chartType === 'pressure') {
+            mqttChart.data.datasets[0].hidden = true;
+            mqttChart.data.datasets[1].hidden = true;
+            mqttChart.data.datasets[2].hidden = false;
+          }
+          
+          mqttChart.update();
+        });
+      });
+      
+      // Inicializar con estado desconectado
+      mqttStatusDot.style.backgroundColor = '#e74c3c';
+      mqttStatusDot.style.animation = 'none';
+      
+      // Si queremos iniciar conectado automáticamente para demostración:
+      // setTimeout(connectToMqtt, 500);
     });
   </script>
 </body>
