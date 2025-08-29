@@ -25,6 +25,11 @@
       --primary-glow: #00ffff33;
       --dark-bg: #000a1a;
       --card-bg-3d: #1d3a5d;
+      --border-radius: 12px;
+      --transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      --shadow: 0 6px 16px rgba(0, 10, 30, 0.35);
+      --inner-shadow: inset 0 3px 10px rgba(0, 5, 20, 0.5);
+      --hover-scale: 1.02;
     }
 
     /* Modo oscuro */
@@ -212,21 +217,21 @@
     .sensor-card-3d {
       position: relative;
       overflow: hidden;
-      border-radius: 12px;
-      background: #1d3a5d;
+      border-radius: var(--border-radius);
+      background: var(--card-bg-3d);
       padding: 16px 20px;
       text-align: center;
-      box-shadow: inset 0 3px 10px rgba(0, 5, 20, 0.5), 0 5px 12px rgba(0, 0, 0, 0.18);
-      transition: all 0.3s ease;
+      box-shadow: var(--inner-shadow), 0 5px 12px rgba(0, 0, 0, 0.18);
+      transition: var(--transition);
       border: 1px solid rgba(0, 234, 255, 0.12);
       transform-style: preserve-3d;
       perspective: 1000px;
     }
     
     .sensor-card-3d:hover {
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: inset 0 3px 10px rgba(0, 5, 20, 0.5), 0 8px 20px rgba(0, 100, 200, 0.3);
-      border-color: #00eaff;
+      transform: translateY(-5px) scale(var(--hover-scale));
+      box-shadow: var(--inner-shadow), 0 8px 20px rgba(0, 100, 200, 0.3);
+      border-color: var(--primary);
     }
     
     .sensor-icon-3d {
@@ -243,7 +248,7 @@
     }
     
     .sensor-name-3d {
-      color: #e0e0e0;
+      color: var(--text-secondary);
       font-size: 15px;
       font-weight: 500;
       letter-spacing: 0.3px;
@@ -254,15 +259,15 @@
     .sensor-value-3d {
       font-size: 24px;
       font-weight: bold;
-      color: #00eaff;
+      color: var(--primary);
       line-height: 1.2;
-      text-shadow: 0 0 6px #00ffff33;
-      transition: all 0.3s ease;
+      text-shadow: 0 0 6px var(--primary-glow);
+      transition: var(--transition);
     }
     
     .unit-3d {
       font-size: 16px;
-      color: #a0a0a0;
+      color: var(--text-secondary);
       font-weight: 400;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -331,11 +336,11 @@
   <a-scene id="vr-scene" embedded 
            vr-mode-ui="enabled: false"
            loading-screen="enabled: false"
-           style="display: none; background-color: #000a1a;">
+           style="display: none; background-color: var(--dark-bg);">
     
     <!-- Configuración de cámara para VR -->
     <a-entity id="camera-rig" position="0 1.6 0">
-      <a-entity id="camera" camera="fov: 80" look-controls wasd-controls>
+      <a-entity id="camera" camera="fov: 85" look-controls wasd-controls>
         <a-cursor 
           color="#00eaff" 
           opacity="0.5"
@@ -346,7 +351,7 @@
     </a-entity>
     
     <!-- Dashboard en 3D con diseño atractivo -->
-    <a-entity id="dashboard" position="0 1.5 -1.5" rotation="0 0 0">
+    <a-entity id="dashboard" position="0 1.5 -1.0" rotation="0 0 0">
       <!-- Fila 1 -->
       <a-entity position="-1.6 0.7 0.1" class="sensor-card-3d">
         <a-entity class="sensor-header">
@@ -442,7 +447,7 @@
     </a-entity>
     
     <!-- Fondo con gradiente -->
-    <a-sky color="#000a1a"></a-sky>
+    <a-sky color="var(--dark-bg)"></a-sky>
   </a-scene>
 
   <div class="container" id="normal-view">
@@ -632,11 +637,6 @@
               if (isVRMode && document.getElementById(`vr-${elementId}`)) {
                 const vrElement = document.getElementById(`vr-${elementId}`);
                 vrElement.setAttribute('text', `value: ${value}`);
-                
-                // Actualizar unidades si es necesario
-                if (elementId === 'windDir' && document.getElementById(`vr-unit-${elementId}`)) {
-                  document.getElementById(`vr-unit-${elementId}`).setAttribute('text', 'value: °');
-                }
               }
             }
           });
