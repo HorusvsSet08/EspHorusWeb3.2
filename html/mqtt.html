@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Horus - Datos en Vivo MQTT</title>
+  <title>Datos en Vivo - Horus</title>
   <style>
     /* Variables de tema */
     :root {
@@ -40,6 +40,7 @@
       color: var(--text-color);
       background-color: var(--background-color);
       transition: background-color 0.3s ease;
+      padding-top: 50px;
     }
 
     .light-mode {
@@ -52,63 +53,25 @@
       padding: 0 1.5rem;
     }
 
-    header {
-      text-align: center;
-      margin: 2rem 0;
-    }
-
-    header h1 {
-      font-size: 1.8rem;
-      margin-bottom: 0.5rem;
-      color: var(--text-color);
-    }
-
-    header p {
-      color: var(--text-muted);
-      font-size: 1rem;
-    }
-
-    .dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .card {
+    /* Estado de conexión pequeño */
+    .connection-status-small {
+      position: fixed;
+      top: 10px;
+      right: 10px;
       background-color: var(--card-bg);
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .card h2 {
-      font-size: 1.3rem;
-      margin-bottom: 1rem;
-      color: var(--text-color);
+      border-radius: 20px;
+      padding: 6px 12px;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-    }
-
-    /* Estilos específicos para la página MQTT */
-    .connection-status {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 0.75rem;
-      background-color: var(--card-bg);
-      border-radius: 8px;
-      font-size: 0.95rem;
+      gap: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
       border: 1px solid var(--border-color);
-      margin-bottom: 1rem;
-      width: fit-content;
+    }
+
+    .connection-status-small.connected {
+      border-color: #4CAF50;
+      background-color: rgba(76, 175, 80, 0.05);
     }
 
     .status-dot {
@@ -119,20 +82,52 @@
       animation: none;
     }
 
+    .status-dot.connected {
+      background-color: #4CAF50;
+      animation: pulse 2s infinite;
+    }
+
     @keyframes pulse {
       0% { opacity: 0.4; }
       50% { opacity: 1; }
       100% { opacity: 0.4; }
     }
 
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1rem;
-      grid-column: 1 / -1;
+    .status-text {
+      font-size: 0.9rem;
+      font-weight: 500;
     }
 
-    .metric-card {
+    .last-update {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-left: 5px;
+    }
+
+    header {
+      text-align: center;
+      margin: 2rem 0;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    /* Tarjetas de datos */
+    #weather-data {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .data-card {
       background-color: var(--card-bg);
       border-radius: 10px;
       padding: 1.25rem;
@@ -140,36 +135,35 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
       transition: all 0.2s ease;
       border: 1px solid var(--border-color);
-      height: 100%;
     }
 
-    .metric-card:hover {
+    .data-card:hover {
       transform: translateY(-3px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    .metric-icon {
-      font-size: 2.2rem;
-      margin-bottom: 0.5rem;
+    .data-card span {
       display: block;
-    }
-
-    .metric-label {
-      font-size: 0.95rem;
       color: var(--text-muted);
-      margin-bottom: 0.25rem;
-      font-weight: 500;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
     }
 
-    .metric-value {
+    .data-card strong {
       font-size: 1.5rem;
       font-weight: 600;
       color: var(--text-color);
-      margin: 0.25rem 0;
-      min-height: 1.8rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: block;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1.5rem;
     }
 
     /* Navegación */
@@ -177,8 +171,9 @@
       background-color: var(--card-bg);
       padding: 0.75rem 0;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-      position: sticky;
+      position: fixed;
       top: 0;
+      width: 100%;
       z-index: 100;
     }
 
@@ -220,17 +215,6 @@
 
     .nav-icon {
       font-size: 1.1rem;
-    }
-
-    /* Footer */
-    footer {
-      text-align: center;
-      padding: 1.5rem 0;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-top: 1rem;
-      border-top: 1px solid var(--border-color);
-      padding-top: 1.5rem;
     }
 
     /* Switch de tema */
@@ -361,26 +345,6 @@
         transform: translateX(-100%);
       }
     }
-
-    /* Estado de conexión mejorado */
-    .connection-status.connected {
-      border-color: #4CAF50;
-      background-color: rgba(76, 175, 80, 0.05);
-    }
-
-    .connection-status.connecting {
-      border-color: #FFC107;
-      background-color: rgba(255, 193, 7, 0.05);
-    }
-
-    .connection-status.error {
-      border-color: #e74c3c;
-      background-color: rgba(231, 76, 60, 0.05);
-    }
-
-    .connection-status .status-text {
-      font-weight: 500;
-    }
   </style>
 </head>
 <body class="light-mode">
@@ -409,7 +373,7 @@
             <div class="theme-switch__clouds"></div>
             <div class="theme-switch__stars-container">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none">
-                <path d="M135.831 3.00688C135.055 3.85027 134.111 4.29946 133 4.35447C134.111 4.40947 135.055 4.85867 135.831 5.71123C136.607 6.55462 136.996 7.56303 136.996 8.72727C136.996 7.95722 137.172 7.25134 137.525 6.59129C137.886 5.93124 138.372 5.39954 138.98 5.00535C139.598 4.60199 140.268 4.39114 141 4.35447C139.88 4.2903 138.936 3.8503 138.16 3.0069C137.384 2.1635 136.996 1.16425 136.996 0C136.996 1.16425 136.607 2.16348 135.831 3.00688ZM31 23.3545C32.1114 23.2995 33.0551 22.8503 33.8313 22.0069C34.6075 21.1635 34.9956 20.1642 34.9956 19C34.9956 20.1642 35.3837 21.1635 36.1599 22.0069C36.9361 22.8503 37.8798 23.2903 39 23.3545C38.2679 23.3911 37.5976 23.602 36.9802 24.0053C36.3716 24.3995 35.8864 24.9312 35.5248 25.5913C35.172 26.2513 34.9956 26.9572 34.9956 27.7273C34.9956 26.563 34.6075 25.5546 33.8313 24.7112C33.0551 23.8587 32.1114 23.4095 31 23.3545ZM0 36.3545C1.11136 36.2995 2.05513 35.8503 2.83131 35.0069C3.6075 34.1635 3.99559 33.1642 3.99559 32C3.99559 33.1642 4.38368 34.1635 5.15987 35.0069C5.93605 35.8503 6.87982 36.2903 8 36.3545C7.26792 36.3911 6.59757 36.602 5.98015 37.0053C5.37155 37.3995 4.88644 37.9312 4.52481 38.5913C4.172 39.2513 3.99559 39.9572 3.99559 40.7273C3.99559 39.563 3.6075 38.5546 2.83131 37.7112C2.05513 36.8587 1.11136 36.4095 0 36.3545ZM56.8313 24.0069C56.0551 24.8503 55.1114 25.2995 54 25.3545C55.1114 25.4095 56.0551 25.8587 56.8313 26.7112C57.6075 27.5546 57.9956 28.563 57.9956 29.7273C57.9956 28.9572 58.172 28.2513 58.5248 27.5913C58.8864 26.9312 59.3716 26.3995 59.9802 26.0053C60.5976 25.602 61.2679 25.3911 62 25.3545C60.8798 25.2903 59.9361 24.8503 59.1599 24.0069C58.3837 23.1635 57.9956 22.1642 57.9956 21C57.9956 22.1642 57.6075 23.1635 56.8313 24.0069ZM81 25.3545C82.1114 25.2995 83.0551 24.8503 83.8313 24.0069C84.6075 23.1635 84.9956 22.1642 84.9956 21C84.9956 22.1642 85.3837 23.1635 86.1599 24.0069C86.9361 24.8503 87.8798 25.2903 89 25.3545C88.2679 25.3911 87.5976 25.602 86.9802 26.0053C86.3716 26.3995 85.8864 26.9312 85.5248 27.5913C85.172 28.2513 84.9956 28.9572 84.9956 29.7273C84.9956 28.563 84.6075 27.5546 83.8313 26.7112C83.0551 25.8587 82.1114 25.4095 81 25.3545ZM136 36.3545C137.111 36.2995 138.055 35.8503 138.831 35.0069C139.607 34.1635 139.996 33.1642 139.996 32C139.996 33.1642 140.384 34.1635 141.16 35.0069C141.936 35.8503 142.88 36.2903 144 36.3545C143.268 36.3911 142.598 36.602 141.98 37.0053C141.372 37.3995 140.886 37.9312 140.525 38.5913C140.172 39.2513 139.996 39.9572 139.996 40.7273C139.996 39.563 139.607 38.5546 138.831 37.7112C138.055 36.8587 137.111 36.4095 136 36.3545ZM101.831 49.0069C101.055 49.8503 100.111 50.2995 99 50.3545C100.111 50.4095 101.055 50.8587 101.831 51.7112C102.607 52.5546 102.996 53.563 102.996 54.7273C102.996 53.9572 103.172 53.2513 103.525 52.5913C103.886 51.9312 104.372 51.3995 104.98 51.0053C105.598 50.602 106.268 50.3911 107 50.3545C105.88 50.2903 104.936 49.8503 104.16 49.0069C103.384 48.1635 102.996 47.1642 102.996 46C102.996 47.1642 102.607 48.1635 101.831 49.0069Z" fill="currentColor"/>
+                <path d="M135.831 3.00688C135.055 3.85027 134.111 4.29946 133 4.35447C134.111 4.40947 135.055 4.85867 135.831 5.71123C136.607 6.55462 136.996 7.56303 136.996 8.72727C136.996 7.95722 137.172 7.25134 137.525 6.59129C137.886 5.93124 138.372 5.39954 138.98 5.00535C139.598 4.60199 140.268 4.39114 141 4.35447C139.88 4.2903 138.936 3.85027 138.16 3.00688C137.384 2.16348 136.996 1.16425 136.996 0C136.996 1.16425 136.607 2.16348 135.831 3.00688ZM31 23.3545C32.1114 23.2995 33.0551 22.8503 33.8313 22.0069C34.6075 21.1635 34.9956 20.1642 34.9956 19C34.9956 20.1642 35.3837 21.1635 36.1599 22.0069C36.9361 22.8503 37.8798 23.2903 39 23.3545C38.2679 23.3911 37.5976 23.602 36.9802 24.0053C36.3716 24.3995 35.8864 24.9312 35.5248 25.5913C35.172 26.2513 34.9956 26.9572 34.9956 27.7273C34.9956 26.563 34.6075 25.5546 33.8313 24.7112C33.0551 23.8587 32.1114 23.4095 31 23.3545ZM0 36.3545C1.11136 36.2995 2.05513 35.8503 2.83131 35.0069C3.6075 34.1635 3.99559 33.1642 3.99559 32C3.99559 33.1642 4.38368 34.1635 5.15987 35.0069C5.93605 35.8503 6.87982 36.2903 8 36.3545C7.26792 36.3911 6.59757 36.602 5.98015 37.0053C5.37155 37.3995 4.88644 37.9312 4.52481 38.5913C4.172 39.2513 3.99559 39.9572 3.99559 40.7273C3.99559 39.563 3.6075 38.5546 2.83131 37.7112C2.05513 36.8587 1.11136 36.4095 0 36.3545ZM56.8313 24.0069C56.0551 24.8503 55.1114 25.2995 54 25.3545C55.1114 25.4095 56.0551 25.8587 56.8313 26.7112C57.6075 27.5546 57.9956 28.563 57.9956 29.7273C57.9956 28.9572 58.172 28.2513 58.5248 27.5913C58.8864 26.9312 59.3716 26.3995 59.9802 26.0053C60.5976 25.602 61.2679 25.3911 62 25.3545C60.8798 25.2903 59.9361 24.8503 59.1599 24.0069C58.3837 23.1635 57.9956 22.1642 57.9956 21C57.9956 22.1642 57.6075 23.1635 56.8313 24.0069ZM81 25.3545C82.1114 25.2995 83.0551 24.8503 83.8313 24.0069C84.6075 23.1635 84.9956 22.1642 84.9956 21C84.9956 22.1642 85.3837 23.1635 86.1599 24.0069C86.9361 24.8503 87.8798 25.2903 89 25.3545C88.2679 25.3911 87.5976 25.602 86.9802 26.0053C86.3716 26.3995 85.8864 26.9312 85.5248 27.5913C85.172 28.2513 84.9956 28.9572 84.9956 29.7273C84.9956 28.563 84.6075 27.5546 83.8313 26.7112C83.0551 25.8587 82.1114 25.4095 81 25.3545ZM136 36.3545C137.111 36.2995 138.055 35.8503 138.831 35.0069C139.607 34.1635 139.996 33.1642 139.996 32C139.996 33.1642 140.384 34.1635 141.16 35.0069C141.936 35.8503 142.88 36.2903 144 36.3545C143.268 36.3911 142.598 36.602 141.98 37.0053C141.372 37.3995 140.886 37.9312 140.525 38.5913C140.172 39.2513 139.996 39.9572 139.996 40.7273C139.996 39.563 139.607 38.5546 138.831 37.7112C138.055 36.8587 137.111 36.4095 136 36.3545ZM101.831 49.0069C101.055 49.8503 100.111 50.2995 99 50.3545C100.111 50.4095 101.055 50.8587 101.831 51.7112C102.607 52.5546 102.996 53.563 102.996 54.7273C102.996 53.9572 103.172 53.2513 103.525 52.5913C103.886 51.9312 104.372 51.3995 104.98 51.0053C105.598 50.602 106.268 50.3911 107 50.3545C105.88 50.2903 104.936 49.8503 104.16 49.0069C103.384 48.1635 102.996 47.1642 102.996 46C102.996 47.1642 102.607 48.1635 101.831 49.0069Z" fill="currentColor"/>
               </svg>
             </div>
             <div class="theme-switch__circle-container">
@@ -427,314 +391,173 @@
     </div>
   </nav>
 
+  <!-- Estado de conexión pequeño -->
+  <div class="connection-status-small">
+    <span class="status-dot"></span>
+    <span class="status-text">Desconectado</span>
+    <div class="last-update">última: nunca</div>
+  </div>
+
   <div class="container">
     <header>
-      <h1>Datos en Tiempo Real - MQTT</h1>
-      <p>Visualización de datos meteorológicos en tiempo real a través de HiveMQ</p>
+      <h1>📡 Datos en Vivo - Estación Horus</h1>
     </header>
 
-    <main class="dashboard">
-      <div class="connection-status" id="connection-status">
-        <div class="status-dot" id="mqtt-status-dot"></div>
-        <span class="status-text" id="mqtt-status-text">Conectando...</span>
+    <div id="weather-data">
+      <div class="data-card">
+        <span>🌡️ Temperatura</span>
+        <strong id="temp">-- °C</strong>
       </div>
-
-      <div class="card metrics-grid">
-        <div class="metric-card">
-          <div class="metric-icon">🌡️</div>
-          <div class="metric-label">Temperatura</div>
-          <div class="metric-value" id="temperature">-- °C</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-icon">💧</div>
-          <div class="metric-label">Humedad</div>
-          <div class="metric-value" id="humidity">-- %</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-icon">⛰️</div>
-          <div class="metric-label">Presión</div>
-          <div class="metric-value" id="pressure">-- hPa</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-icon">⛰️</div>
-          <div class="metric-label">Altitud</div>
-          <div class="metric-value" id="altitude">-- m</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-icon">🌫️</div>
-          <div class="metric-label">PM2.5</div>
-          <div class="metric-value" id="pm25">-- µg/m³</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-icon">🌫️</div>
-          <div class="metric-label">PM10</div>
-          <div class="metric-value" id="pm10">-- µg/m³</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-icon">💨</div>
-          <div class="metric-label">Velocidad Viento</div>
-          <div class="metric-value" id="wind-speed">-- km/h</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-icon">🧭</div>
-          <div class="metric-label">Dirección Viento</div>
-          <div class="metric-value" id="wind-direction">--</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-icon">⛽</div>
-          <div class="metric-label">Nivel de Gas</div>
-          <div class="metric-value" id="gas-level">-- kΩ</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-icon">🌧️</div>
-          <div class="metric-label">Lluvia</div>
-          <div class="metric-value" id="rain">-- mm</div>
-        </div>
+      <div class="data-card">
+        <span>💧 Humedad</span>
+        <strong id="hum">-- %</strong>
       </div>
-    </main>
+      <div class="data-card">
+        <span>🔽 Presión</span>
+        <strong id="press">-- hPa</strong>
+      </div>
+      <div class="data-card">
+        <span>⛰️ Altitud</span>
+        <strong id="alt">-- m</strong>
+      </div>
+      <div class="data-card">
+        <span>🌫️ PM2.5</span>
+        <strong id="pm25">-- µg/m³</strong>
+      </div>
+      <div class="data-card">
+        <span>🌫️ PM10</span>
+        <strong id="pm10">-- µg/m³</strong>
+      </div>
+      <div class="data-card">
+        <span>💨 Viento</span>
+        <strong id="wind">-- km/h</strong>
+      </div>
+      <div class="data-card">
+        <span>🧭 Dirección</span>
+        <strong id="windDir">-- °</strong>
+      </div>
+      <div class="data-card">
+        <span>⛽ Gas</span>
+        <strong id="gas">-- kΩ</strong>
+      </div>
+      <div class="data-card">
+        <span>🌧️ Lluvia</span>
+        <strong id="lluvia">-- mm</strong>
+      </div>
+    </div>
 
     <footer>
-      <p>Horus - Estación Meteorológica Inteligente &copy; 2025</p>
-      <p>Visualización de datos en tiempo real a través de HiveMQ Cloud</p>
+      <p>Estación Horus • Diseño y desarrollo por <strong>Tu Nombre</strong></p>
     </footer>
   </div>
 
+  <!-- Carga main.js primero (tema y efectos) -->
   <script src="../js/main.js"></script>
-  <script src="../js/mqtt.js"></script>
+  <!-- Carga MQTT.js local -->
+  <script src="../js/mqtt.min.js"></script>
+
+  <!-- Script de MQTT -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // Elementos del DOM
-      const mqttStatusDot = document.getElementById('mqtt-status-dot');
-      const mqttStatusText = document.getElementById('mqtt-status-text');
-      const connectionStatus = document.getElementById('connection-status');
-      
-      // Elementos de métricas
-      const temperatureEl = document.getElementById('temperature');
-      const humidityEl = document.getElementById('humidity');
-      const pressureEl = document.getElementById('pressure');
-      const altitudeEl = document.getElementById('altitude');
-      const pm25El = document.getElementById('pm25');
-      const pm10El = document.getElementById('pm10');
-      const windSpeedEl = document.getElementById('wind-speed');
-      const windDirectionEl = document.getElementById('wind-direction');
-      const gasLevelEl = document.getElementById('gas-level');
-      const rainEl = document.getElementById('rain');
-      
-      // Estado de conexión
-      let isConnected = false;
-      let mqttClient = null;
-      let retryCount = 0;
-      const maxRetries = 3;
-      
-      // Actualizar estado de conexión
-      function updateConnectionStatus(status, message) {
-        console.log(`Estado de conexión MQTT: ${status} - ${message}`);
-        
-        connectionStatus.className = 'connection-status';
-        
-        if (status === 'connected') {
-          connectionStatus.classList.add('connected');
-          mqttStatusDot.style.backgroundColor = '#4CAF50';
-          mqttStatusDot.style.animation = 'pulse 2s infinite';
-          mqttStatusText.textContent = 'Conectado';
-        } else if (status === 'connecting') {
-          connectionStatus.classList.add('connecting');
-          mqttStatusDot.style.backgroundColor = '#FFC107';
-          mqttStatusDot.style.animation = 'none';
-          mqttStatusText.textContent = 'Conectando...';
-        } else {
-          connectionStatus.classList.add('error');
-          mqttStatusDot.style.backgroundColor = '#e74c3c';
-          mqttStatusDot.style.animation = 'none';
-          mqttStatusText.textContent = 'Error de conexión';
-        }
-      }
-      
-      // Actualizar métricas
-      function updateMetrics(sensor, value) {
-        // Actualizar temperatura
-        if (sensor === 'temperatura') {
-          temperatureEl.textContent = `${value} °C`;
-        }
-        // Actualizar humedad
-        else if (sensor === 'humedad') {
-          humidityEl.textContent = `${value} %`;
-        }
-        // Actualizar presión
-        else if (sensor === 'presion') {
-          pressureEl.textContent = `${value} hPa`;
-        }
-        // Actualizar altitud
-        else if (sensor === 'altitud') {
-          altitudeEl.textContent = `${value} m`;
-        }
-        // Actualizar PM2.5
-        else if (sensor === 'pm25') {
-          pm25El.textContent = `${value} µg/m³`;
-        }
-        // Actualizar PM10
-        else if (sensor === 'pm10') {
-          pm10El.textContent = `${value} µg/m³`;
-        }
-        // Actualizar velocidad del viento
-        else if (sensor === 'wind_speed') {
-          windSpeedEl.textContent = `${value} km/h`;
-        }
-        // Actualizar dirección del viento
-        else if (sensor === 'wind_direction') {
-          windDirectionEl.textContent = value;
-        }
-        // Actualizar nivel de gas
-        else if (sensor === 'gas') {
-          gasLevelEl.textContent = `${value} kΩ`;
-        }
-        // Actualizar lluvia
-        else if (sensor === 'lluvia') {
-          rainEl.textContent = `${value} mm`;
-        }
-      }
-      
-      // Conectar a HiveMQ
-      function connectToHiveMQ() {
-        try {
-          updateConnectionStatus('connecting', 'Intentando conectar...');
-          
-          // Configuración para HiveMQ - ¡CORREGIDO EL ENDPOINT!
-          // El endpoint correcto para HiveMQ Cloud es wss://broker.hivemq.com:8883/mqtt
-          const brokerUrl = 'wss://broker.hivemq.com:8883/mqtt';
-          const clientId = 'horus_client_' + Math.random().toString(36).substr(2, 9);
-          
-          const options = {
-            clientId: clientId,
-            clean: true,
-            connectTimeout: 30000,
-            reconnectPeriod: 0,  // Desactivamos la reconexión automática
-            protocolVersion: 5,
-            keepalive: 60
-          };
-          
-          console.log(`Intentando conectar a HiveMQ (${brokerUrl}) con ID ${clientId}`);
-          
-          // Crear cliente MQTT.js
-          mqttClient = mqtt.connect(brokerUrl, options);
-          
-          // Configurar callbacks
-          mqttClient.on('connect', () => {
-            console.log("Conexión MQTT establecida con HiveMQ");
-            updateConnectionStatus('connected', 'Conexión exitosa');
-            isConnected = true;
-            
-            // Suscribirse a todos los topics
-            const topics = [
-              'horus/vvb/temperatura',
-              'horus/vvb/humedad',
-              'horus/vvb/presion',
-              'horus/vvb/altitud',
-              'horus/vvb/pm25',
-              'horus/vvb/pm10',
-              'horus/vvb/wind_direction',
-              'horus/vvb/wind_speed',
-              'horus/vvb/gas',
-              'horus/vvb/lluvia'
-            ];
-            
-            mqttClient.subscribe(topics, (err) => {
-              if (!err) {
-                console.log("Suscrito a todos los topics de HiveMQ");
-              } else {
-                console.error("Error al suscribirse:", err);
-                updateConnectionStatus('error', `Error al suscribirse: ${err.message}`);
-              }
-            });
-          });
-          
-          mqttClient.on('error', (err) => {
-            console.error("Error MQTT:", err);
-            updateConnectionStatus('error', `Error: ${err.message}`);
-            
-            // Intentar reconectar solo un número limitado de veces
-            if (retryCount < maxRetries) {
-              retryCount++;
-              console.log(`Intentando reconectar (${retryCount}/${maxRetries})...`);
-              setTimeout(connectToHiveMQ, 5000);
-            } else {
-              console.log("Se alcanzó el número máximo de intentos de reconexión");
-            }
-          });
-          
-          mqttClient.on('message', (topic, message) => {
-            try {
-              const value = message.toString();
-              let sensorName = '';
-              
-              // Determinar qué sensor es según el topic
-              if (topic.includes('temperatura')) {
-                sensorName = 'temperatura';
-              } else if (topic.includes('humedad')) {
-                sensorName = 'humedad';
-              } else if (topic.includes('presion')) {
-                sensorName = 'presion';
-              } else if (topic.includes('altitud')) {
-                sensorName = 'altitud';
-              } else if (topic.includes('pm25')) {
-                sensorName = 'pm25';
-              } else if (topic.includes('pm10')) {
-                sensorName = 'pm10';
-              } else if (topic.includes('wind_direction')) {
-                sensorName = 'wind_direction';
-              } else if (topic.includes('wind_speed')) {
-                sensorName = 'wind_speed';
-              } else if (topic.includes('gas')) {
-                sensorName = 'gas';
-              } else if (topic.includes('lluvia')) {
-                sensorName = 'lluvia';
-              }
-              
-              // Actualizar la interfaz con los datos
-              updateMetrics(sensorName, value);
-            } catch (e) {
-              console.error("Error al procesar mensaje MQTT:", e);
-            }
-          });
-          
-          mqttClient.on('offline', () => {
-            console.log("Cliente MQTT offline");
-            if (isConnected) {
-              isConnected = false;
-              updateConnectionStatus('error', 'Offline');
-            }
-          });
-          
-        } catch (error) {
-          console.error("Error al inicializar MQTT:", error);
-          updateConnectionStatus('error', `Error: ${error.message}`);
-        }
-      }
-      
-      // Conexión automática al cargar la página
-      connectToHiveMQ();
-      
-      // Toggle tema oscuro/claro
-      const themeSwitch = document.querySelector('.theme-switch__checkbox');
-      themeSwitch.addEventListener('change', function() {
-        if (this.checked) {
-          document.body.classList.remove('light-mode');
-          document.body.classList.add('dark-mode');
-          localStorage.setItem('theme', 'dark');
-        } else {
-          document.body.classList.remove('dark-mode');
-          document.body.classList.add('light-mode');
-          localStorage.setItem('theme', 'light');
-        }
+      const statusText = document.querySelector('.status-text');
+      const statusDot = document.querySelector('.status-dot');
+      const lastUpdate = document.querySelector('.last-update');
+      let lastDataTime = null;
+
+      const updateLastUpdate = () => {
+        if (!lastDataTime) return;
+        const diff = Math.floor((Date.now() - lastDataTime) / 1000);
+        lastUpdate.textContent = `última: hace ${diff}s`;
+      };
+      setInterval(updateLastUpdate, 1000);
+
+      // === Conexión MQTT ===
+      const broker = "wss://broker.hivemq.com:8883/mqtt";
+      const client = mqtt.connect(broker, {
+        clientId: "webClient_" + Math.random().toString(16).substr(2, 8),
+        protocolVersion: 4,
+        clean: true,
+        connectTimeout: 10000,
+        reconnectPeriod: 3000
       });
-      
-      // Cargar tema guardado
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      if (savedTheme === 'dark') {
-        document.body.classList.remove('light-mode');
-        document.body.classList.add('dark-mode');
-        themeSwitch.checked = true;
-      }
+
+      // === SUSCRIBIRSE A TODOS LOS TÓPICOS HORUS ===
+      client.on("connect", () => {
+        console.log("✅ Conectado al broker HiveMQ");
+        statusText.textContent = "Conectado";
+        statusDot.classList.add('connected');
+        document.querySelector('.connection-status-small').classList.add('connected');
+
+        // Suscríbete a TODO lo que empiece con "horus/"
+        client.subscribe("horus/vvb/#", (err) => {
+          if (err) {
+            console.error("❌ Error al suscribirse a horus/vvb/#");
+          } else {
+            console.log("🔍 Suscrito a horus/vvb/# (todos los tópicos de sensores)");
+          }
+        });
+      });
+
+      // === MANEJAR CUALQUIER MENSAJE ===
+      client.on("message", (topic, payload) => {
+        const value = payload.toString().trim();
+        if (!value) return;
+
+        // ✅ LOG para ver TODO lo que llega
+        console.log("📩 Tópico:", topic);
+        console.log("📦 Valor:", value);
+
+        // Actualiza el tiempo de última recepción
+        lastDataTime = Date.now();
+
+        // === Mapeo de tópicos a IDs (ajusta según tu ESP) ===
+        const map = {
+          "horus/vvb/temperatura": "temp",
+          "horus/vvb/humedad": "hum",
+          "horus/vvb/presion": "press",
+          "horus/vvb/altitud": "alt",
+          "horus/vvb/pm25": "pm25",
+          "horus/vvb/pm10": "pm10",
+          "horus/vvb/wind_speed": "wind",
+          "horus/vvb/wind_direction": "windDir",
+          "horus/vvb/gas": "gas",
+          "horus/vvb/lluvia": "lluvia"
+        };
+
+        const id = map[topic];
+        if (!id) {
+          console.warn("⚠️ Tópico no mapeado:", topic);
+          return;
+        }
+
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        // Unidades
+        const unit = {
+          temp: "°C",
+          press: "hPa",
+          wind: "km/h",
+          windDir: "°",
+          gas: "kΩ",
+          lluvia: "mm"
+        }[id] || "";
+
+        el.textContent = `${value} ${unit}`.trim();
+      });
+
+      client.on("error", (err) => {
+        console.error("❌ Error MQTT:", err);
+        statusText.textContent = "Error";
+        statusDot.classList.remove('connected');
+        document.querySelector('.connection-status-small').classList.remove('connected');
+      });
+
+      client.on("close", () => {
+        statusText.textContent = "Desconectado";
+        statusDot.classList.remove('connected');
+        document.querySelector('.connection-status-small').classList.remove('connected');
+      });
     });
   </script>
 </body>
