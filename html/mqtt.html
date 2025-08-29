@@ -98,18 +98,7 @@
     }
 
     /* Estilos específicos para la página MQTT */
-    .mqtt-status {
-      grid-column: 1 / -1;
-    }
-
     .connection-status {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .status-indicator {
       display: flex;
       align-items: center;
       gap: 0.5rem;
@@ -118,8 +107,8 @@
       border-radius: 8px;
       font-size: 0.95rem;
       border: 1px solid var(--border-color);
-      min-width: 120px;
-      justify-content: center;
+      margin-bottom: 1rem;
+      width: fit-content;
     }
 
     .status-dot {
@@ -134,51 +123,6 @@
       0% { opacity: 0.4; }
       50% { opacity: 1; }
       100% { opacity: 0.4; }
-    }
-
-    .broker-info {
-      background-color: var(--background-color);
-      border-radius: 8px;
-      padding: 0.75rem;
-      flex: 1;
-      border: 1px solid var(--border-color);
-      font-size: 0.95rem;
-    }
-
-    .connection-controls {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .control-btn {
-      flex: 1;
-      padding: 0.5rem;
-      border: none;
-      border-radius: 6px;
-      background-color: var(--primary-color);
-      color: white;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-weight: 500;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .control-btn:hover {
-      background-color: #3a7bcd;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .control-btn:active {
-      transform: translateY(0);
-    }
-
-    .control-btn:disabled {
-      background-color: var(--text-muted);
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
     }
 
     .metrics-grid {
@@ -226,66 +170,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-
-    .data-log {
-      grid-column: 1 / -1;
-    }
-
-    .log-content {
-      max-height: 300px;
-      overflow-y: auto;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      padding: 0.5rem;
-      background-color: var(--background-color);
-    }
-
-    .log-entry {
-      padding: 0.5rem;
-      margin-bottom: 0.25rem;
-      border-radius: 4px;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      transition: all 0.2s ease;
-    }
-
-    .log-entry:hover {
-      background-color: rgba(0, 0, 0, 0.05);
-    }
-
-    .log-entry:last-child {
-      margin-bottom: 0;
-    }
-
-    .log-timestamp {
-      color: var(--text-muted);
-      font-weight: 600;
-      margin-right: 0.5rem;
-    }
-
-    .log-message {
-      color: var(--text-color);
-    }
-
-    .log-success {
-      background-color: rgba(39, 174, 96, 0.1);
-      border-left: 3px solid #27ae60;
-    }
-
-    .log-error {
-      background-color: rgba(231, 76, 60, 0.1);
-      border-left: 3px solid #e74c3c;
-    }
-
-    .log-info {
-      background-color: rgba(52, 152, 219, 0.1);
-      border-left: 3px solid #3498db;
-    }
-
-    .log-warning {
-      background-color: rgba(243, 156, 18, 0.1);
-      border-left: 3px solid #f39c12;
     }
 
     /* Navegación */
@@ -478,27 +362,24 @@
       }
     }
 
-    /* Ajustes para modo oscuro */
-    @media (prefers-color-scheme: dark) {
-      .log-content {
-        background-color: #2a2a2a;
-      }
-      
-      .log-success {
-        border-left-color: #27ae60;
-      }
-      
-      .log-error {
-        border-left-color: #e74c3c;
-      }
-      
-      .log-info {
-        border-left-color: #3498db;
-      }
-      
-      .log-warning {
-        border-left-color: #f39c12;
-      }
+    /* Estado de conexión mejorado */
+    .connection-status.connected {
+      border-color: #4CAF50;
+      background-color: rgba(76, 175, 80, 0.05);
+    }
+
+    .connection-status.connecting {
+      border-color: #FFC107;
+      background-color: rgba(255, 193, 7, 0.05);
+    }
+
+    .connection-status.error {
+      border-color: #e74c3c;
+      background-color: rgba(231, 76, 60, 0.05);
+    }
+
+    .connection-status .status-text {
+      font-weight: 500;
     }
   </style>
 </head>
@@ -553,23 +434,9 @@
     </header>
 
     <main class="dashboard">
-      <div class="card mqtt-status">
-        <h2>Estado de Conexión</h2>
-        <div class="connection-status">
-          <div class="status-indicator">
-            <div class="status-dot" id="mqtt-status-dot"></div>
-            <span id="mqtt-status-text">Conectando...</span>
-          </div>
-          <div class="broker-info">
-            <p><strong>Dispositivo:</strong> <span id="device-id">espHORUS</span></p>
-            <p><strong>Broker:</strong> <span id="broker-address">broker.hivemq.com:1883</span></p>
-            <p><strong>Última actualización:</strong> <span id="last-update">Nunca</span></p>
-          </div>
-        </div>
-        <div class="connection-controls">
-          <button id="connect-btn" class="control-btn" disabled>Conectar</button>
-          <button id="disconnect-btn" class="control-btn">Desconectar</button>
-        </div>
+      <div class="connection-status" id="connection-status">
+        <div class="status-dot" id="mqtt-status-dot"></div>
+        <span class="status-text" id="mqtt-status-text">Conectando...</span>
       </div>
 
       <div class="card metrics-grid">
@@ -624,16 +491,6 @@
           <div class="metric-value" id="rain">-- mm</div>
         </div>
       </div>
-
-      <div class="card data-log">
-        <h2>Registro de Datos</h2>
-        <div class="log-content" id="data-log">
-          <div class="log-entry">
-            <span class="log-timestamp">[Ahora]</span>
-            <span class="log-message">Sistema iniciado. Conectando a HiveMQ...</span>
-          </div>
-        </div>
-      </div>
     </main>
 
     <footer>
@@ -649,10 +506,7 @@
       // Elementos del DOM
       const mqttStatusDot = document.getElementById('mqtt-status-dot');
       const mqttStatusText = document.getElementById('mqtt-status-text');
-      const lastUpdate = document.getElementById('last-update');
-      const connectBtn = document.getElementById('connect-btn');
-      const disconnectBtn = document.getElementById('disconnect-btn');
-      const dataLog = document.getElementById('data-log');
+      const connectionStatus = document.getElementById('connection-status');
       
       // Elementos de métricas
       const temperatureEl = document.getElementById('temperature');
@@ -669,19 +523,30 @@
       // Estado de conexión
       let isConnected = false;
       let mqttClient = null;
+      let retryCount = 0;
+      const maxRetries = 3;
       
-      // Agregar entrada al registro
-      function addToLog(message, type = 'info') {
-        const now = new Date();
-        const timestamp = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}]`;
-        const logEntry = document.createElement('div');
-        logEntry.className = `log-entry log-${type}`;
-        logEntry.innerHTML = `<span class="log-timestamp">${timestamp}</span> <span class="log-message">${message}</span>`;
-        dataLog.prepend(logEntry);
+      // Actualizar estado de conexión
+      function updateConnectionStatus(status, message) {
+        console.log(`Estado de conexión MQTT: ${status} - ${message}`);
         
-        // Limitar el número de entradas en el registro
-        if (dataLog.children.length > 30) {
-          dataLog.removeChild(dataLog.lastChild);
+        connectionStatus.className = 'connection-status';
+        
+        if (status === 'connected') {
+          connectionStatus.classList.add('connected');
+          mqttStatusDot.style.backgroundColor = '#4CAF50';
+          mqttStatusDot.style.animation = 'pulse 2s infinite';
+          mqttStatusText.textContent = 'Conectado';
+        } else if (status === 'connecting') {
+          connectionStatus.classList.add('connecting');
+          mqttStatusDot.style.backgroundColor = '#FFC107';
+          mqttStatusDot.style.animation = 'none';
+          mqttStatusText.textContent = 'Conectando...';
+        } else {
+          connectionStatus.classList.add('error');
+          mqttStatusDot.style.backgroundColor = '#e74c3c';
+          mqttStatusDot.style.animation = 'none';
+          mqttStatusText.textContent = 'Error de conexión';
         }
       }
       
@@ -727,32 +592,28 @@
         else if (sensor === 'lluvia') {
           rainEl.textContent = `${value} mm`;
         }
-        
-        // Actualizar última actualización
-        const now = new Date();
-        lastUpdate.textContent = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
       }
       
       // Conectar a HiveMQ
       function connectToHiveMQ() {
         try {
-          mqttStatusText.textContent = 'Conectando...';
-          mqttStatusDot.style.backgroundColor = '#FFC107';
-          mqttStatusDot.style.animation = 'none';
+          updateConnectionStatus('connecting', 'Intentando conectar...');
           
-          // Configuración para HiveMQ
-          const brokerUrl = 'wss://broker.hivemq.com:8000/mqtt';
+          // Configuración para HiveMQ - ¡CORREGIDO EL ENDPOINT!
+          // El endpoint correcto para HiveMQ Cloud es wss://broker.hivemq.com:8883/mqtt
+          const brokerUrl = 'wss://broker.hivemq.com:8883/mqtt';
           const clientId = 'horus_client_' + Math.random().toString(36).substr(2, 9);
           
           const options = {
             clientId: clientId,
             clean: true,
             connectTimeout: 30000,
-            reconnectPeriod: 5000,
-            protocolVersion: 5
+            reconnectPeriod: 0,  // Desactivamos la reconexión automática
+            protocolVersion: 5,
+            keepalive: 60
           };
           
-          addToLog(`Intentando conectar a HiveMQ (${brokerUrl})`, 'info');
+          console.log(`Intentando conectar a HiveMQ (${brokerUrl}) con ID ${clientId}`);
           
           // Crear cliente MQTT.js
           mqttClient = mqtt.connect(brokerUrl, options);
@@ -760,14 +621,8 @@
           // Configurar callbacks
           mqttClient.on('connect', () => {
             console.log("Conexión MQTT establecida con HiveMQ");
-            addToLog("Conexión establecida con éxito con HiveMQ", 'success');
-            
+            updateConnectionStatus('connected', 'Conexión exitosa');
             isConnected = true;
-            mqttStatusText.textContent = 'Conectado';
-            mqttStatusDot.style.backgroundColor = '#4CAF50';
-            mqttStatusDot.style.animation = 'pulse 2s infinite';
-            connectBtn.disabled = true;
-            disconnectBtn.disabled = false;
             
             // Suscribirse a todos los topics
             const topics = [
@@ -786,21 +641,25 @@
             mqttClient.subscribe(topics, (err) => {
               if (!err) {
                 console.log("Suscrito a todos los topics de HiveMQ");
-                addToLog("Suscrito a todos los topics de sensores", 'info');
               } else {
                 console.error("Error al suscribirse:", err);
-                addToLog(`Error al suscribirse: ${err.message}`, 'error');
+                updateConnectionStatus('error', `Error al suscribirse: ${err.message}`);
               }
             });
           });
           
           mqttClient.on('error', (err) => {
             console.error("Error MQTT:", err);
-            addToLog(`Error MQTT: ${err.message}`, 'error');
-            mqttStatusText.textContent = 'Error de conexión';
-            mqttStatusDot.style.backgroundColor = '#e74c3c';
-            mqttStatusDot.style.animation = 'none';
-            isConnected = false;
+            updateConnectionStatus('error', `Error: ${err.message}`);
+            
+            // Intentar reconectar solo un número limitado de veces
+            if (retryCount < maxRetries) {
+              retryCount++;
+              console.log(`Intentando reconectar (${retryCount}/${maxRetries})...`);
+              setTimeout(connectToHiveMQ, 5000);
+            } else {
+              console.log("Se alcanzó el número máximo de intentos de reconexión");
+            }
           });
           
           mqttClient.on('message', (topic, message) => {
@@ -833,65 +692,24 @@
               
               // Actualizar la interfaz con los datos
               updateMetrics(sensorName, value);
-              
-              // Agregar al registro
-              addToLog(`[${sensorName}] Nuevo dato: ${value}`);
             } catch (e) {
               console.error("Error al procesar mensaje MQTT:", e);
-              addToLog(`Error al procesar mensaje: ${e.message}`, 'error');
             }
-          });
-          
-          mqttClient.on('reconnect', () => {
-            console.log("Intentando reconectar...");
-            addToLog("Intentando reconectar al broker HiveMQ...", 'info');
-            mqttStatusText.textContent = 'Reconectando...';
-            mqttStatusDot.style.backgroundColor = '#FFC107';
-            mqttStatusDot.style.animation = 'pulse 2s infinite';
           });
           
           mqttClient.on('offline', () => {
             console.log("Cliente MQTT offline");
-            addToLog("Cliente MQTT offline", 'warning');
             if (isConnected) {
               isConnected = false;
-              mqttStatusText.textContent = 'Offline';
-              mqttStatusDot.style.backgroundColor = '#e74c3c';
-              mqttStatusDot.style.animation = 'none';
-              connectBtn.disabled = false;
+              updateConnectionStatus('error', 'Offline');
             }
           });
           
         } catch (error) {
           console.error("Error al inicializar MQTT:", error);
-          addToLog(`Error al inicializar MQTT: ${error.message}`, 'error');
-          mqttStatusText.textContent = 'Error';
-          mqttStatusDot.style.backgroundColor = '#e74c3c';
-          mqttStatusDot.style.animation = 'none';
+          updateConnectionStatus('error', `Error: ${error.message}`);
         }
       }
-      
-      // Desconectar de HiveMQ
-      function disconnectFromHiveMQ() {
-        if (mqttClient && isConnected) {
-          mqttClient.end();
-          isConnected = false;
-          mqttClient = null;
-          
-          mqttStatusText.textContent = 'Desconectado';
-          mqttStatusDot.style.backgroundColor = '#e74c3c';
-          mqttStatusDot.style.animation = 'none';
-          
-          connectBtn.disabled = false;
-          disconnectBtn.disabled = true;
-          
-          addToLog("Conexión MQTT cerrada", 'info');
-        }
-      }
-      
-      // Event listeners
-      connectBtn.addEventListener('click', connectToHiveMQ);
-      disconnectBtn.addEventListener('click', disconnectFromHiveMQ);
       
       // Conexión automática al cargar la página
       connectToHiveMQ();
