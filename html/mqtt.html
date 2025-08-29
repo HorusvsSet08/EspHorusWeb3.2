@@ -675,11 +675,27 @@
       // Elementos VR
       const vrMode = document.getElementById('vr-mode');
       const vrDataContainer = document.getElementById('vr-data');
+      
+      // Referencias a los elementos de datos
+      const dataElements = {
+        temp: document.getElementById('temp'),
+        hum: document.getElementById('hum'),
+        press: document.getElementById('press'),
+        alt: document.getElementById('alt'),
+        pm25: document.getElementById('pm25'),
+        pm10: document.getElementById('pm10'),
+        wind: document.getElementById('wind'),
+        windDir: document.getElementById('windDir'),
+        gas: document.getElementById('gas'),
+        lluvia: document.getElementById('lluvia')
+      };
 
-      // Crear burbujas VR si no existen
+      // Crear burbujas VR
       function createVRBubbles() {
-        if (vrDataContainer.children.length > 0) return;
+        // Limpiar contenido anterior
+        vrDataContainer.innerHTML = '';
         
+        // Definir los sensores
         const sensors = [
           { id: 'temp', label: 'Temperatura', icon: '🌡️', unit: '°C' },
           { id: 'hum', label: 'Humedad', icon: '💧', unit: '%' },
@@ -718,6 +734,20 @@
 
         vrDataContainer.appendChild(row1);
         vrDataContainer.appendChild(row2);
+      }
+
+      // Actualizar datos en VR
+      function updateVRData() {
+        const sensors = ['temp', 'hum', 'press', 'alt', 'pm25', 'pm10', 'wind', 'windDir', 'gas', 'lluvia'];
+        
+        sensors.forEach(id => {
+          const normalElement = dataElements[id];
+          const vrElement = document.getElementById(`vr-${id}`);
+          
+          if (normalElement && vrElement) {
+            vrElement.textContent = normalElement.textContent;
+          }
+        });
       }
 
       const updateLastUpdate = () => {
@@ -820,7 +850,7 @@
             }
             
             // Actualizar interfaz normal
-            const element = document.getElementById(elementId);
+            const element = dataElements[elementId];
             if (element) {
               // Unidades según el sensor
               const units = {
@@ -834,6 +864,11 @@
               
               const unit = units[elementId] || '';
               element.textContent = `${value} ${unit}`.trim();
+              
+              // Actualizar modo VR si está activo
+              if (vrMode.style.display === 'flex') {
+                updateVRData();
+              }
             }
           });
           
@@ -893,18 +928,11 @@
       const vrMode = document.getElementById('vr-mode');
       vrMode.style.display = 'flex';
       
-      // Crear las burbujas VR si no existen
+      // Crear las burbujas VR
       createVRBubbles();
       
       // Actualizar datos VR con los valores actuales
-      const elements = ['temp', 'hum', 'press', 'alt', 'pm25', 'pm10', 'wind', 'windDir', 'gas', 'lluvia'];
-      elements.forEach(id => {
-        const normalElement = document.getElementById(id);
-        const vrElement = document.getElementById('vr-' + id);
-        if (normalElement && vrElement) {
-          vrElement.textContent = normalElement.textContent;
-        }
-      });
+      updateVRData();
     }
 
     // Función para salir del modo VR
