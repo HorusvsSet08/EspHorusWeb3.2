@@ -40,7 +40,6 @@
       color: var(--text-color);
       background-color: var(--background-color);
       transition: background-color 0.3s ease;
-      padding-top: 50px;
     }
 
     .light-mode {
@@ -53,30 +52,21 @@
       padding: 0 1.5rem;
     }
 
-    /* Estado de conexión pequeño */
-    .connection-status-small {
-      position: fixed;
-      top: 10px;
-      right: 10px;
+    /* Estado de conexión como barra */
+    .status-bar {
       background-color: var(--card-bg);
-      border-radius: 20px;
-      padding: 6px 12px;
+      padding: 8px 1.5rem;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
-      gap: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      border: 1px solid var(--border-color);
+      gap: 1rem;
     }
 
-    .connection-status-small.connected {
-      border-color: #4CAF50;
-      background-color: rgba(76, 175, 80, 0.05);
-    }
-
-    .connection-status-small.error {
-      border-color: #e74c3c;
-      background-color: rgba(231, 76, 60, 0.05);
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .status-dot {
@@ -90,6 +80,10 @@
     .status-dot.connected {
       background-color: #4CAF50;
       animation: pulse 2s infinite;
+    }
+
+    .status-dot.error {
+      background-color: #e74c3c;
     }
 
     @keyframes pulse {
@@ -106,12 +100,11 @@
     .last-update {
       font-size: 0.8rem;
       color: var(--text-muted);
-      margin-left: 5px;
     }
 
     header {
       text-align: center;
-      margin: 2rem 0;
+      margin: 1.5rem 0;
     }
 
     header h1 {
@@ -176,9 +169,8 @@
       background-color: var(--card-bg);
       padding: 0.75rem 0;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-      position: fixed;
+      position: sticky;
       top: 0;
-      width: 100%;
       z-index: 100;
     }
 
@@ -396,11 +388,13 @@
     </div>
   </nav>
 
-  <!-- Estado de conexión pequeño -->
-  <div class="connection-status-small">
-    <span class="status-dot"></span>
-    <span class="status-text">Conectando...</span>
-    <div class="last-update">última: nunca</div>
+  <!-- Barra de estado debajo del nav -->
+  <div class="status-bar">
+    <div class="status-indicator">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Conectando...</span>
+    </div>
+    <div class="last-update" id="last-update">última: nunca</div>
   </div>
 
   <div class="container">
@@ -459,15 +453,15 @@
   <!-- Carga main.js primero (tema y efectos) -->
   <script src="/EspHorusWeb3/js/main.js"></script>
   
-  <!-- Carga MQTT.js - CORREGIDO EL NOMBRE DEL ARCHIVO -->
+  <!-- Carga MQTT.js -->
   <script src="/EspHorusWeb3/js/mqtt.js"></script>
   
   <!-- Script de MQTT -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const statusText = document.querySelector('.status-text');
-      const statusDot = document.querySelector('.status-dot');
-      const lastUpdate = document.querySelector('.last-update');
+      const statusDot = document.getElementById('status-dot');
+      const statusText = document.getElementById('status-text');
+      const lastUpdate = document.getElementById('last-update');
       let lastDataTime = null;
       let mqttClient = null;
 
@@ -482,19 +476,11 @@
       function updateConnectionStatus(status, message) {
         statusText.textContent = message;
         
+        statusDot.classList.remove('connected', 'error');
         if (status === 'connected') {
           statusDot.classList.add('connected');
-          statusDot.classList.remove('error');
-          document.querySelector('.connection-status-small').classList.remove('error');
-          document.querySelector('.connection-status-small').classList.add('connected');
-        } else if (status === 'error') {
-          statusDot.classList.remove('connected');
-          statusDot.classList.add('error');
-          document.querySelector('.connection-status-small').classList.remove('connected');
-          document.querySelector('.connection-status-small').classList.add('error');
         } else {
-          statusDot.classList.remove('connected', 'error');
-          document.querySelector('.connection-status-small').classList.remove('connected', 'error');
+          statusDot.classList.add('error');
         }
       }
 
