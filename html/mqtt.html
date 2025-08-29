@@ -443,6 +443,87 @@
       -ms-transform: translateY(-50%);
       transform: translateY(-50%);
     }
+
+    /* Modo VR */
+    .vr-mode {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+    }
+
+    .vr-header {
+      background-color: #1a1a1a;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-size: 1.2rem;
+    }
+
+    .vr-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #ff3b30;
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      cursor: pointer;
+      z-index: 1001;
+    }
+
+    .vr-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .vr-row {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    .vr-bubble {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 15px;
+      width: 120px;
+      text-align: center;
+      color: white;
+      backdrop-filter: blur(10px);
+    }
+
+    .vr-bubble-icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .vr-bubble-label {
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+      opacity: 0.8;
+    }
+
+    .vr-bubble-value {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body class="light-mode">
@@ -502,6 +583,70 @@
   <button class="vr-button" onclick="enterVRMode()">
     🕶️
   </button>
+
+  <!-- Modo VR -->
+  <div class="vr-mode" id="vr-mode">
+    <div class="vr-header">
+      Modo Realidad Virtual - Horus
+    </div>
+    <button class="vr-close" onclick="exitVRMode()">✕</button>
+    <div class="vr-content">
+      <div class="vr-row">
+        <div class="vr-bubble">
+          <div class="vr-bubble-icon">🌡️</div>
+          <div class="vr-bubble-label">Temperatura</div>
+          <div class="vr-bubble-value" id="vr-temp">-- °C</div>
+        </div>
+        <div class="vr-bubble">
+          <div class="vr-bubble-icon">💧</div>
+          <div class="vr-bubble-label">Humedad</div>
+          <div class="vr-bubble-value" id="vr-hum">-- %</div>
+        </div>
+        <div class="vr-bubble">
+          <div class="vr-bubble-icon">🔽</div>
+          <div class="vr-bubble-label">Presión</div>
+          <div class="vr-bubble-value" id="vr-press">-- hPa</div>
+        </div>
+        <div class="vr-bubble">
+          <div class="vr-bubble-icon">⛰️</div>
+          <div class="vr-bubble-label">Altitud</div>
+          <div class="vr-bubble-value" id="vr-alt">-- m</div>
+        </div>
+        <div class="vr-bubble">
+          <div class="vr-bubble-icon">🌫️</div>
+          <div class="vr-bubble-label">PM2.5</div>
+          <div class="vr-bubble-value" id="vr-pm25">-- µg/m³</div>
+        </div>
+      </div>
+      <div class="vr-row">
+        <div class="vr-bubble">
+          <div class="vr-bubble-icon">🌫️</div>
+          <div class="vr-bubble-label">PM10</div>
+          <div class="vr-bubble-value" id="vr-pm10">-- µg/m³</div>
+        </div>
+        <div class="vr-bubble">
+          <div class="vr-bubble-icon">💨</div>
+          <div class="vr-bubble-label">Viento</div>
+          <div class="vr-bubble-value" id="vr-wind">-- km/h</div>
+        </div>
+        <div class="vr-bubble">
+          <div class="vr-bubble-icon">🧭</div>
+          <div class="vr-bubble-label">Dirección</div>
+          <div class="vr-bubble-value" id="vr-windDir">-- °</div>
+        </div>
+        <div class="vr-bubble">
+          <div class="vr-bubble-icon">⛽</div>
+          <div class="vr-bubble-label">Gas</div>
+          <div class="vr-bubble-value" id="vr-gas">-- kΩ</div>
+        </div>
+        <div class="vr-bubble">
+          <div class="vr-bubble-icon">🌧️</div>
+          <div class="vr-bubble-label">Lluvia</div>
+          <div class="vr-bubble-value" id="vr-lluvia">-- mm</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="container">
     <header>
@@ -570,6 +715,21 @@
       const lastUpdate = document.getElementById('last-update');
       let lastDataTime = null;
       let mqttClient = null;
+
+      // Elementos VR
+      const vrMode = document.getElementById('vr-mode');
+      const vrElements = {
+        temp: document.getElementById('vr-temp'),
+        hum: document.getElementById('vr-hum'),
+        press: document.getElementById('vr-press'),
+        alt: document.getElementById('vr-alt'),
+        pm25: document.getElementById('vr-pm25'),
+        pm10: document.getElementById('vr-pm10'),
+        wind: document.getElementById('vr-wind'),
+        windDir: document.getElementById('vr-windDir'),
+        gas: document.getElementById('vr-gas'),
+        lluvia: document.getElementById('vr-lluvia')
+      };
 
       const updateLastUpdate = () => {
         if (!lastDataTime) return;
@@ -670,24 +830,28 @@
               return;
             }
             
+            // Actualizar interfaz normal
             const element = document.getElementById(elementId);
-            if (!element) {
-              console.error(`❌ Elemento no encontrado para el tópico: ${topic}`);
-              return;
+            if (element) {
+              // Unidades según el sensor
+              const units = {
+                temp: '°C',
+                press: 'hPa',
+                wind: 'km/h',
+                windDir: '°',
+                gas: 'kΩ',
+                lluvia: 'mm'
+              };
+              
+              const unit = units[elementId] || '';
+              element.textContent = `${value} ${unit}`.trim();
             }
             
-            // Unidades según el sensor
-            const units = {
-              temp: '°C',
-              press: 'hPa',
-              wind: 'km/h',
-              windDir: '°',
-              gas: 'kΩ',
-              lluvia: 'mm'
-            };
-            
-            const unit = units[elementId] || '';
-            element.textContent = `${value} ${unit}`.trim();
+            // Actualizar interfaz VR si está activa
+            if (vrElements[elementId]) {
+              const unit = units[elementId] || '';
+              vrElements[elementId].textContent = `${value} ${unit}`.trim();
+            }
           });
           
           mqttClient.on('error', (err) => {
@@ -741,10 +905,25 @@
       }
     });
 
-    // Función para modo VR
+    // Función para entrar en modo VR
     function enterVRMode() {
-      alert("Modo VR activado - Esta función está en desarrollo");
-      // Aquí se implementaría la funcionalidad VR
+      const vrMode = document.getElementById('vr-mode');
+      vrMode.style.display = 'flex';
+      
+      // Actualizar datos VR con los valores actuales
+      const elements = ['temp', 'hum', 'press', 'alt', 'pm25', 'pm10', 'wind', 'windDir', 'gas', 'lluvia'];
+      elements.forEach(id => {
+        const normalElement = document.getElementById(id);
+        const vrElement = document.getElementById('vr-' + id);
+        if (normalElement && vrElement) {
+          vrElement.textContent = normalElement.textContent;
+        }
+      });
+    }
+
+    // Función para salir del modo VR
+    function exitVRMode() {
+      document.getElementById('vr-mode').style.display = 'none';
     }
   </script>
 </body>
