@@ -453,7 +453,7 @@
 
   <!-- Carga main.js primero (tema y efectos) -->
   <script src="../js/main.js"></script>
-  <!-- Carga MQTT.js local -->
+  <!-- Carga MQTT.js local - RUTA CORREGIDA SIN .2 -->
   <script src="../js/mqtt.min.js"></script>
 
   <!-- Script de MQTT -->
@@ -472,6 +472,7 @@
       setInterval(updateLastUpdate, 1000);
 
       // === Conexión MQTT ===
+      // Usamos el endpoint correcto para HiveMQ
       const broker = "wss://broker.hivemq.com:8883/mqtt";
       const client = mqtt.connect(broker, {
         clientId: "webClient_" + Math.random().toString(16).substr(2, 8),
@@ -488,7 +489,7 @@
         statusDot.classList.add('connected');
         document.querySelector('.connection-status-small').classList.add('connected');
 
-        // Suscríbete a TODO lo que empiece con "horus/"
+        // Suscríbete a TODO lo que empiece con "horus/vvb/"
         client.subscribe("horus/vvb/#", (err) => {
           if (err) {
             console.error("❌ Error al suscribirse a horus/vvb/#");
