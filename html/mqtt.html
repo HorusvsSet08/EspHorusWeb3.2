@@ -757,6 +757,11 @@
         if (element) {
           // Verificar si el valor es un número válido
           if (!isNaN(value) && value !== '') {
+            // Si es temperatura y es mayor a 50, probablemente esté en Fahrenheit
+            if (elementId === 'temp' && parseFloat(value) > 50) {
+              const celsius = (parseFloat(value) - 32) * 5/9;
+              value = celsius.toFixed(2);
+            }
             element.textContent = value;
             return true;
           }
@@ -783,15 +788,15 @@
           return;
         }
 
-        // Lista de brokers MQTT públicos
+        // Lista de brokers MQTT públicos - PONER broker.hivemq.com PRIMERO COMO SOLICITADO
         const brokerOptions = [
-          {
-            url: 'wss://test.mosquitto.org:8081',
-            description: 'Broker público Mosquitto'
-          },
           {
             url: 'wss://broker.hivemq.com:8000/mqtt',
             description: 'Broker público HiveMQ'
+          },
+          {
+            url: 'wss://test.mosquitto.org:8081',
+            description: 'Broker público Mosquitto'
           },
           {
             url: 'wss://mqtt.eclipseprojects.io:443/mqtt',
@@ -856,6 +861,7 @@
             
             // Suscribirse a los tópicos correctos
             const topics = [
+              // Tópicos específicos para HiveMQ basados en los logs
               'horus/vvb/temperatura',
               'horus/vvb/humedad',
               'horus/vvb/presion',
@@ -866,29 +872,7 @@
               'horus/vvb/wind_direction',
               'horus/vvb/gas',
               'horus/vvb/lluvia',
-              // Variaciones comunes
-              'horus/temperatura',
-              'horus/humedad',
-              'horus/presion',
-              'horus/altitud',
-              'horus/pm25',
-              'horus/pm10',
-              'horus/wind_speed',
-              'horus/wind_direction',
-              'horus/gas',
-              'horus/lluvia',
-              // Formato inglés
-              'horus/vvb/temperature',
-              'horus/vvb/humidity',
-              'horus/vvb/pressure',
-              'horus/vvb/altitude',
-              'horus/vvb/pm2_5',
-              'horus/vvb/pm10',
-              'horus/vvb/wind_speed',
-              'horus/vvb/wind_direction',
-              'horus/vvb/gas',
-              'horus/vvb/rain',
-              // Sin prefijo
+              // Tópicos comunes usados en los logs
               'temperature',
               'humidity',
               'pressure',
@@ -898,7 +882,29 @@
               'wind_speed',
               'wind_direction',
               'gas',
-              'rain'
+              'rain',
+              // Tópicos para HiveMQ específicos
+              'sensors/temperature',
+              'sensors/humidity',
+              'sensors/pressure',
+              'sensors/altitude',
+              'sensors/pm25',
+              'sensors/pm10',
+              'sensors/wind_speed',
+              'sensors/wind_direction',
+              'sensors/gas',
+              'sensors/rain',
+              // Tópicos para Horus específico
+              'horus/sensors/temperature',
+              'horus/sensors/humidity',
+              'horus/sensors/pressure',
+              'horus/sensors/altitude',
+              'horus/sensors/pm25',
+              'horus/sensors/pm10',
+              'horus/sensors/wind_speed',
+              'horus/sensors/wind_direction',
+              'horus/sensors/gas',
+              'horus/sensors/rain'
             ];
             
             logDebugMessage(`Suscrito a ${topics.length} tópicos`, 'info');
@@ -925,9 +931,9 @@
             // Actualizar el tiempo de última recepción
             lastDataTime = Date.now();
             
-            // Mapeo de tópicos a IDs
+            // Mapeo de tópicos a IDs con manejo especial para los datos que vimos en los logs
             const topicMap = {
-              // Formato original
+              // Formato original de Horus
               'horus/vvb/temperatura': 'temp',
               'horus/vvb/humedad': 'hum',
               'horus/vvb/presion': 'press',
@@ -939,31 +945,7 @@
               'horus/vvb/gas': 'gas',
               'horus/vvb/lluvia': 'lluvia',
               
-              // Variantes comunes
-              'horus/temperatura': 'temp',
-              'horus/humedad': 'hum',
-              'horus/presion': 'press',
-              'horus/altitud': 'alt',
-              'horus/pm25': 'pm25',
-              'horus/pm10': 'pm10',
-              'horus/wind_speed': 'wind',
-              'horus/wind_direction': 'windDir',
-              'horus/gas': 'gas',
-              'horus/lluvia': 'lluvia',
-              
-              // Formato inglés
-              'horus/vvb/temperature': 'temp',
-              'horus/vvb/humidity': 'hum',
-              'horus/vvb/pressure': 'press',
-              'horus/vvb/altitude': 'alt',
-              'horus/vvb/pm2_5': 'pm25',
-              'horus/vvb/pm10': 'pm10',
-              'horus/vvb/wind_speed': 'wind',
-              'horus/vvb/wind_direction': 'windDir',
-              'horus/vvb/gas': 'gas',
-              'horus/vvb/rain': 'lluvia',
-              
-              // Formato sin prefijo
+              // Formato HiveMQ común
               'temperature': 'temp',
               'humidity': 'hum',
               'pressure': 'press',
@@ -973,7 +955,31 @@
               'wind_speed': 'wind',
               'wind_direction': 'windDir',
               'gas': 'gas',
-              'rain': 'lluvia'
+              'rain': 'lluvia',
+              
+              // Formato HiveMQ específico
+              'sensors/temperature': 'temp',
+              'sensors/humidity': 'hum',
+              'sensors/pressure': 'press',
+              'sensors/altitude': 'alt',
+              'sensors/pm25': 'pm25',
+              'sensors/pm10': 'pm10',
+              'sensors/wind_speed': 'wind',
+              'sensors/wind_direction': 'windDir',
+              'sensors/gas': 'gas',
+              'sensors/rain': 'lluvia',
+              
+              // Formato Horus específico
+              'horus/sensors/temperature': 'temp',
+              'horus/sensors/humidity': 'hum',
+              'horus/sensors/pressure': 'press',
+              'horus/sensors/altitude': 'alt',
+              'horus/sensors/pm25': 'pm25',
+              'horus/sensors/pm10': 'pm10',
+              'horus/sensors/wind_speed': 'wind',
+              'horus/sensors/wind_direction': 'windDir',
+              'horus/sensors/gas': 'gas',
+              'horus/sensors/rain': 'lluvia'
             };
             
             let elementId = topicMap[topic];
@@ -987,6 +993,20 @@
                   break;
                 }
               }
+            }
+            
+            // Si aún no encontramos coincidencia, intentamos con coincidencia más genérica
+            if (!elementId) {
+              if (topic.includes('temp')) elementId = 'temp';
+              else if (topic.includes('hum')) elementId = 'hum';
+              else if (topic.includes('press')) elementId = 'press';
+              else if (topic.includes('alt')) elementId = 'alt';
+              else if (topic.includes('pm2')) elementId = 'pm25';
+              else if (topic.includes('pm10')) elementId = 'pm10';
+              else if (topic.includes('wind') && topic.includes('dir')) elementId = 'windDir';
+              else if (topic.includes('wind')) elementId = 'wind';
+              else if (topic.includes('gas')) elementId = 'gas';
+              else if (topic.includes('rain') || topic.includes('lluvia')) elementId = 'lluvia';
             }
             
             if (!elementId) {
