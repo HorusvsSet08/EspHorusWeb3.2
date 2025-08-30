@@ -367,43 +367,40 @@
       }
     }
     
-    /* Panel de depuración */
-    .debug-panel {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
-      padding: 1rem;
+    /* Mensaje de estado de conexión */
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
       margin-top: 1rem;
-      font-family: monospace;
-      font-size: 0.85rem;
-      max-height: 200px;
-      overflow-y: auto;
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
     }
     
-    .debug-message {
-      margin-bottom: 0.25rem;
-      padding: 0.25rem 0;
-      border-bottom: 1px solid var(--border-color);
+    .connection-status.connected {
+      background-color: #d4edda;
+      color: #155724;
+      border-color: #c3e6cb;
     }
     
-    .debug-message:last-child {
-      border-bottom: none;
+    .connection-status.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border-color: #f5c6cb;
     }
     
-    .debug-message.connecting {
-      color: #6c757d;
+    .connection-status .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
     }
     
-    .debug-message.connected {
-      color: var(--success);
-    }
-    
-    .debug-message.error {
-      color: var(--danger);
-    }
-    
-    .debug-message.info {
-      color: var(--info);
+    .connection-status .status-text {
+      font-size: 0.9rem;
+      font-weight: 500;
     }
   </style>
 </head>
@@ -449,12 +446,13 @@
     
     <!-- Configuración de cámara para VR -->
     <a-entity id="camera-rig" position="0 1.6 0">
-      <a-entity id="camera" camera="fov: 80; near: 0.1; far: 1000" look-controls wasd-controls>
+      <a-entity id="camera" camera="fov: 80; near: 0.1; far: 1000" look-controls wasd-controls raycaster="objects: [data-raycastable]">
         <a-cursor 
           color="#00eaff" 
           opacity="0.5"
           radiusInner="0.01"
-          radiusOuter="0.02">
+          radiusOuter="0.02"
+          raycaster="objects: [data-raycastable]">
         </a-cursor>
       </a-entity>
     </a-entity>
@@ -464,94 +462,97 @@
     
     <!-- Sensores organizados en un círculo alrededor del usuario -->
     <!-- Temperatura -->
-    <a-entity position="0 1.5 2.0" rotation="0 0 0" class="sensor-card temp-card">
-      <a-box color="#ff6b6b" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
-      <a-text value="🌡️" color="#ff6b6b" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
-      <a-text id="vr-temp" value="--" color="#ff6b6b" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
-      <a-text value="TEMPERATURA" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
-      <a-text value="°C" color="#aaaaaa" position="0.5 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+    <a-entity position="0 1.5 2.5" rotation="0 0 0" class="sensor-card temp-card" data-raycastable>
+      <a-box color="#ff6b6b" depth="0.1" height="2.0" width="2.0" opacity="0.15" material="shader: flat"></a-box>
+      <a-text value="🌡️" color="#ff6b6b" position="0 0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.8"></a-text>
+      <a-text id="vr-temp" value="--" color="#ff6b6b" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.7"></a-text>
+      <a-text value="TEMPERATURA" color="#ffffff" position="0 -0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
+      <a-text value="°C" color="#aaaaaa" position="0.6 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
     </a-entity>
     
     <!-- Humedad -->
-    <a-entity position="1.7 1.5 0.8" rotation="0 -30 0" class="sensor-card hum-card">
-      <a-box color="#4ecdc4" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
-      <a-text value="💧" color="#4ecdc4" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
-      <a-text id="vr-hum" value="--" color="#4ecdc4" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
-      <a-text value="HUMEDAD" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
-      <a-text value="%" color="#aaaaaa" position="0.4 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+    <a-entity position="2.2 1.5 0.8" rotation="0 -30 0" class="sensor-card hum-card" data-raycastable>
+      <a-box color="#4ecdc4" depth="0.1" height="2.0" width="2.0" opacity="0.15" material="shader: flat"></a-box>
+      <a-text value="💧" color="#4ecdc4" position="0 0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.8"></a-text>
+      <a-text id="vr-hum" value="--" color="#4ecdc4" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.7"></a-text>
+      <a-text value="HUMEDAD" color="#ffffff" position="0 -0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
+      <a-text value="%" color="#aaaaaa" position="0.5 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
     </a-entity>
     
     <!-- Presión -->
-    <a-entity position="1.7 1.5 -0.8" rotation="0 -330 0" class="sensor-card press-card">
-      <a-box color="#6c757d" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
-      <a-text value="🔽" color="#6c757d" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
-      <a-text id="vr-press" value="--" color="#6c757d" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
-      <a-text value="PRESIÓN" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
-      <a-text value="hPa" color="#aaaaaa" position="0.5 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+    <a-entity position="2.2 1.5 -0.8" rotation="0 -330 0" class="sensor-card press-card" data-raycastable>
+      <a-box color="#6c757d" depth="0.1" height="2.0" width="2.0" opacity="0.15" material="shader: flat"></a-box>
+      <a-text value="🔽" color="#6c757d" position="0 0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.8"></a-text>
+      <a-text id="vr-press" value="--" color="#6c757d" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.7"></a-text>
+      <a-text value="PRESIÓN" color="#ffffff" position="0 -0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
+      <a-text value="hPa" color="#aaaaaa" position="0.6 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
     </a-entity>
     
     <!-- Altitud -->
-    <a-entity position="0 1.5 -2.0" rotation="0 180 0" class="sensor-card alt-card">
-      <a-box color="#6f42c1" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
-      <a-text value="⛰️" color="#6f42c1" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
-      <a-text id="vr-alt" value="--" color="#6f42c1" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
-      <a-text value="ALTITUD" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
-      <a-text value="m" color="#aaaaaa" position="0.3 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+    <a-entity position="0 1.5 -2.5" rotation="0 180 0" class="sensor-card alt-card" data-raycastable>
+      <a-box color="#6f42c1" depth="0.1" height="2.0" width="2.0" opacity="0.15" material="shader: flat"></a-box>
+      <a-text value="⛰️" color="#6f42c1" position="0 0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.8"></a-text>
+      <a-text id="vr-alt" value="--" color="#6f42c1" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.7"></a-text>
+      <a-text value="ALTITUD" color="#ffffff" position="0 -0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
+      <a-text value="m" color="#aaaaaa" position="0.4 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
     </a-entity>
     
     <!-- Dirección Viento -->
-    <a-entity position="-1.7 1.5 -0.8" rotation="0 30 0" class="sensor-card wind-dir-card">
-      <a-box color="#17a2b8" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
-      <a-text value="🧭" color="#17a2b8" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
-      <a-text id="vr-windDir" value="--" color="#17a2b8" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
-      <a-text value="DIRECCIÓN" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
-      <a-text value="°" color="#aaaaaa" position="0.3 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+    <a-entity position="-2.2 1.5 -0.8" rotation="0 30 0" class="sensor-card wind-dir-card" data-raycastable>
+      <a-box color="#17a2b8" depth="0.1" height="2.0" width="2.0" opacity="0.15" material="shader: flat"></a-box>
+      <a-text value="🧭" color="#17a2b8" position="0 0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.8"></a-text>
+      <a-text id="vr-windDir" value="--" color="#17a2b8" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.7"></a-text>
+      <a-text value="DIRECCIÓN" color="#ffffff" position="0 -0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
+      <a-text value="°" color="#aaaaaa" position="0.4 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
     </a-entity>
     
     <!-- Viento -->
-    <a-entity position="-1.7 1.5 0.8" rotation="0 330 0" class="sensor-card wind-card">
-      <a-box color="#20c997" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
-      <a-text value="💨" color="#20c997" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
-      <a-text id="vr-wind" value="--" color="#20c997" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
-      <a-text value="VIENTO" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
-      <a-text value="km/h" color="#aaaaaa" position="0.5 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+    <a-entity position="-2.2 1.5 0.8" rotation="0 330 0" class="sensor-card wind-card" data-raycastable>
+      <a-box color="#20c997" depth="0.1" height="2.0" width="2.0" opacity="0.15" material="shader: flat"></a-box>
+      <a-text value="💨" color="#20c997" position="0 0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.8"></a-text>
+      <a-text id="vr-wind" value="--" color="#20c997" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.7"></a-text>
+      <a-text value="VIENTO" color="#ffffff" position="0 -0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
+      <a-text value="km/h" color="#aaaaaa" position="0.6 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
     </a-entity>
     
     <!-- PM2.5 -->
-    <a-entity position="0 0.5 2.0" rotation="0 0 0" class="sensor-card pm25-card">
-      <a-box color="#e83e8c" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
-      <a-text value="🌫️" color="#e83e8c" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
-      <a-text id="vr-pm25" value="--" color="#e83e8c" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
-      <a-text value="PM2.5" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
-      <a-text value="μg/m³" color="#aaaaaa" position="0.6 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+    <a-entity position="0 0.5 2.5" rotation="0 0 0" class="sensor-card pm25-card" data-raycastable>
+      <a-box color="#e83e8c" depth="0.1" height="2.0" width="2.0" opacity="0.15" material="shader: flat"></a-box>
+      <a-text value="🌫️" color="#e83e8c" position="0 0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.8"></a-text>
+      <a-text id="vr-pm25" value="--" color="#e83e8c" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.7"></a-text>
+      <a-text value="PM2.5" color="#ffffff" position="0 -0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
+      <a-text value="μg/m³" color="#aaaaaa" position="0.7 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
     </a-entity>
     
     <!-- PM10 -->
-    <a-entity position="1.7 0.5 0.8" rotation="0 -30 0" class="sensor-card pm10-card">
-      <a-box color="#e83e8c" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
-      <a-text value="🌫️" color="#e83e8c" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
-      <a-text id="vr-pm10" value="--" color="#e83e8c" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
-      <a-text value="PM10" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
-      <a-text value="μg/m³" color="#aaaaaa" position="0.6 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+    <a-entity position="2.2 0.5 0.8" rotation="0 -30 0" class="sensor-card pm10-card" data-raycastable>
+      <a-box color="#e83e8c" depth="0.1" height="2.0" width="2.0" opacity="0.15" material="shader: flat"></a-box>
+      <a-text value="🌫️" color="#e83e8c" position="0 0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.8"></a-text>
+      <a-text id="vr-pm10" value="--" color="#e83e8c" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.7"></a-text>
+      <a-text value="PM10" color="#ffffff" position="0 -0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
+      <a-text value="μg/m³" color="#aaaaaa" position="0.7 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
     </a-entity>
     
     <!-- Gas -->
-    <a-entity position="1.7 0.5 -0.8" rotation="0 -330 0" class="sensor-card gas-card">
-      <a-box color="#ffc107" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
-      <a-text value="⛽" color="#ffc107" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
-      <a-text id="vr-gas" value="--" color="#ffc107" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
-      <a-text value="GAS" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
-      <a-text value="kΩ" color="#aaaaaa" position="0.4 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+    <a-entity position="2.2 0.5 -0.8" rotation="0 -330 0" class="sensor-card gas-card" data-raycastable>
+      <a-box color="#ffc107" depth="0.1" height="2.0" width="2.0" opacity="0.15" material="shader: flat"></a-box>
+      <a-text value="⛽" color="#ffc107" position="0 0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.8"></a-text>
+      <a-text id="vr-gas" value="--" color="#ffc107" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.7"></a-text>
+      <a-text value="GAS" color="#ffffff" position="0 -0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
+      <a-text value="kΩ" color="#aaaaaa" position="0.5 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
     </a-entity>
     
     <!-- Lluvia -->
-    <a-entity position="0 0.5 -2.0" rotation="0 180 0" class="sensor-card rain-card">
-      <a-box color="#4da6ff" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
-      <a-text value="🌧️" color="#4da6ff" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
-      <a-text id="vr-lluvia" value="--" color="#4da6ff" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
-      <a-text value="LLUVIA" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
-      <a-text value="mm" color="#aaaaaa" position="0.4 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+    <a-entity position="0 0.5 -2.5" rotation="0 180 0" class="sensor-card rain-card" data-raycastable>
+      <a-box color="#4da6ff" depth="0.1" height="2.0" width="2.0" opacity="0.15" material="shader: flat"></a-box>
+      <a-text value="🌧️" color="#4da6ff" position="0 0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.8"></a-text>
+      <a-text id="vr-lluvia" value="--" color="#4da6ff" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.7"></a-text>
+      <a-text value="LLUVIA" color="#ffffff" position="0 -0.5 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
+      <a-text value="mm" color="#aaaaaa" position="0.5 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.35"></a-text>
     </a-entity>
+    
+    <!-- Nube de partículas sutil para ambiente -->
+    <a-entity particle-system="preset: snow; particleCount: 200; size: 0.02; color: #ffffff; maxAge: 60; velocityValue: 0 0 -0.1; accelerationValue: 0 0 -0.01; enabled: true;"></a-entity>
   </a-scene>
 
   <div class="container" id="normal-view">
@@ -559,6 +560,11 @@
       <h1>📡 Datos en Vivo - Estación Horus</h1>
       <p class="subtitle">Monitoreo meteorológico en tiempo real con tecnología de vanguardia</p>
     </header>
+
+    <div id="connection-status" class="connection-status">
+      <span class="status-dot" style="background-color: #e74c3c;"></span>
+      <span class="status-text">Conectando al broker MQTT...</span>
+    </div>
 
     <div id="weather-data">
       <div class="data-card temp-card">
@@ -651,11 +657,6 @@
         <div class="data-unit">mm</div>
       </div>
     </div>
-    
-    <!-- Panel de depuración -->
-    <div class="debug-panel" id="debug-panel">
-      <div class="debug-message info">Iniciando sistema de monitoreo...</div>
-    </div>
 
     <footer>
       <p>Estación Horus • Diseño y desarrollo por <strong>Tu Nombre</strong></p>
@@ -670,24 +671,44 @@
       const statusDot = document.getElementById('status-dot');
       const statusText = document.getElementById('status-text');
       const lastUpdate = document.getElementById('last-update');
-      const debugPanel = document.getElementById('debug-panel');
+      const connectionStatus = document.getElementById('connection-status');
+      
       let lastDataTime = null;
       let mqttClient = null;
       let isVRMode = false;
       let connectionAttempts = 0;
-      const maxConnectionAttempts = 5;
+      const maxConnectionAttempts = 10;
+      let isConnecting = false;
+      let lastBrokerUrl = '';
+      let lastError = null;
+      let reconnectTimeout = null;
+      let reconnectDelay = 2000; // Comenzar con 2 segundos
 
-      // Función para agregar mensajes al panel de depuración
-      function addDebugMessage(message, type = 'info') {
-        const msgElement = document.createElement('div');
-        msgElement.className = `debug-message ${type}`;
-        msgElement.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-        debugPanel.appendChild(msgElement);
-        debugPanel.scrollTop = debugPanel.scrollHeight;
+      // Función para registrar mensajes en la consola
+      function logDebugMessage(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        
+        // Registrar en la consola con el tipo apropiado
+        switch(type) {
+          case 'connected':
+          case 'success':
+            console.log(`[Horus | ${timestamp}] ✅ ${message}`);
+            break;
+          case 'error':
+            console.error(`[Horus | ${timestamp}] ❌ ${message}`);
+            break;
+          case 'warning':
+            console.warn(`[Horus | ${timestamp}] ⚠️ ${message}`);
+            break;
+          case 'info':
+          default:
+            console.log(`[Horus | ${timestamp}] ℹ️ ${message}`);
+            break;
+        }
       }
 
-      addDebugMessage('Script cargado correctamente', 'info');
-      addDebugMessage('Iniciando conexión MQTT...', 'info');
+      logDebugMessage('Script cargado correctamente', 'info');
+      logDebugMessage('Iniciando conexión MQTT automáticamente...', 'info');
 
       const updateLastUpdate = () => {
         if (!lastDataTime) return;
@@ -696,21 +717,37 @@
       };
       setInterval(updateLastUpdate, 1000);
 
-      // Función para actualizar el estado de conexión
-      function updateConnectionStatus(status, message) {
+      // Función para actualizar el estado de conexión visual
+      function updateConnectionStatusUI(status, message) {
+        if (status === 'connected') {
+          connectionStatus.className = 'connection-status connected';
+          connectionStatus.innerHTML = `
+            <span class="status-dot" style="background-color: #28a745;"></span>
+            <span class="status-text">${message}</span>
+          `;
+        } else if (status === 'error') {
+          connectionStatus.className = 'connection-status error';
+          connectionStatus.innerHTML = `
+            <span class="status-dot" style="background-color: #dc3545;"></span>
+            <span class="status-text">${message}</span>
+          `;
+        } else {
+          connectionStatus.className = 'connection-status';
+          connectionStatus.innerHTML = `
+            <span class="status-dot" style="background-color: #ffc107;"></span>
+            <span class="status-text">${message}</span>
+          `;
+        }
+      }
+
+      // Función para actualizar el estado de conexión en la barra inferior
+      function updateConnectionStatusBar(status, message) {
         statusText.textContent = message;
         
         if (status === 'connected') {
           statusDot.classList.add('connected');
-          addDebugMessage(`Conexión establecida: ${message}`, 'connected');
         } else {
           statusDot.classList.remove('connected');
-          
-          if (status === 'error') {
-            addDebugMessage(`Error: ${message}`, 'error');
-          } else if (status === 'connecting') {
-            addDebugMessage(`Conectando: ${message}`, 'connecting');
-          }
         }
       }
 
@@ -729,16 +766,24 @@
 
       // === Conexión MQTT - Configuración CORREGIDA ===
       function connectToMqtt() {
+        if (isConnecting) {
+          logDebugMessage('Ya hay una conexión en proceso, esperando...', 'info');
+          return;
+        }
+        
+        isConnecting = true;
         connectionAttempts++;
-        addDebugMessage(`Intento de conexión #${connectionAttempts}`, 'info');
+        logDebugMessage(`Intento de conexión #${connectionAttempts}`, 'info');
         
         if (connectionAttempts > maxConnectionAttempts) {
-          addDebugMessage('Demasiados intentos de conexión. Deteniendo intentos.', 'error');
-          updateConnectionStatus('error', 'Demasiados intentos fallidos');
+          logDebugMessage('Demasiados intentos de conexión. Deteniendo intentos.', 'error');
+          updateConnectionStatusUI('error', 'Demasiados intentos fallidos. Deteniendo intentos.');
+          updateConnectionStatusBar('error', 'Demasiados intentos fallidos');
+          isConnecting = false;
           return;
         }
 
-        // Probamos con múltiples brokers por si uno no funciona
+        // Lista de brokers MQTT públicos
         const brokerOptions = [
           {
             url: 'wss://test.mosquitto.org:8081',
@@ -747,37 +792,69 @@
           {
             url: 'wss://broker.hivemq.com:8000/mqtt',
             description: 'Broker público HiveMQ'
+          },
+          {
+            url: 'wss://mqtt.eclipseprojects.io:443/mqtt',
+            description: 'Broker público Eclipse'
+          },
+          {
+            url: 'wss://public.mqtthq.com:8883',
+            description: 'Broker público MQTTHQ'
           }
         ];
 
-        // Usamos el primer broker como predeterminado
-        const broker = brokerOptions[0];
-        addDebugMessage(`Intentando conectar a ${broker.url} (${broker.description})`, 'info');
+        // Seleccionar el siguiente broker en la lista (cíclico)
+        const brokerIndex = (connectionAttempts - 1) % brokerOptions.length;
+        const broker = brokerOptions[brokerIndex];
         
+        lastBrokerUrl = broker.url;
+        logDebugMessage(`Intentando conectar a ${broker.url} (${broker.description})`, 'info');
+        updateConnectionStatusUI('info', `Conectando a ${broker.description}...`);
+        updateConnectionStatusBar('connecting', `Conectando a ${broker.description}...`);
+
         const clientId = 'horus_client_' + Math.random().toString(36).substr(2, 9);
         
         const options = {
           clientId: clientId,
           clean: true,
-          connectTimeout: 10000,
-          reconnectPeriod: 3000,
+          connectTimeout: 15000,
+          reconnectPeriod: 0, // Desactivamos el reintentar automático de MQTT.js
           protocolVersion: 4,
           rejectUnauthorized: false
         };
 
         try {
-          updateConnectionStatus('connecting', 'Conectando al broker...');
+          // Limpiar cualquier timeout de reconexión previo
+          if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+            reconnectTimeout = null;
+          }
+
+          // Limpiar cliente anterior si existe
+          if (mqttClient) {
+            try {
+              mqttClient.end();
+            } catch (e) {
+              // Ignorar errores al cerrar cliente anterior
+            }
+            mqttClient = null;
+          }
+
+          logDebugMessage(`Creando cliente MQTT con ID: ${clientId}`, 'info');
           
           // En MQTT.js v5, se usa mqtt.connect() sin new
           mqttClient = mqtt.connect(broker.url, options);
           
           // Manejar eventos
           mqttClient.on('connect', () => {
-            addDebugMessage("✅ Conexión MQTT establecida con éxito", 'connected');
-            updateConnectionStatus('connected', 'Conectado');
+            isConnecting = false;
+            logDebugMessage("Conexión MQTT establecida con éxito", 'connected');
+            updateConnectionStatusUI('connected', `Conectado a ${broker.description}`);
+            updateConnectionStatusBar('connected', `Conectado a ${broker.description}`);
             connectionAttempts = 0; // Reiniciar contador de intentos
+            reconnectDelay = 2000; // Reiniciar retraso de reconexión
             
-            // Suscribirse a los tópicos correctos basados en los datos del knowledge base
+            // Suscribirse a los tópicos correctos
             const topics = [
               'horus/vvb/temperatura',
               'horus/vvb/humedad',
@@ -785,22 +862,22 @@
               'horus/vvb/altitud',
               'horus/vvb/pm25',
               'horus/vvb/pm10',
-              'horus/vvb/windSpeed',
-              'horus/vvb/windDirection',
+              'horus/vvb/wind_speed',
+              'horus/vvb/wind_direction',
               'horus/vvb/gas',
               'horus/vvb/lluvia',
-              // Probar con variantes de tópicos
+              // Variaciones comunes
               'horus/temperatura',
               'horus/humedad',
               'horus/presion',
               'horus/altitud',
               'horus/pm25',
               'horus/pm10',
-              'horus/windSpeed',
-              'horus/windDirection',
+              'horus/wind_speed',
+              'horus/wind_direction',
               'horus/gas',
               'horus/lluvia',
-              // Probar con formato de tópicos como en los datos del knowledge base
+              // Formato inglés
               'horus/vvb/temperature',
               'horus/vvb/humidity',
               'horus/vvb/pressure',
@@ -810,17 +887,28 @@
               'horus/vvb/wind_speed',
               'horus/vvb/wind_direction',
               'horus/vvb/gas',
-              'horus/vvb/rain'
+              'horus/vvb/rain',
+              // Sin prefijo
+              'temperature',
+              'humidity',
+              'pressure',
+              'altitude',
+              'pm25',
+              'pm10',
+              'wind_speed',
+              'wind_direction',
+              'gas',
+              'rain'
             ];
             
-            addDebugMessage(`Suscrito a ${topics.length} tópicos`, 'info');
+            logDebugMessage(`Suscrito a ${topics.length} tópicos`, 'info');
             
             mqttClient.subscribe(topics, (err) => {
               if (!err) {
-                addDebugMessage("🔍 Suscrito a todos los tópicos de sensores", 'info');
+                logDebugMessage("Suscrito a todos los tópicos de sensores", 'info');
               } else {
-                addDebugMessage(`❌ Error al suscribirse: ${err.message}`, 'error');
-                updateConnectionStatus('error', 'Error de suscripción');
+                logDebugMessage(`Error al suscribirse: ${err.message}`, 'error');
+                updateConnectionStatusUI('error', 'Error al suscribirse a tópicos');
               }
             });
           });
@@ -828,16 +916,16 @@
           mqttClient.on('message', (topic, payload) => {
             const value = payload.toString().trim();
             if (!value) {
-              addDebugMessage(`⚠️ Mensaje vacío recibido en tópico: ${topic}`, 'info');
+              logDebugMessage(`Mensaje vacío recibido en tópico: ${topic}`, 'info');
               return;
             }
             
-            addDebugMessage(`📩 Mensaje recibido - Tópico: ${topic}, Valor: ${value}`);
+            logDebugMessage(`Mensaje recibido - Tópico: ${topic}, Valor: ${value}`);
             
             // Actualizar el tiempo de última recepción
             lastDataTime = Date.now();
             
-            // Mapeo de tópicos a IDs (con múltiples variantes posibles)
+            // Mapeo de tópicos a IDs
             const topicMap = {
               // Formato original
               'horus/vvb/temperatura': 'temp',
@@ -846,8 +934,8 @@
               'horus/vvb/altitud': 'alt',
               'horus/vvb/pm25': 'pm25',
               'horus/vvb/pm10': 'pm10',
-              'horus/vvb/windSpeed': 'wind',
-              'horus/vvb/windDirection': 'windDir',
+              'horus/vvb/wind_speed': 'wind',
+              'horus/vvb/wind_direction': 'windDir',
               'horus/vvb/gas': 'gas',
               'horus/vvb/lluvia': 'lluvia',
               
@@ -858,8 +946,8 @@
               'horus/altitud': 'alt',
               'horus/pm25': 'pm25',
               'horus/pm10': 'pm10',
-              'horus/windSpeed': 'wind',
-              'horus/windDirection': 'windDir',
+              'horus/wind_speed': 'wind',
+              'horus/wind_direction': 'windDir',
               'horus/gas': 'gas',
               'horus/lluvia': 'lluvia',
               
@@ -895,13 +983,14 @@
               for (const [key, id] of Object.entries(topicMap)) {
                 if (topic.includes(key)) {
                   elementId = id;
+                  logDebugMessage(`Coincidencia parcial encontrada: ${topic} -> ${id}`, 'info');
                   break;
                 }
               }
             }
             
             if (!elementId) {
-              addDebugMessage(`⚠️ Tópico no reconocido: ${topic}`, 'info');
+              logDebugMessage(`Tópico no reconocido: ${topic}`, 'info');
               return;
             }
             
@@ -909,7 +998,7 @@
             const element = document.getElementById(elementId);
             if (element) {
               element.textContent = value;
-              addDebugMessage(`✓ Actualizado ${elementId} con valor: ${value}`, 'info');
+              logDebugMessage(`Actualizado ${elementId} con valor: ${value}`, 'success');
               
               // Actualizar modo VR si está activo
               if (isVRMode && document.getElementById(`vr-${elementId}`)) {
@@ -917,50 +1006,64 @@
                 vrElement.setAttribute('text', `value: ${value}`);
               }
             } else {
-              addDebugMessage(`⚠️ Elemento no encontrado para ${elementId}`, 'error');
+              logDebugMessage(`Elemento no encontrado para ${elementId}`, 'error');
             }
           });
           
           mqttClient.on('error', (err) => {
-            addDebugMessage(`❌ Error MQTT: ${err.message}`, 'error');
-            updateConnectionStatus('error', 'Error de conexión');
+            isConnecting = false;
+            lastError = err;
+            logDebugMessage(`Error MQTT: ${err.message}`, 'error');
+            updateConnectionStatusUI('error', `Error de conexión: ${err.message}`);
+            updateConnectionStatusBar('error', 'Error de conexión');
             
-            // Intentar con el siguiente broker si hay error
+            // Intentar reconectar con retraso exponencial
             if (connectionAttempts <= maxConnectionAttempts) {
-              setTimeout(connectToMqtt, 3000);
+              logDebugMessage(`Reintentando en ${reconnectDelay}ms...`, 'info');
+              
+              reconnectTimeout = setTimeout(() => {
+                connectToMqtt();
+              }, reconnectDelay);
+              
+              // Incrementar el retraso para el próximo intento (máximo 30 segundos)
+              reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+            } else {
+              logDebugMessage('Alcanzado el máximo de intentos de conexión', 'error');
             }
           });
           
-          mqttClient.on('reconnect', () => {
-            addDebugMessage("🔄 Intentando reconectar...", 'info');
-            updateConnectionStatus('connecting', 'Reconectando...');
-          });
-          
           mqttClient.on('close', () => {
-            addDebugMessage("🔌 Conexión cerrada", 'info');
-            if (lastDataTime && (Date.now() - lastDataTime) > 30000) {
-              updateConnectionStatus('error', 'Desconectado');
-            } else {
-              updateConnectionStatus('connecting', 'Conectando...');
-              // Intentar reconectar automáticamente
-              if (connectionAttempts <= maxConnectionAttempts) {
-                setTimeout(connectToMqtt, 5000);
+            isConnecting = false;
+            logDebugMessage("Conexión cerrada", 'info');
+            
+            // Si no hubo datos recientes, intentar reconectar
+            if (!lastDataTime || (Date.now() - lastDataTime) > 30000) {
+              updateConnectionStatusUI('error', 'Conexión cerrada. Intentando reconectar...');
+              updateConnectionStatusBar('error', 'Conexión cerrada');
+              
+              if (connectionAttempts < maxConnectionAttempts) {
+                reconnectTimeout = setTimeout(connectToMqtt, reconnectDelay);
+                reconnectDelay = Math.min(reconnectDelay * 2, 30000);
               }
             }
           });
           
         } catch (error) {
-          addDebugMessage(`❌ Error al inicializar MQTT: ${error.message}`, 'error');
-          updateConnectionStatus('error', 'Error de inicialización');
+          isConnecting = false;
+          lastError = error;
+          logDebugMessage(`Error al inicializar MQTT: ${error.message}`, 'error');
+          updateConnectionStatusUI('error', `Error de inicialización: ${error.message}`);
+          updateConnectionStatusBar('error', 'Error de inicialización');
           
           // Intentar reconectar
-          if (connectionAttempts <= maxConnectionAttempts) {
-            setTimeout(connectToMqtt, 5000);
+          if (connectionAttempts < maxConnectionAttempts) {
+            reconnectTimeout = setTimeout(connectToMqtt, reconnectDelay);
+            reconnectDelay = Math.min(reconnectDelay * 2, 30000);
           }
         }
       }
       
-      // Iniciar la conexión MQTT
+      // Iniciar conexión MQTT automáticamente al cargar la página
       connectToMqtt();
       
       // Toggle tema oscuro/claro
@@ -986,62 +1089,6 @@
         document.body.classList.add('dark-mode');
         if (themeSwitch) themeSwitch.checked = true;
       }
-      
-      // Botón para datos de prueba
-      const testButton = document.createElement('button');
-      testButton.textContent = 'Cargar Datos de Prueba';
-      testButton.style.position = 'fixed';
-      testButton.style.bottom = '80px';
-      testButton.style.right = '20px';
-      testButton.style.padding = '8px 15px';
-      testButton.style.backgroundColor = '#4a90e2';
-      testButton.style.color = 'white';
-      testButton.style.border = 'none';
-      testButton.style.borderRadius = '4px';
-      testButton.style.cursor = 'pointer';
-      testButton.style.zIndex = '99';
-      
-      testButton.addEventListener('click', () => {
-        addDebugMessage("Cargando datos de prueba...", 'info');
-        
-        // Datos de ejemplo basados en los datos del knowledge base
-        const sampleData = {
-          temp: '30.43',
-          hum: '28.92',
-          press: '941.23',
-          alt: '617.65',
-          pm25: '12',
-          pm10: '12',
-          wind: '0.00',
-          windDir: 'N/A',
-          gas: '4.00',
-          lluvia: '0.00'
-        };
-        
-        // Actualizar los valores
-        for (const [id, value] of Object.entries(sampleData)) {
-          const element = document.getElementById(id);
-          if (element) {
-            element.textContent = value;
-            addDebugMessage(`✓ Actualizado ${id} con dato de prueba: ${value}`, 'info');
-          }
-        }
-        
-        // Actualizar VR si está activo
-        if (isVRMode) {
-          for (const [id, value] of Object.entries(sampleData)) {
-            const vrElement = document.getElementById(`vr-${id}`);
-            if (vrElement) {
-              vrElement.setAttribute('text', `value: ${value}`);
-            }
-          }
-        }
-        
-        // Actualizar tiempo de última actualización
-        lastDataTime = Date.now();
-      });
-      
-      document.body.appendChild(testButton);
     });
 
     // Función para entrar en modo VR
@@ -1064,7 +1111,7 @@
       if (scene && scene.enterVR) {
         scene.enterVR()
           .then(() => {
-            console.log("✅ Entró a VR exitosamente");
+            console.log("Entró a VR exitosamente");
             // Asegurar que la cámara esté correctamente configurada
             const camera = document.getElementById('camera');
             if (camera) {
@@ -1072,11 +1119,11 @@
             }
           })
           .catch(error => {
-            console.error("❌ Error al entrar a VR:", error);
+            console.error("Error al entrar a VR:", error);
             exitVRMode();
           });
       } else {
-        console.error("❌ A-Frame no está cargado correctamente");
+        console.error("A-Frame no está cargado correctamente");
         exitVRMode();
       }
     }
