@@ -8,14 +8,11 @@
   <!-- Carga A-Frame local desde la carpeta js -->
   <script src="../js/aframe.js"></script>
   
-  <!-- Componente de partículas para A-Frame -->
-  <script src="../js/aframe-particle-system.min.js"></script>
-  
   <!-- Carga MQTT.js -->
   <script src="../js/mqtt.js"></script>
   
   <style>
-    /* Variables de tema (mismo estilo que los otros archivos) */
+    /* Variables de tema coherente con el resto del proyecto */
     :root {
       --primary-color: #4a90e2;
       --card-bg: #ffffff;
@@ -24,22 +21,17 @@
       --text-muted: #6c757d;
       --border-color: #dee2e6;
       --input-bg: #ffffff;
-      --primary: #00eaff;
-      --primary-glow: #00ffff33;
-      --dark-bg: #000a1a;
-      --card-bg-3d: #1d3a5d;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --card-hover-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      --transition: all 0.3s ease;
       --border-radius: 12px;
-      --transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-      --shadow: 0 6px 16px rgba(0, 10, 30, 0.35);
-      --inner-shadow: inset 0 3px 10px rgba(0, 5, 20, 0.5);
-      --hover-scale: 1.02;
-      --sensor-card-bg: #1d3a5d;
-      --sensor-card-border: rgba(0, 234, 255, 0.12);
-      --sensor-card-hover-border: #00eaff;
-      --glow-effect: 0 0 15px #00eaff;
+      --primary-dark: #3a7bc8;
+      --success: #28a745;
+      --warning: #ffc107;
+      --danger: #dc3545;
+      --info: #17a2b8;
     }
 
-    /* Modo oscuro (mantiene coherencia con otros archivos) */
     [data-theme="dark"], .dark-mode {
       --primary-color: #5a9ee2;
       --card-bg: #2d3748;
@@ -48,55 +40,25 @@
       --text-muted: #a0aec0;
       --border-color: #4a5568;
       --input-bg: #2d3748;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      --card-hover-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
     }
 
-    /* Estado de conexión como barra (mismo diseño que otros archivos) */
-    .status-bar {
-      background-color: var(--card-bg);
-      padding: 8px 1.5rem;
-      border-top: 1px solid var(--border-color);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    body {
+      font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      transition: background-color 0.3s ease;
     }
 
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background-color: #e74c3c;
-      animation: none;
-    }
-
-    .status-dot.connected {
-      background-color: #4CAF50;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 0.4; }
-      50% { opacity: 1; }
-      100% { opacity: 0.4; }
-    }
-
-    .status-text {
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    .last-update {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    /* Navegación (idéntico a los otros archivos) */
+    /* Navegación - idéntico a las otras páginas */
     .nav {
       background-color: var(--card-bg);
       padding: 0.75rem 0;
@@ -129,7 +91,7 @@
       border-radius: 6px;
       text-decoration: none;
       color: var(--text-color);
-      transition: all 0.2s ease;
+      transition: var(--transition);
       font-weight: 500;
       font-size: 0.9rem;
     }
@@ -147,7 +109,50 @@
       font-size: 1.1rem;
     }
 
-    /* Botón VR para móvil (mismo diseño que otros archivos) */
+    /* Barra de estado */
+    .status-bar {
+      background-color: var(--card-bg);
+      padding: 8px 1.5rem;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      z-index: 100;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #e74c3c;
+    }
+
+    .status-dot.connected {
+      background-color: var(--success);
+      box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
+    }
+
+    .status-text {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .last-update {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Botón VR */
     .vr-button {
       position: fixed;
       bottom: 20px;
@@ -155,51 +160,162 @@
       background-color: var(--primary-color);
       color: white;
       border: none;
-      width: 60px;
-      height: 60px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       z-index: 100;
       cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 1.5rem;
+      transition: var(--transition);
+      font-size: 1.2rem;
     }
 
     .vr-button:hover {
       transform: scale(1.1);
-      background-color: #3a7bc8;
+      background-color: var(--primary-dark);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     }
 
-    /* Botón VR solo visible en móviles */
+    /* Ocultar el botón VR en pantallas grandes */
     @media (min-width: 768px) {
       .vr-button {
         display: none;
       }
     }
 
-    /* From Uiverse.io by Galahhad (mismo switch que otros archivos) */ 
-    .theme-switch {
-      --toggle-size: 18px;
-      --container-width: 5.625em;
-      --container-height: 2.5em;
-      --container-radius: 6.25em;
-      --container-light-bg: #3D7EAE;
-      --container-night-bg: #1D1F2C;
-      --circle-container-diameter: 3.375em;
-      --sun-moon-diameter: 2.125em;
-      --sun-bg: #ECCA2F;
-      --moon-bg: #C4C9D1;
-      --spot-color: #959DB1;
-      --circle-container-offset: calc((var(--circle-container-diameter) - var(--container-height)) / 2 * -1);
-      --stars-color: #fff;
-      --clouds-color: #F3FDFF;
-      --back-clouds-color: #AACADF;
-      --transition: .5s cubic-bezier(0, -0.02, 0.4, 1.25);
-      --circle-transition: .3s cubic-bezier(0, -0.02, 0.35, 1.17);
+    /* Contenedor principal */
+    .container {
+      max-width: 1200px;
+      margin: 7rem auto 4rem;
+      padding: 0 1.5rem;
     }
+
+    header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-color);
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* Diseño de tarjetas mejorado */
+    #weather-data {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .data-card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      border: 1px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .data-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary-color);
+    }
+
+    .data-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--card-hover-shadow);
+    }
+
+    .data-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .data-card-icon {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+    }
+
+    .data-card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+
+    .data-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin: 0.5rem 0;
+      color: var(--primary-color);
+      line-height: 1.2;
+    }
+
+    .data-unit {
+      font-size: 1rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Estilos específicos para cada sensor */
+    .temp-card .data-card-icon { color: #ff6b6b; }
+    .temp-card::before { background-color: #ff6b6b; }
+    .temp-card .data-value { color: #ff6b6b; }
+
+    .hum-card .data-card-icon { color: #4ecdc4; }
+    .hum-card::before { background-color: #4ecdc4; }
+    .hum-card .data-value { color: #4ecdc4; }
+
+    .press-card .data-card-icon { color: #6c757d; }
+    .press-card::before { background-color: #6c757d; }
+    .press-card .data-value { color: #6c757d; }
+
+    .alt-card .data-card-icon { color: #6f42c1; }
+    .alt-card::before { background-color: #6f42c1; }
+    .alt-card .data-value { color: #6f42c1; }
+
+    .pm25-card .data-card-icon,
+    .pm10-card .data-card-icon { color: #e83e8c; }
+    .pm25-card::before,
+    .pm10-card::before { background-color: #e83e8c; }
+    .pm25-card .data-value,
+    .pm10-card .data-value { color: #e83e8c; }
+
+    .wind-card .data-card-icon { color: #20c997; }
+    .wind-card::before { background-color: #20c997; }
+    .wind-card .data-value { color: #20c997; }
+
+    .wind-dir-card .data-card-icon { color: #17a2b8; }
+    .wind-dir-card::before { background-color: #17a2b8; }
+    .wind-dir-card .data-value { color: #17a2b8; }
+
+    .gas-card .data-card-icon { color: #ffc107; }
+    .gas-card::before { background-color: #ffc107; }
+    .gas-card .data-value { color: #ffc107; }
+
+    .rain-card .data-card-icon { color: #4da6ff; }
+    .rain-card::before { background-color: #4da6ff; }
+    .rain-card .data-value { color: #4da6ff; }
 
     /* Escena VR */
     #vr-scene {
@@ -215,184 +331,40 @@
     /* Ocultar elementos de A-Frame que no queremos */
     .a-enter-vr, .a-canvas, .a-loader, .a-enter-ar, .a-fullscreen, .a-no-cursor, .a-cursor {
       display: none !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-      visibility: hidden !important;
     }
-    
-    /* Estilos para el modo VR 3D - DISEÑO PREMIUM Y PROFESIONAL */
-    .sensor-card-3d {
-      position: relative;
-      overflow: hidden;
-      border-radius: 50%;
-      width: 2;
-      height: 2;
-      background: var(--card-bg-3d);
-      padding: 0.8rem;
+
+    /* Footer */
+    footer {
       text-align: center;
-      box-shadow: 
-        0 0 0.5 0.05 rgba(0, 234, 255, 0.5),
-        0 0 0.2 0.02 rgba(0, 150, 255, 0.3);
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      border: 0.05 solid var(--sensor-card-border);
-      transform-style: preserve-3d;
-      perspective: 1000px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      padding: 1.5rem 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: 2rem;
     }
-    
-    .sensor-card-3d:hover {
-      transform: scale(1.25);
-      box-shadow: 
-        0 0 0.6 0.07 rgba(0, 234, 255, 0.7),
-        0 0 0.3 0.03 rgba(0, 150, 255, 0.5);
-      border-color: var(--sensor-card-hover-border);
+
+    footer strong {
+      color: var(--primary-color);
     }
-    
-    .sensor-icon-3d {
-      font-size: 1.2;
-      width: 1.2;
-      height: 1.2;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0, 71, 119, 0.25);
-      border-radius: 50%;
-      margin-bottom: 0.3;
-      border: 0.05 solid rgba(0, 234, 255, 0.25);
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    
-    .sensor-card-3d:hover .sensor-icon-3d {
-      transform: scale(1.15);
-      box-shadow: 0 0 0.3 0.05 rgba(0, 234, 255, 0.4);
-    }
-    
-    .sensor-name-3d {
-      color: var(--text-secondary);
-      font-size: 0.4;
-      font-weight: 600;
-      letter-spacing: 0.05;
-      margin-bottom: 0.2;
-      text-transform: uppercase;
-      text-shadow: 0 0 0.1 var(--primary-glow);
-      max-width: 1.6;
-      word-wrap: break-word;
-    }
-    
-    .sensor-value-3d {
-      font-size: 0.7;
-      font-weight: bold;
-      color: var(--primary);
-      line-height: 1;
-      text-shadow: 0 0 0.15 var(--primary-glow);
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      margin-bottom: 0.1;
-    }
-    
-    .unit-3d {
-      font-size: 0.4;
-      color: var(--text-secondary);
-      font-weight: 400;
-      text-transform: uppercase;
-      letter-spacing: 0.05;
-    }
-    
-    /* Efectos especiales para cada sensor */
-    .temp-card {
-      border-top: 0.05 solid #FF5722;
-    }
-    
-    .hum-card {
-      border-top: 0.05 solid #2196F3;
-    }
-    
-    .press-card {
-      border-top: 0.05 solid #9E9E9E;
-    }
-    
-    .alt-card {
-      border-top: 0.05 solid #673AB7;
-    }
-    
-    .pm25-card {
-      border-top: 0.05 solid #9C27B0;
-    }
-    
-    .pm10-card {
-      border-top: 0.05 solid #673AB7;
-    }
-    
-    .wind-card {
-      border-top: 0.05 solid #4CAF50;
-    }
-    
-    .wind-dir-card {
-      border-top: 0.05 solid #03A9F4;
-    }
-    
-    .gas-card {
-      border-top: 0.05 solid #FFEB3B;
-    }
-    
-    .rain-card {
-      border-top: 0.05 solid #2196F3;
-    }
-    
-    /* Animaciones de entrada */
-    @keyframes floatVR {
-      0% { transform: translateY(0px) scale(1); }
-      50% { transform: translateY(-0.1px) scale(1.02); }
-      100% { transform: translateY(0px) scale(1); }
-    }
-    
-    .sensor-card-3d {
-      animation: floatVR 4s ease-in-out infinite;
-      animation-delay: calc(var(--delay) * 1s);
-    }
-    
-    /* Estilo para modo oscuro en VR */
-    .dark-mode .sensor-card-3d {
-      background: rgba(10, 17, 32, 0.85);
-      border: 0.05 solid rgba(0, 234, 255, 0.15);
-    }
-    
-    .dark-mode .sensor-card-3d:hover {
-      border-color: rgba(0, 234, 255, 0.4);
-    }
-    
-    /* Efecto de brillo en los sensores */
-    .sensor-card-3d::before {
-      content: '';
-      position: absolute;
-      top: -0.05;
-      left: 0;
-      width: 100%;
-      height: 0.05;
-      background: linear-gradient(90deg, transparent, var(--primary), transparent);
-      opacity: 0.7;
-    }
-    
-    /* Efecto de profundidad */
-    .sensor-card-3d::after {
-      content: '';
-      position: absolute;
-      bottom: -0.1;
-      left: 0;
-      width: 100%;
-      height: 0.1;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 50%;
-      filter: blur(0.05);
-      transform: scale(0.9, 0.5);
-    }
-    
-    /* Efecto de brillo en hover */
-    .sensor-card-3d:hover::before {
-      opacity: 1;
-      height: 0.1;
+
+    /* Estilos para móviles */
+    @media (max-width: 768px) {
+      .container {
+        margin-top: 6rem;
+        padding: 0 1rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .data-card {
+        padding: 1.2rem;
+      }
+      
+      .data-value {
+        font-size: 1.8rem;
+      }
     }
   </style>
 </head>
@@ -413,30 +385,6 @@
           <span class="nav-icon">🤖</span> Chatbot
         </a>
       </div>
-
-      <!-- Switch de Galahad -->
-      <div class="nav-right">
-        <label class="theme-switch">
-          <input type="checkbox" class="theme-switch__checkbox">
-          <div class="theme-switch__container">
-            <div class="theme-switch__clouds"></div>
-            <div class="theme-switch__stars-container">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M135.831 3.00688C135.055 3.85027 134.111 4.29946 133 4.35447C134.111 4.40947 135.055 4.85867 135.831 5.71123C136.607 6.55462 136.996 7.56303 136.996 8.72727C136.996 7.95722 137.172 7.25134 137.525 6.59129C137.886 5.93124 138.372 5.39954 138.98 5.00535C139.598 4.60199 140.268 4.39114 141 4.35447C139.88 4.2903 138.936 3.85027 138.16 3.00688C137.384 2.16348 136.996 1.16425 136.996 0C136.996 1.16425 136.607 2.16348 135.831 3.00688ZM31 23.3545C32.1114 23.2995 33.0551 22.8503 33.8313 22.0069C34.6075 21.1635 34.9956 20.1642 34.9956 19C34.9956 20.1642 35.3837 21.1635 36.1599 22.0069C36.9361 22.8503 37.8798 23.2903 39 23.3545C38.2679 23.3911 37.5976 23.602 36.9802 24.0053C36.3716 24.3995 35.8864 24.9312 35.5248 25.5913C35.172 26.2513 34.9956 26.9572 34.9956 27.7273C34.9956 26.563 34.6075 25.5546 33.8313 24.7112C33.0551 23.8587 32.1114 23.4095 31 23.3545ZM0 36.3545C1.11136 36.2995 2.05513 35.8503 2.83131 35.0069C3.6075 34.1635 3.99559 33.1642 3.99559 32C3.99559 33.1642 4.38368 34.1635 5.15987 35.0069C5.93605 35.8503 6.87982 36.2903 8 36.3545C7.26792 36.3911 6.59757 36.602 5.98015 37.0053C5.37155 37.3995 4.88644 37.9312 4.52481 38.5913C4.172 39.2513 3.99559 39.9572 3.99559 40.7273C3.99559 39.563 3.6075 38.5546 2.83131 37.7112C2.05513 36.8587 1.11136 36.4095 0 36.3545ZM56.8313 24.0069C56.0551 24.8503 55.1114 25.2995 54 25.3545C55.1114 25.4095 56.0551 25.8587 56.8313 26.7112C57.6075 27.5546 57.9956 28.563 57.9956 29.7273C57.9956 28.9572 58.172 28.2513 58.5248 27.5913C58.8864 26.9312 59.3716 26.3995 59.9802 26.0053C60.5976 25.602 61.2679 25.3911 62 25.3545C60.8798 25.2903 59.9361 24.8503 59.1599 24.0069C58.3837 23.1635 57.9956 22.1642 57.9956 21C57.9956 22.1642 57.6075 23.1635 56.8313 24.0069ZM81 25.3545C82.1114 25.2995 83.0551 24.8503 83.8313 24.0069C84.6075 23.1635 84.9956 22.1642 84.9956 21C84.9956 22.1642 85.3837 23.1635 86.1599 24.0069C86.9361 24.8503 87.8798 25.2903 89 25.3545C88.2679 25.3911 87.5976 25.602 86.9802 26.0053C86.3716 26.3995 85.8864 26.9312 85.5248 27.5913C85.172 28.2513 84.9956 28.9572 84.9956 29.7273C84.9956 28.563 84.6075 27.5546 83.8313 26.7112C83.0551 25.8587 82.1114 25.4095 81 25.3545ZM136 36.3545C137.111 36.2995 138.055 35.8503 138.831 35.0069C139.607 34.1635 139.996 33.1642 139.996 32C139.996 33.1642 140.384 34.1635 141.16 35.0069C141.936 35.8503 142.88 36.2903 144 36.3545C143.268 36.3911 142.598 36.602 141.98 37.0053C141.372 37.3995 140.886 37.9312 140.525 38.5913C140.172 39.2513 139.996 39.9572 139.996 40.7273C139.996 39.563 139.607 38.5546 138.831 37.7112C138.055 36.8587 137.111 36.4095 136 36.3545ZM101.831 49.0069C101.055 49.8503 100.111 50.2995 99 50.3545C100.111 50.4095 101.055 50.8587 101.831 51.7112C102.607 52.5546 102.996 53.563 102.996 54.7273C102.996 53.9572 103.172 53.2513 103.525 52.5913C103.886 51.9312 104.372 51.3995 104.98 51.0053C105.598 50.602 106.268 50.3911 107 50.3545C105.88 50.2903 104.936 49.8503 104.16 49.0069C103.384 48.1635 102.996 47.1642 102.996 46C102.996 47.1642 102.607 48.1635 101.831 49.0069Z" fill="currentColor"></path>
-              </svg>
-            </div>
-            <div class="theme-switch__circle-container">
-              <div class="theme-switch__sun-moon-container">
-                <div class="theme-switch__moon">
-                  <div class="theme-switch__spot"></div>
-                  <div class="theme-switch__spot"></div>
-                  <div class="theme-switch__spot"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </label>
-      </div>
     </div>
   </nav>
 
@@ -454,15 +402,15 @@
     🕶️
   </button>
 
-  <!-- Escena VR con A-Frame -->
-  <a-scene id="vr-scene" embedded 
+  <!-- Escena VR con A-Frame - Simplificada y funcional -->
+  <a-scene id="vr-scene" embedded
            vr-mode-ui="enabled: false"
            loading-screen="enabled: false"
            style="display: none; background-color: #000000;">
     
     <!-- Configuración de cámara para VR -->
     <a-entity id="camera-rig" position="0 1.6 0">
-      <a-entity id="camera" camera="fov: 80; near: 0.1; far: 1000" look-controls wasd-controls raycaster="objects: .sensor-card-3d">
+      <a-entity id="camera" camera="fov: 80; near: 0.1; far: 1000" look-controls wasd-controls>
         <a-cursor 
           color="#00eaff" 
           opacity="0.5"
@@ -475,157 +423,193 @@
     <!-- Fondo negro -->
     <a-sky color="#000000"></a-sky>
     
-    <!-- Sistema de partículas estelares -->
-    <a-entity particle-system="preset: snow; particleCount: 500; size: 0.05; color: #00eaff; maxAge: 20; velocityValue: 0 0 -0.5; accelerationValue: 0 0 -0.1;"></a-entity>
-    
-    <!-- Diseño VR circular con burbujas esféricas mejoradas -->
+    <!-- Sensores organizados en un círculo alrededor del usuario -->
     <!-- Temperatura -->
-    <a-entity position="0 1.5 2.0" rotation="0 0 0" class="sensor-card-3d temp-card" style="--delay: 0.1;">
-      <a-entity class="sensor-icon-3d">
-        <a-text value="🌡️" color="#FF5722" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
-      </a-entity>
-      <a-text id="vr-temp" value="--" color="#FF5722" position="0 -0.1 0.1" align="center" width="1.2" font="exo2bold" baseline="center"></a-text>
-      <a-text value="°C" color="#a0a0a0" position="0 0.2 0.1" align="center" width="1.2" font="roboto" class="unit-3d"></a-text>
-      <a-text value="TEMP" color="#FF5722" position="0 -0.4 0.1" align="center" width="1.2" font="roboto" wrap-count="12" class="sensor-name-3d"></a-text>
+    <a-entity position="0 1.5 2.0" rotation="0 0 0" class="sensor-card temp-card">
+      <a-box color="#ff6b6b" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
+      <a-text value="🌡️" color="#ff6b6b" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
+      <a-text id="vr-temp" value="--" color="#ff6b6b" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
+      <a-text value="TEMPERATURA" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+      <a-text value="°C" color="#aaaaaa" position="0.5 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
     </a-entity>
     
     <!-- Humedad -->
-    <a-entity position="1.9 1.5 0.6" rotation="0 -30 0" class="sensor-card-3d hum-card" style="--delay: 0.2;">
-      <a-entity class="sensor-icon-3d">
-        <a-text value="💧" color="#2196F3" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
-      </a-entity>
-      <a-text id="vr-hum" value="--" color="#2196F3" position="0 -0.1 0.1" align="center" width="1.2" font="exo2bold" baseline="center"></a-text>
-      <a-text value="%" color="#a0a0a0" position="0 0.2 0.1" align="center" width="1.2" font="roboto" class="unit-3d"></a-text>
-      <a-text value="HUM" color="#2196F3" position="0 -0.4 0.1" align="center" width="1.2" font="roboto" wrap-count="12" class="sensor-name-3d"></a-text>
+    <a-entity position="1.7 1.5 0.8" rotation="0 -30 0" class="sensor-card hum-card">
+      <a-box color="#4ecdc4" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
+      <a-text value="💧" color="#4ecdc4" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
+      <a-text id="vr-hum" value="--" color="#4ecdc4" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
+      <a-text value="HUMEDAD" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+      <a-text value="%" color="#aaaaaa" position="0.4 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
     </a-entity>
     
     <!-- Presión -->
-    <a-entity position="1.9 1.5 -0.6" rotation="0 -330 0" class="sensor-card-3d press-card" style="--delay: 0.3;">
-      <a-entity class="sensor-icon-3d">
-        <a-text value="🔽" color="#9E9E9E" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
-      </a-entity>
-      <a-text id="vr-press" value="--" color="#9E9E9E" position="0 -0.1 0.1" align="center" width="1.2" font="exo2bold" baseline="center"></a-text>
-      <a-text value="hPa" color="#a0a0a0" position="0 0.2 0.1" align="center" width="1.2" font="roboto" class="unit-3d"></a-text>
-      <a-text value="PRES" color="#9E9E9E" position="0 -0.4 0.1" align="center" width="1.2" font="roboto" wrap-count="12" class="sensor-name-3d"></a-text>
+    <a-entity position="1.7 1.5 -0.8" rotation="0 -330 0" class="sensor-card press-card">
+      <a-box color="#6c757d" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
+      <a-text value="🔽" color="#6c757d" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
+      <a-text id="vr-press" value="--" color="#6c757d" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
+      <a-text value="PRESIÓN" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+      <a-text value="hPa" color="#aaaaaa" position="0.5 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
     </a-entity>
     
     <!-- Altitud -->
-    <a-entity position="0 1.5 -2.0" rotation="0 180 0" class="sensor-card-3d alt-card" style="--delay: 0.4;">
-      <a-entity class="sensor-icon-3d">
-        <a-text value="⛰️" color="#673AB7" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
-      </a-entity>
-      <a-text id="vr-alt" value="--" color="#673AB7" position="0 -0.1 0.1" align="center" width="1.2" font="exo2bold" baseline="center"></a-text>
-      <a-text value="m" color="#a0a0a0" position="0 0.2 0.1" align="center" width="1.2" font="roboto" class="unit-3d"></a-text>
-      <a-text value="ALT" color="#673AB7" position="0 -0.4 0.1" align="center" width="1.2" font="roboto" wrap-count="12" class="sensor-name-3d"></a-text>
+    <a-entity position="0 1.5 -2.0" rotation="0 180 0" class="sensor-card alt-card">
+      <a-box color="#6f42c1" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
+      <a-text value="⛰️" color="#6f42c1" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
+      <a-text id="vr-alt" value="--" color="#6f42c1" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
+      <a-text value="ALTITUD" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+      <a-text value="m" color="#aaaaaa" position="0.3 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
     </a-entity>
     
     <!-- Dirección Viento -->
-    <a-entity position="-1.9 1.5 -0.6" rotation="0 30 0" class="sensor-card-3d wind-dir-card" style="--delay: 0.5;">
-      <a-entity class="sensor-icon-3d">
-        <a-text value="🧭" color="#03A9F4" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
-      </a-entity>
-      <a-text id="vr-windDir" value="--" color="#03A9F4" position="0 -0.1 0.1" align="center" width="1.2" font="exo2bold" baseline="center"></a-text>
-      <a-text value="°" color="#a0a0a0" position="0 0.2 0.1" align="center" width="1.2" font="roboto" class="unit-3d"></a-text>
-      <a-text value="DIR" color="#03A9F4" position="0 -0.4 0.1" align="center" width="1.2" font="roboto" wrap-count="12" class="sensor-name-3d"></a-text>
-    </a-entity>
-    
-    <!-- Fila inferior de sensores (ligeramente por debajo) -->
-    <!-- PM2.5 -->
-    <a-entity position="0 0.5 2.0" rotation="0 0 0" class="sensor-card-3d pm25-card" style="--delay: 0.6;">
-      <a-entity class="sensor-icon-3d">
-        <a-text value="🌫️" color="#9C27B0" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
-      </a-entity>
-      <a-text id="vr-pm25" value="--" color="#9C27B0" position="0 -0.1 0.1" align="center" width="1.2" font="exo2bold" baseline="center"></a-text>
-      <a-text value="μg" color="#a0a0a0" position="0 0.2 0.1" align="center" width="1.2" font="roboto" class="unit-3d"></a-text>
-      <a-text value="PM2.5" color="#9C27B0" position="0 -0.4 0.1" align="center" width="1.2" font="roboto" wrap-count="12" class="sensor-name-3d"></a-text>
-    </a-entity>
-    
-    <!-- PM10 -->
-    <a-entity position="1.9 0.5 0.6" rotation="0 -30 0" class="sensor-card-3d pm10-card" style="--delay: 0.7;">
-      <a-entity class="sensor-icon-3d">
-        <a-text value="🌫️" color="#673AB7" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
-      </a-entity>
-      <a-text id="vr-pm10" value="--" color="#673AB7" position="0 -0.1 0.1" align="center" width="1.2" font="exo2bold" baseline="center"></a-text>
-      <a-text value="μg" color="#a0a0a0" position="0 0.2 0.1" align="center" width="1.2" font="roboto" class="unit-3d"></a-text>
-      <a-text value="PM10" color="#673AB7" position="0 -0.4 0.1" align="center" width="1.2" font="roboto" wrap-count="12" class="sensor-name-3d"></a-text>
+    <a-entity position="-1.7 1.5 -0.8" rotation="0 30 0" class="sensor-card wind-dir-card">
+      <a-box color="#17a2b8" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
+      <a-text value="🧭" color="#17a2b8" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
+      <a-text id="vr-windDir" value="--" color="#17a2b8" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
+      <a-text value="DIRECCIÓN" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+      <a-text value="°" color="#aaaaaa" position="0.3 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
     </a-entity>
     
     <!-- Viento -->
-    <a-entity position="1.9 0.5 -0.6" rotation="0 -330 0" class="sensor-card-3d wind-card" style="--delay: 0.8;">
-      <a-entity class="sensor-icon-3d">
-        <a-text value="💨" color="#4CAF50" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
-      </a-entity>
-      <a-text id="vr-wind" value="--" color="#4CAF50" position="0 -0.1 0.1" align="center" width="1.2" font="exo2bold" baseline="center"></a-text>
-      <a-text value="km/h" color="#a0a0a0" position="0 0.2 0.1" align="center" width="1.2" font="roboto" class="unit-3d"></a-text>
-      <a-text value="VIENTO" color="#4CAF50" position="0 -0.4 0.1" align="center" width="1.2" font="roboto" wrap-count="12" class="sensor-name-3d"></a-text>
+    <a-entity position="-1.7 1.5 0.8" rotation="0 330 0" class="sensor-card wind-card">
+      <a-box color="#20c997" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
+      <a-text value="💨" color="#20c997" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
+      <a-text id="vr-wind" value="--" color="#20c997" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
+      <a-text value="VIENTO" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+      <a-text value="km/h" color="#aaaaaa" position="0.5 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+    </a-entity>
+    
+    <!-- PM2.5 -->
+    <a-entity position="0 0.5 2.0" rotation="0 0 0" class="sensor-card pm25-card">
+      <a-box color="#e83e8c" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
+      <a-text value="🌫️" color="#e83e8c" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
+      <a-text id="vr-pm25" value="--" color="#e83e8c" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
+      <a-text value="PM2.5" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+      <a-text value="μg/m³" color="#aaaaaa" position="0.6 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+    </a-entity>
+    
+    <!-- PM10 -->
+    <a-entity position="1.7 0.5 0.8" rotation="0 -30 0" class="sensor-card pm10-card">
+      <a-box color="#e83e8c" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
+      <a-text value="🌫️" color="#e83e8c" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
+      <a-text id="vr-pm10" value="--" color="#e83e8c" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
+      <a-text value="PM10" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+      <a-text value="μg/m³" color="#aaaaaa" position="0.6 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
     </a-entity>
     
     <!-- Gas -->
-    <a-entity position="0 0.5 -2.0" rotation="0 180 0" class="sensor-card-3d gas-card" style="--delay: 0.9;">
-      <a-entity class="sensor-icon-3d">
-        <a-text value="⛽" color="#FFEB3B" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
-      </a-entity>
-      <a-text id="vr-gas" value="--" color="#FFEB3B" position="0 -0.1 0.1" align="center" width="1.2" font="exo2bold" baseline="center"></a-text>
-      <a-text value="kΩ" color="#a0a0a0" position="0 0.2 0.1" align="center" width="1.2" font="roboto" class="unit-3d"></a-text>
-      <a-text value="GAS" color="#FFEB3B" position="0 -0.4 0.1" align="center" width="1.2" font="roboto" wrap-count="12" class="sensor-name-3d"></a-text>
+    <a-entity position="1.7 0.5 -0.8" rotation="0 -330 0" class="sensor-card gas-card">
+      <a-box color="#ffc107" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
+      <a-text value="⛽" color="#ffc107" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
+      <a-text id="vr-gas" value="--" color="#ffc107" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
+      <a-text value="GAS" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+      <a-text value="kΩ" color="#aaaaaa" position="0.4 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
     </a-entity>
     
     <!-- Lluvia -->
-    <a-entity position="-1.9 0.5 -0.6" rotation="0 30 0" class="sensor-card-3d rain-card" style="--delay: 1.0;">
-      <a-entity class="sensor-icon-3d">
-        <a-text value="🌧️" color="#2196F3" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
-      </a-entity>
-      <a-text id="vr-lluvia" value="--" color="#2196F3" position="0 -0.1 0.1" align="center" width="1.2" font="exo2bold" baseline="center"></a-text>
-      <a-text value="mm" color="#a0a0a0" position="0 0.2 0.1" align="center" width="1.2" font="roboto" class="unit-3d"></a-text>
-      <a-text value="LLUVIA" color="#2196F3" position="0 -0.4 0.1" align="center" width="1.2" font="roboto" wrap-count="12" class="sensor-name-3d"></a-text>
+    <a-entity position="0 0.5 -2.0" rotation="0 180 0" class="sensor-card rain-card">
+      <a-box color="#4da6ff" depth="0.1" height="1.8" width="1.8" opacity="0.1"></a-box>
+      <a-text value="🌧️" color="#4da6ff" position="0 0.4 0.1" align="center" width="2" font="roboto" baseline="center"></a-text>
+      <a-text id="vr-lluvia" value="--" color="#4da6ff" position="0 0 0.1" align="center" width="2" font="exo2bold" baseline="center" font-size="0.6"></a-text>
+      <a-text value="LLUVIA" color="#ffffff" position="0 -0.4 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
+      <a-text value="mm" color="#aaaaaa" position="0.4 0 0.1" align="center" width="2" font="roboto" baseline="center" font-size="0.3"></a-text>
     </a-entity>
   </a-scene>
 
   <div class="container" id="normal-view">
     <header>
       <h1>📡 Datos en Vivo - Estación Horus</h1>
+      <p class="subtitle">Monitoreo meteorológico en tiempo real con tecnología de vanguardia</p>
     </header>
 
     <div id="weather-data">
       <div class="data-card temp-card">
-        <span>🌡️ Temperatura</span>
-        <strong id="temp">-- °C</strong>
+        <div class="data-card-header">
+          <span class="data-card-icon">🌡️</span>
+          <h2 class="data-card-title">Temperatura</h2>
+        </div>
+        <div class="data-value" id="temp">--</div>
+        <div class="data-unit">°C</div>
       </div>
+      
       <div class="data-card hum-card">
-        <span>💧 Humedad</span>
-        <strong id="hum">-- %</strong>
+        <div class="data-card-header">
+          <span class="data-card-icon">💧</span>
+          <h2 class="data-card-title">Humedad</h2>
+        </div>
+        <div class="data-value" id="hum">--</div>
+        <div class="data-unit">%</div>
       </div>
+      
       <div class="data-card press-card">
-        <span>🔽 Presión</span>
-        <strong id="press">-- hPa</strong>
+        <div class="data-card-header">
+          <span class="data-card-icon">🔽</span>
+          <h2 class="data-card-title">Presión</h2>
+        </div>
+        <div class="data-value" id="press">--</div>
+        <div class="data-unit">hPa</div>
       </div>
+      
       <div class="data-card alt-card">
-        <span>⛰️ Altitud</span>
-        <strong id="alt">-- m</strong>
+        <div class="data-card-header">
+          <span class="data-card-icon">⛰️</span>
+          <h2 class="data-card-title">Altitud</h2>
+        </div>
+        <div class="data-value" id="alt">--</div>
+        <div class="data-unit">m</div>
       </div>
+      
       <div class="data-card pm25-card">
-        <span>🌫️ PM2.5</span>
-        <strong id="pm25">-- µg/m³</strong>
+        <div class="data-card-header">
+          <span class="data-card-icon">🌫️</span>
+          <h2 class="data-card-title">PM2.5</h2>
+        </div>
+        <div class="data-value" id="pm25">--</div>
+        <div class="data-unit">μg/m³</div>
       </div>
+      
       <div class="data-card pm10-card">
-        <span>🌫️ PM10</span>
-        <strong id="pm10">-- µg/m³</strong>
+        <div class="data-card-header">
+          <span class="data-card-icon">🌫️</span>
+          <h2 class="data-card-title">PM10</h2>
+        </div>
+        <div class="data-value" id="pm10">--</div>
+        <div class="data-unit">μg/m³</div>
       </div>
+      
       <div class="data-card wind-card">
-        <span>💨 Viento</span>
-        <strong id="wind">-- km/h</strong>
+        <div class="data-card-header">
+          <span class="data-card-icon">💨</span>
+          <h2 class="data-card-title">Viento</h2>
+        </div>
+        <div class="data-value" id="wind">--</div>
+        <div class="data-unit">km/h</div>
       </div>
+      
       <div class="data-card wind-dir-card">
-        <span>🧭 Dirección</span>
-        <strong id="windDir">-- °</strong>
+        <div class="data-card-header">
+          <span class="data-card-icon">🧭</span>
+          <h2 class="data-card-title">Dirección</h2>
+        </div>
+        <div class="data-value" id="windDir">--</div>
+        <div class="data-unit">°</div>
       </div>
+      
       <div class="data-card gas-card">
-        <span>⛽ Gas</span>
-        <strong id="gas">-- kΩ</strong>
+        <div class="data-card-header">
+          <span class="data-card-icon">⛽</span>
+          <h2 class="data-card-title">Gas</h2>
+        </div>
+        <div class="data-value" id="gas">--</div>
+        <div class="data-unit">kΩ</div>
       </div>
+      
       <div class="data-card rain-card">
-        <span>🌧️ Lluvia</span>
-        <strong id="lluvia">-- mm</strong>
+        <div class="data-card-header">
+          <span class="data-card-icon">🌧️</span>
+          <h2 class="data-card-title">Lluvia</h2>
+        </div>
+        <div class="data-value" id="lluvia">--</div>
+        <div class="data-unit">mm</div>
       </div>
     </div>
 
@@ -748,18 +732,7 @@
             // Actualizar interfaz normal
             const element = document.getElementById(elementId);
             if (element) {
-              // Unidades según el sensor
-              const units = {
-                temp: '°C',
-                press: 'hPa',
-                wind: 'km/h',
-                windDir: '°',
-                gas: 'kΩ',
-                lluvia: 'mm'
-              };
-              
-              const unit = units[elementId] || '';
-              element.textContent = `${value} ${unit}`.trim();
+              element.textContent = value;
               
               // Actualizar modo VR si está activo
               if (isVRMode && document.getElementById(`vr-${elementId}`)) {
@@ -799,24 +772,26 @@
       
       // Toggle tema oscuro/claro
       const themeSwitch = document.querySelector('.theme-switch__checkbox');
-      themeSwitch.addEventListener('change', function() {
-        if (this.checked) {
-          document.body.classList.remove('light-mode');
-          document.body.classList.add('dark-mode');
-          localStorage.setItem('theme', 'dark');
-        } else {
-          document.body.classList.remove('dark-mode');
-          document.body.classList.add('light-mode');
-          localStorage.setItem('theme', 'light');
-        }
-      });
+      if (themeSwitch) {
+        themeSwitch.addEventListener('change', function() {
+          if (this.checked) {
+            document.body.classList.remove('light-mode');
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('theme', 'dark');
+          } else {
+            document.body.classList.remove('dark-mode');
+            document.body.classList.add('light-mode');
+            localStorage.setItem('theme', 'light');
+          }
+        });
+      }
       
       // Cargar tema guardado
       const savedTheme = localStorage.getItem('theme') || 'light';
       if (savedTheme === 'dark') {
         document.body.classList.remove('light-mode');
         document.body.classList.add('dark-mode');
-        themeSwitch.checked = true;
+        if (themeSwitch) themeSwitch.checked = true;
       }
     });
 
@@ -885,11 +860,7 @@
         const vrElement = document.getElementById(`vr-${id}`);
         
         if (normalElement && vrElement) {
-          // Extraer valor y unidad
-          const text = normalElement.textContent;
-          const value = text.split(' ')[0];
-          
-          // Actualizar en VR
+          const value = normalElement.textContent;
           vrElement.setAttribute('text', `value: ${value}`);
         }
       });
