@@ -366,6 +366,45 @@
         font-size: 1.8rem;
       }
     }
+    
+    /* Panel de depuración */
+    .debug-panel {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 1rem;
+      margin-top: 1rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .debug-message {
+      margin-bottom: 0.25rem;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .debug-message:last-child {
+      border-bottom: none;
+    }
+    
+    .debug-message.connecting {
+      color: #6c757d;
+    }
+    
+    .debug-message.connected {
+      color: var(--success);
+    }
+    
+    .debug-message.error {
+      color: var(--danger);
+    }
+    
+    .debug-message.info {
+      color: var(--info);
+    }
   </style>
 </head>
 <body class="light-mode">
@@ -612,6 +651,11 @@
         <div class="data-unit">mm</div>
       </div>
     </div>
+    
+    <!-- Panel de depuración -->
+    <div class="debug-panel" id="debug-panel">
+      <div class="debug-message info">Iniciando sistema de monitoreo...</div>
+    </div>
 
     <footer>
       <p>Estación Horus • Diseño y desarrollo por <strong>Tu Nombre</strong></p>
@@ -626,9 +670,24 @@
       const statusDot = document.getElementById('status-dot');
       const statusText = document.getElementById('status-text');
       const lastUpdate = document.getElementById('last-update');
+      const debugPanel = document.getElementById('debug-panel');
       let lastDataTime = null;
       let mqttClient = null;
       let isVRMode = false;
+      let connectionAttempts = 0;
+      const maxConnectionAttempts = 5;
+
+      // Función para agregar mensajes al panel de depuración
+      function addDebugMessage(message, type = 'info') {
+        const msgElement = document.createElement('div');
+        msgElement.className = `debug-message ${type}`;
+        msgElement.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        debugPanel.appendChild(msgElement);
+        debugPanel.scrollTop = debugPanel.scrollHeight;
+      }
+
+      addDebugMessage('Script cargado correctamente', 'info');
+      addDebugMessage('Iniciando conexión MQTT...', 'info');
 
       const updateLastUpdate = () => {
         if (!lastDataTime) return;
@@ -643,18 +702,60 @@
         
         if (status === 'connected') {
           statusDot.classList.add('connected');
+          addDebugMessage(`Conexión establecida: ${message}`, 'connected');
         } else {
           statusDot.classList.remove('connected');
+          
+          if (status === 'error') {
+            addDebugMessage(`Error: ${message}`, 'error');
+          } else if (status === 'connecting') {
+            addDebugMessage(`Conectando: ${message}`, 'connecting');
+          }
         }
       }
 
-      // === Conexión MQTT - Configuración CORREGIDA para mqtt.js v5 ===
+      // Función para actualizar un valor en la interfaz
+      function updateValue(elementId, value, unit = '') {
+        const element = document.getElementById(elementId);
+        if (element) {
+          // Verificar si el valor es un número válido
+          if (!isNaN(value) && value !== '') {
+            element.textContent = value;
+            return true;
+          }
+        }
+        return false;
+      }
+
+      // === Conexión MQTT - Configuración CORREGIDA ===
       function connectToMqtt() {
-        // Usar el broker test.mosquitto.org que funciona bien con WebSockets
-        const brokerUrl = 'wss://test.mosquitto.org:8081';
+        connectionAttempts++;
+        addDebugMessage(`Intento de conexión #${connectionAttempts}`, 'info');
+        
+        if (connectionAttempts > maxConnectionAttempts) {
+          addDebugMessage('Demasiados intentos de conexión. Deteniendo intentos.', 'error');
+          updateConnectionStatus('error', 'Demasiados intentos fallidos');
+          return;
+        }
+
+        // Probamos con múltiples brokers por si uno no funciona
+        const brokerOptions = [
+          {
+            url: 'wss://test.mosquitto.org:8081',
+            description: 'Broker público Mosquitto'
+          },
+          {
+            url: 'wss://broker.hivemq.com:8000/mqtt',
+            description: 'Broker público HiveMQ'
+          }
+        ];
+
+        // Usamos el primer broker como predeterminado
+        const broker = brokerOptions[0];
+        addDebugMessage(`Intentando conectar a ${broker.url} (${broker.description})`, 'info');
+        
         const clientId = 'horus_client_' + Math.random().toString(36).substr(2, 9);
         
-        // Configuración para MQTT.js v5
         const options = {
           clientId: clientId,
           clean: true,
@@ -665,18 +766,18 @@
         };
 
         try {
-          console.log(`Intentando conectar a ${brokerUrl} con ID ${clientId}`);
-          updateConnectionStatus('connecting', 'Conectando...');
+          updateConnectionStatus('connecting', 'Conectando al broker...');
           
           // En MQTT.js v5, se usa mqtt.connect() sin new
-          mqttClient = mqtt.connect(brokerUrl, options);
+          mqttClient = mqtt.connect(broker.url, options);
           
           // Manejar eventos
           mqttClient.on('connect', () => {
-            console.log("✅ Conexión MQTT establecida");
+            addDebugMessage("✅ Conexión MQTT establecida con éxito", 'connected');
             updateConnectionStatus('connected', 'Conectado');
+            connectionAttempts = 0; // Reiniciar contador de intentos
             
-            // Suscribirse a todos los tópicos de Horus
+            // Suscribirse a los tópicos correctos basados en los datos del knowledge base
             const topics = [
               'horus/vvb/temperatura',
               'horus/vvb/humedad',
@@ -684,17 +785,41 @@
               'horus/vvb/altitud',
               'horus/vvb/pm25',
               'horus/vvb/pm10',
+              'horus/vvb/windSpeed',
+              'horus/vvb/windDirection',
+              'horus/vvb/gas',
+              'horus/vvb/lluvia',
+              // Probar con variantes de tópicos
+              'horus/temperatura',
+              'horus/humedad',
+              'horus/presion',
+              'horus/altitud',
+              'horus/pm25',
+              'horus/pm10',
+              'horus/windSpeed',
+              'horus/windDirection',
+              'horus/gas',
+              'horus/lluvia',
+              // Probar con formato de tópicos como en los datos del knowledge base
+              'horus/vvb/temperature',
+              'horus/vvb/humidity',
+              'horus/vvb/pressure',
+              'horus/vvb/altitude',
+              'horus/vvb/pm2_5',
+              'horus/vvb/pm10',
               'horus/vvb/wind_speed',
               'horus/vvb/wind_direction',
               'horus/vvb/gas',
-              'horus/vvb/lluvia'
+              'horus/vvb/rain'
             ];
+            
+            addDebugMessage(`Suscrito a ${topics.length} tópicos`, 'info');
             
             mqttClient.subscribe(topics, (err) => {
               if (!err) {
-                console.log("🔍 Suscrito a todos los tópicos de sensores");
+                addDebugMessage("🔍 Suscrito a todos los tópicos de sensores", 'info');
               } else {
-                console.error("❌ Error al suscribirse:", err);
+                addDebugMessage(`❌ Error al suscribirse: ${err.message}`, 'error');
                 updateConnectionStatus('error', 'Error de suscripción');
               }
             });
@@ -702,30 +827,81 @@
           
           mqttClient.on('message', (topic, payload) => {
             const value = payload.toString().trim();
-            if (!value) return;
+            if (!value) {
+              addDebugMessage(`⚠️ Mensaje vacío recibido en tópico: ${topic}`, 'info');
+              return;
+            }
             
-            console.log(`📩 Mensaje recibido - Tópico: ${topic}, Valor: ${value}`);
+            addDebugMessage(`📩 Mensaje recibido - Tópico: ${topic}, Valor: ${value}`);
             
             // Actualizar el tiempo de última recepción
             lastDataTime = Date.now();
             
-            // Mapeo de tópicos a IDs
+            // Mapeo de tópicos a IDs (con múltiples variantes posibles)
             const topicMap = {
+              // Formato original
               'horus/vvb/temperatura': 'temp',
               'horus/vvb/humedad': 'hum',
               'horus/vvb/presion': 'press',
               'horus/vvb/altitud': 'alt',
               'horus/vvb/pm25': 'pm25',
               'horus/vvb/pm10': 'pm10',
+              'horus/vvb/windSpeed': 'wind',
+              'horus/vvb/windDirection': 'windDir',
+              'horus/vvb/gas': 'gas',
+              'horus/vvb/lluvia': 'lluvia',
+              
+              // Variantes comunes
+              'horus/temperatura': 'temp',
+              'horus/humedad': 'hum',
+              'horus/presion': 'press',
+              'horus/altitud': 'alt',
+              'horus/pm25': 'pm25',
+              'horus/pm10': 'pm10',
+              'horus/windSpeed': 'wind',
+              'horus/windDirection': 'windDir',
+              'horus/gas': 'gas',
+              'horus/lluvia': 'lluvia',
+              
+              // Formato inglés
+              'horus/vvb/temperature': 'temp',
+              'horus/vvb/humidity': 'hum',
+              'horus/vvb/pressure': 'press',
+              'horus/vvb/altitude': 'alt',
+              'horus/vvb/pm2_5': 'pm25',
+              'horus/vvb/pm10': 'pm10',
               'horus/vvb/wind_speed': 'wind',
               'horus/vvb/wind_direction': 'windDir',
               'horus/vvb/gas': 'gas',
-              'horus/vvb/lluvia': 'lluvia'
+              'horus/vvb/rain': 'lluvia',
+              
+              // Formato sin prefijo
+              'temperature': 'temp',
+              'humidity': 'hum',
+              'pressure': 'press',
+              'altitude': 'alt',
+              'pm25': 'pm25',
+              'pm10': 'pm10',
+              'wind_speed': 'wind',
+              'wind_direction': 'windDir',
+              'gas': 'gas',
+              'rain': 'lluvia'
             };
             
-            const elementId = topicMap[topic];
+            let elementId = topicMap[topic];
+            
+            // Si no encontramos el tópico exacto, intentamos con una coincidencia parcial
             if (!elementId) {
-              console.warn(`⚠️ Tópico no reconocido: ${topic}`);
+              for (const [key, id] of Object.entries(topicMap)) {
+                if (topic.includes(key)) {
+                  elementId = id;
+                  break;
+                }
+              }
+            }
+            
+            if (!elementId) {
+              addDebugMessage(`⚠️ Tópico no reconocido: ${topic}`, 'info');
               return;
             }
             
@@ -733,37 +909,54 @@
             const element = document.getElementById(elementId);
             if (element) {
               element.textContent = value;
+              addDebugMessage(`✓ Actualizado ${elementId} con valor: ${value}`, 'info');
               
               // Actualizar modo VR si está activo
               if (isVRMode && document.getElementById(`vr-${elementId}`)) {
                 const vrElement = document.getElementById(`vr-${elementId}`);
                 vrElement.setAttribute('text', `value: ${value}`);
               }
+            } else {
+              addDebugMessage(`⚠️ Elemento no encontrado para ${elementId}`, 'error');
             }
           });
           
           mqttClient.on('error', (err) => {
-            console.error("❌ Error MQTT:", err);
+            addDebugMessage(`❌ Error MQTT: ${err.message}`, 'error');
             updateConnectionStatus('error', 'Error de conexión');
+            
+            // Intentar con el siguiente broker si hay error
+            if (connectionAttempts <= maxConnectionAttempts) {
+              setTimeout(connectToMqtt, 3000);
+            }
           });
           
           mqttClient.on('reconnect', () => {
-            console.log("🔄 Intentando reconectar...");
+            addDebugMessage("🔄 Intentando reconectar...", 'info');
             updateConnectionStatus('connecting', 'Reconectando...');
           });
           
           mqttClient.on('close', () => {
-            console.log("🔌 Conexión cerrada");
+            addDebugMessage("🔌 Conexión cerrada", 'info');
             if (lastDataTime && (Date.now() - lastDataTime) > 30000) {
               updateConnectionStatus('error', 'Desconectado');
             } else {
               updateConnectionStatus('connecting', 'Conectando...');
+              // Intentar reconectar automáticamente
+              if (connectionAttempts <= maxConnectionAttempts) {
+                setTimeout(connectToMqtt, 5000);
+              }
             }
           });
           
         } catch (error) {
-          console.error("❌ Error al inicializar MQTT:", error);
+          addDebugMessage(`❌ Error al inicializar MQTT: ${error.message}`, 'error');
           updateConnectionStatus('error', 'Error de inicialización');
+          
+          // Intentar reconectar
+          if (connectionAttempts <= maxConnectionAttempts) {
+            setTimeout(connectToMqtt, 5000);
+          }
         }
       }
       
@@ -793,6 +986,62 @@
         document.body.classList.add('dark-mode');
         if (themeSwitch) themeSwitch.checked = true;
       }
+      
+      // Botón para datos de prueba
+      const testButton = document.createElement('button');
+      testButton.textContent = 'Cargar Datos de Prueba';
+      testButton.style.position = 'fixed';
+      testButton.style.bottom = '80px';
+      testButton.style.right = '20px';
+      testButton.style.padding = '8px 15px';
+      testButton.style.backgroundColor = '#4a90e2';
+      testButton.style.color = 'white';
+      testButton.style.border = 'none';
+      testButton.style.borderRadius = '4px';
+      testButton.style.cursor = 'pointer';
+      testButton.style.zIndex = '99';
+      
+      testButton.addEventListener('click', () => {
+        addDebugMessage("Cargando datos de prueba...", 'info');
+        
+        // Datos de ejemplo basados en los datos del knowledge base
+        const sampleData = {
+          temp: '30.43',
+          hum: '28.92',
+          press: '941.23',
+          alt: '617.65',
+          pm25: '12',
+          pm10: '12',
+          wind: '0.00',
+          windDir: 'N/A',
+          gas: '4.00',
+          lluvia: '0.00'
+        };
+        
+        // Actualizar los valores
+        for (const [id, value] of Object.entries(sampleData)) {
+          const element = document.getElementById(id);
+          if (element) {
+            element.textContent = value;
+            addDebugMessage(`✓ Actualizado ${id} con dato de prueba: ${value}`, 'info');
+          }
+        }
+        
+        // Actualizar VR si está activo
+        if (isVRMode) {
+          for (const [id, value] of Object.entries(sampleData)) {
+            const vrElement = document.getElementById(`vr-${id}`);
+            if (vrElement) {
+              vrElement.setAttribute('text', `value: ${value}`);
+            }
+          }
+        }
+        
+        // Actualizar tiempo de última actualización
+        lastDataTime = Date.now();
+      });
+      
+      document.body.appendChild(testButton);
     });
 
     // Función para entrar en modo VR
