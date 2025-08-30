@@ -6,10 +6,13 @@
   <title>Datos en Vivo - Horus</title>
   
   <!-- Carga A-Frame local desde la carpeta js -->
-  <script src="/EspHorusWeb3/js/aframe.js"></script>
+  <script src="../js/aframe.js"></script>
+  
+  <!-- Componente de partículas para A-Frame -->
+  <script src="../js/aframe-particle-system.min.js"></script>
   
   <!-- Carga MQTT.js -->
-  <script src="/EspHorusWeb3/js/mqtt.js"></script>
+  <script src="../js/mqtt.js"></script>
   
   <style>
     /* Variables de tema (mismo estilo que los otros archivos) */
@@ -33,6 +36,7 @@
       --sensor-card-bg: #1d3a5d;
       --sensor-card-border: rgba(0, 234, 255, 0.12);
       --sensor-card-hover-border: #00eaff;
+      --glow-effect: 0 0 15px #00eaff;
     }
 
     /* Modo oscuro (mantiene coherencia con otros archivos) */
@@ -216,20 +220,20 @@
       visibility: hidden !important;
     }
     
-    /* Estilos para el modo VR 3D - NUEVO DISEÑO PROFESIONAL */
+    /* Estilos para el modo VR 3D - DISEÑO PREMIUM Y PROFESIONAL */
     .sensor-card-3d {
       position: relative;
       overflow: hidden;
       border-radius: 50%;
-      width: 1.8;
-      height: 1.8;
+      width: 2;
+      height: 2;
       background: var(--card-bg-3d);
       padding: 0.8rem;
       text-align: center;
       box-shadow: 
         0 0 0.5 0.05 rgba(0, 234, 255, 0.5),
         0 0 0.2 0.02 rgba(0, 150, 255, 0.3);
-      transition: var(--transition);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       border: 0.05 solid var(--sensor-card-border);
       transform-style: preserve-3d;
       perspective: 1000px;
@@ -240,7 +244,7 @@
     }
     
     .sensor-card-3d:hover {
-      transform: scale(1.15);
+      transform: scale(1.25);
       box-shadow: 
         0 0 0.6 0.07 rgba(0, 234, 255, 0.7),
         0 0 0.3 0.03 rgba(0, 150, 255, 0.5);
@@ -258,11 +262,11 @@
       border-radius: 50%;
       margin-bottom: 0.3;
       border: 0.05 solid rgba(0, 234, 255, 0.25);
-      transition: var(--transition);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     
     .sensor-card-3d:hover .sensor-icon-3d {
-      transform: scale(1.1);
+      transform: scale(1.15);
       box-shadow: 0 0 0.3 0.05 rgba(0, 234, 255, 0.4);
     }
     
@@ -279,12 +283,12 @@
     }
     
     .sensor-value-3d {
-      font-size: 0.65;
+      font-size: 0.7;
       font-weight: bold;
       color: var(--primary);
       line-height: 1;
       text-shadow: 0 0 0.15 var(--primary-glow);
-      transition: var(--transition);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       margin-bottom: 0.1;
     }
     
@@ -335,6 +339,60 @@
     
     .rain-card {
       border-top: 0.05 solid #2196F3;
+    }
+    
+    /* Animaciones de entrada */
+    @keyframes floatVR {
+      0% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-0.1px) scale(1.02); }
+      100% { transform: translateY(0px) scale(1); }
+    }
+    
+    .sensor-card-3d {
+      animation: floatVR 4s ease-in-out infinite;
+      animation-delay: calc(var(--delay) * 1s);
+    }
+    
+    /* Estilo para modo oscuro en VR */
+    .dark-mode .sensor-card-3d {
+      background: rgba(10, 17, 32, 0.85);
+      border: 0.05 solid rgba(0, 234, 255, 0.15);
+    }
+    
+    .dark-mode .sensor-card-3d:hover {
+      border-color: rgba(0, 234, 255, 0.4);
+    }
+    
+    /* Efecto de brillo en los sensores */
+    .sensor-card-3d::before {
+      content: '';
+      position: absolute;
+      top: -0.05;
+      left: 0;
+      width: 100%;
+      height: 0.05;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0.7;
+    }
+    
+    /* Efecto de profundidad */
+    .sensor-card-3d::after {
+      content: '';
+      position: absolute;
+      bottom: -0.1;
+      left: 0;
+      width: 100%;
+      height: 0.1;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 50%;
+      filter: blur(0.05);
+      transform: scale(0.9, 0.5);
+    }
+    
+    /* Efecto de brillo en hover */
+    .sensor-card-3d:hover::before {
+      opacity: 1;
+      height: 0.1;
     }
   </style>
 </head>
@@ -417,9 +475,12 @@
     <!-- Fondo negro -->
     <a-sky color="#000000"></a-sky>
     
+    <!-- Sistema de partículas estelares -->
+    <a-entity particle-system="preset: snow; particleCount: 500; size: 0.05; color: #00eaff; maxAge: 20; velocityValue: 0 0 -0.5; accelerationValue: 0 0 -0.1;"></a-entity>
+    
     <!-- Diseño VR circular con burbujas esféricas mejoradas -->
     <!-- Temperatura -->
-    <a-entity position="0 1.5 2.0" rotation="0 0 0" class="sensor-card-3d temp-card">
+    <a-entity position="0 1.5 2.0" rotation="0 0 0" class="sensor-card-3d temp-card" style="--delay: 0.1;">
       <a-entity class="sensor-icon-3d">
         <a-text value="🌡️" color="#FF5722" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
       </a-entity>
@@ -429,7 +490,7 @@
     </a-entity>
     
     <!-- Humedad -->
-    <a-entity position="1.9 1.5 0.6" rotation="0 -30 0" class="sensor-card-3d hum-card">
+    <a-entity position="1.9 1.5 0.6" rotation="0 -30 0" class="sensor-card-3d hum-card" style="--delay: 0.2;">
       <a-entity class="sensor-icon-3d">
         <a-text value="💧" color="#2196F3" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
       </a-entity>
@@ -439,7 +500,7 @@
     </a-entity>
     
     <!-- Presión -->
-    <a-entity position="1.9 1.5 -0.6" rotation="0 -330 0" class="sensor-card-3d press-card">
+    <a-entity position="1.9 1.5 -0.6" rotation="0 -330 0" class="sensor-card-3d press-card" style="--delay: 0.3;">
       <a-entity class="sensor-icon-3d">
         <a-text value="🔽" color="#9E9E9E" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
       </a-entity>
@@ -449,7 +510,7 @@
     </a-entity>
     
     <!-- Altitud -->
-    <a-entity position="0 1.5 -2.0" rotation="0 180 0" class="sensor-card-3d alt-card">
+    <a-entity position="0 1.5 -2.0" rotation="0 180 0" class="sensor-card-3d alt-card" style="--delay: 0.4;">
       <a-entity class="sensor-icon-3d">
         <a-text value="⛰️" color="#673AB7" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
       </a-entity>
@@ -459,7 +520,7 @@
     </a-entity>
     
     <!-- Dirección Viento -->
-    <a-entity position="-1.9 1.5 -0.6" rotation="0 30 0" class="sensor-card-3d wind-dir-card">
+    <a-entity position="-1.9 1.5 -0.6" rotation="0 30 0" class="sensor-card-3d wind-dir-card" style="--delay: 0.5;">
       <a-entity class="sensor-icon-3d">
         <a-text value="🧭" color="#03A9F4" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
       </a-entity>
@@ -470,7 +531,7 @@
     
     <!-- Fila inferior de sensores (ligeramente por debajo) -->
     <!-- PM2.5 -->
-    <a-entity position="0 0.5 2.0" rotation="0 0 0" class="sensor-card-3d pm25-card">
+    <a-entity position="0 0.5 2.0" rotation="0 0 0" class="sensor-card-3d pm25-card" style="--delay: 0.6;">
       <a-entity class="sensor-icon-3d">
         <a-text value="🌫️" color="#9C27B0" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
       </a-entity>
@@ -480,7 +541,7 @@
     </a-entity>
     
     <!-- PM10 -->
-    <a-entity position="1.9 0.5 0.6" rotation="0 -30 0" class="sensor-card-3d pm10-card">
+    <a-entity position="1.9 0.5 0.6" rotation="0 -30 0" class="sensor-card-3d pm10-card" style="--delay: 0.7;">
       <a-entity class="sensor-icon-3d">
         <a-text value="🌫️" color="#673AB7" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
       </a-entity>
@@ -490,7 +551,7 @@
     </a-entity>
     
     <!-- Viento -->
-    <a-entity position="1.9 0.5 -0.6" rotation="0 -330 0" class="sensor-card-3d wind-card">
+    <a-entity position="1.9 0.5 -0.6" rotation="0 -330 0" class="sensor-card-3d wind-card" style="--delay: 0.8;">
       <a-entity class="sensor-icon-3d">
         <a-text value="💨" color="#4CAF50" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
       </a-entity>
@@ -500,7 +561,7 @@
     </a-entity>
     
     <!-- Gas -->
-    <a-entity position="0 0.5 -2.0" rotation="0 180 0" class="sensor-card-3d gas-card">
+    <a-entity position="0 0.5 -2.0" rotation="0 180 0" class="sensor-card-3d gas-card" style="--delay: 0.9;">
       <a-entity class="sensor-icon-3d">
         <a-text value="⛽" color="#FFEB3B" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
       </a-entity>
@@ -510,7 +571,7 @@
     </a-entity>
     
     <!-- Lluvia -->
-    <a-entity position="-1.9 0.5 -0.6" rotation="0 30 0" class="sensor-card-3d rain-card">
+    <a-entity position="-1.9 0.5 -0.6" rotation="0 30 0" class="sensor-card-3d rain-card" style="--delay: 1.0;">
       <a-entity class="sensor-icon-3d">
         <a-text value="🌧️" color="#2196F3" position="0 0 0.1" align="center" width="1.2" font="roboto"></a-text>
       </a-entity>
@@ -573,11 +634,8 @@
     </footer>
   </div>
 
-  <!-- Carga main.js primero (tema y efectos) -->
-  <script src="/EspHorusWeb3/js/main.js"></script>
-  
-  <!-- Carga MQTT.js -->
-  <script src="/EspHorusWeb3/js/mqtt.js"></script>
+  <!-- Carga main.js desde la ruta correcta -->
+  <script src="../js/main.js"></script>
   
   <script>
     document.addEventListener("DOMContentLoaded", () => {
