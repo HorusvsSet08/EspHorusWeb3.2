@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Datos en Vivo - Horus</title>
   
-  <!-- Carga A-Frame 1.4.2 desde CDN -->
-  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <!-- Carga A-Frame 1.4.2 -->
+  <script src="../js/aframe.js"></script>
   
   <!-- Carga MQTT.js -->
   <script src="../js/mqtt.js"></script>
@@ -122,49 +122,6 @@
 
     .nav-icon {
       font-size: 1.1rem;
-    }
-
-    /* Barra de estado */
-    .status-bar {
-      background-color: var(--card-bg);
-      padding: 8px 1.5rem;
-      border-top: 1px solid var(--border-color);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      z-index: 100;
-    }
-
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background-color: #e74c3c;
-    }
-
-    .status-dot.connected {
-      background-color: var(--success);
-      box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
-    }
-
-    .status-text {
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    .last-update {
-      font-size: 0.8rem;
-      color: var(--text-muted);
     }
 
     /* Indicador de conexión - Estilo VR */
@@ -373,51 +330,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* Estilo para el loader */
-    .loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--vr-dark-bg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-    }
-    
-    .loader-spinner {
-      width: 55px;
-      height: 55px;
-      border: 4px solid rgba(0, 234, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: var(--vr-primary);
-      animation: spin 1s ease-in-out infinite;
-      margin-bottom: 20px;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .loader-text {
-      color: var(--vr-primary);
-      font-size: 17px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-shadow: 0 0 8px var(--vr-primary-glow);
-    }
-
-    /* Eliminar completamente cualquier elemento residual de A-Frame */
-    .a-enter-vr, .a-canvas, .a-loader, .a-enter-ar, .a-fullscreen, .a-no-cursor, .a-cursor {
-      display: none !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-      visibility: hidden !important;
-    }
-    
     /* Contenedor principal */
     .container {
       max-width: 1200px;
@@ -849,12 +761,6 @@
     </a-entity>
   </a-scene>
 
-  <!-- Loader de conexión -->
-  <div class="loader" id="loader">
-    <div class="loader-spinner"></div>
-    <div class="loader-text">CONECTANDO A HIVE MQ</div>
-  </div>
-
   <div class="container" id="normal-view">
     <header>
       <h1>📡 Datos en Vivo - Estación Horus</h1>
@@ -982,7 +888,6 @@
     const connectionStatusElement = document.getElementById('connection-status');
     const connectionLed = document.getElementById('connection-led');
     const connectionText = document.getElementById('connection-text');
-    const loader = document.getElementById('loader');
     const vrButton = document.getElementById('vr-button');
     const joystickContainer = document.getElementById('joystick-container');
     const orientationPermission = document.getElementById('orientation-permission');
@@ -993,11 +898,6 @@
     
     // Variables para manejo de datos
     let lastDataTime = null;
-    let connectionAttempts = 0;
-    const maxConnectionAttempts = 5;
-    let isConnecting = false;
-    let reconnectTimeout = null;
-    let reconnectDelay = 2000; // Comenzar con 2 segundos
     
     // Función para registrar mensajes en la consola
     function logDebugMessage(message, type = 'info') {
@@ -1066,25 +966,6 @@
           <span class="status-text">${message || 'Desconectado'}</span>
         `;
       }
-      
-      if (connected) {
-        // Animación de conexión exitosa
-        connectionStatusElement.style.transform = 'scale(1.05)';
-        setTimeout(() => {
-          connectionStatusElement.style.transform = 'scale(1)';
-        }, 200);
-        
-        // Ocultar loader después de conexión
-        setTimeout(() => {
-          loader.style.opacity = '0';
-          setTimeout(() => {
-            loader.style.display = 'none';
-          }, 500);
-        }, 800);
-      } else {
-        loader.style.display = 'flex';
-        loader.style.opacity = '1';
-      }
     }
     
     // Solicitar permiso de orientación para VR en móviles
@@ -1115,7 +996,6 @@
           })
           .catch(error => {
             logDebugMessage(`Error al entrar a VR: ${error.message}`, 'error');
-            isVRMode = false;
             orientationPermission.style.display = 'flex';
           });
       } else {
@@ -1251,27 +1131,11 @@
       return numValue.toFixed(2);
     }
     
-    // === Conexión MQTT - CORREGIDO EL PUERTO ===
+    // === Conexión MQTT CORREGIDA ===
     function connectToMqtt() {
-      if (isConnecting) {
-        logDebugMessage('Ya hay una conexión en proceso, esperando...', 'info');
-        return;
-      }
-      
-      isConnecting = true;
-      connectionAttempts++;
-      logDebugMessage(`Intento de conexión #${connectionAttempts}`, 'info');
-      
-      if (connectionAttempts > maxConnectionAttempts) {
-        logDebugMessage('Demasiados intentos de conexión. Deteniendo intentos.', 'error');
-        updateConnectionStatus(false, 'Demasiados intentos fallidos');
-        isConnecting = false;
-        return;
-      }
-
-      // CORREGIDO: Puerto 443 para conexiones WebSocket seguras (wss)
+      // CORREGIDO: Puerto 8000 para conexiones WebSocket (wss)
       const broker = {
-        url: 'wss://broker.hivemq.com:443/mqtt',
+        url: 'wss://broker.hivemq.com:8000/mqtt',
         description: 'Broker público HiveMQ'
       };
       
@@ -1290,12 +1154,6 @@
       };
 
       try {
-        // Limpiar cualquier timeout de reconexión previo
-        if (reconnectTimeout) {
-          clearTimeout(reconnectTimeout);
-          reconnectTimeout = null;
-        }
-
         // Limpiar cliente anterior si existe
         if (mqttClient) {
           try {
@@ -1313,11 +1171,8 @@
         
         // Manejar eventos
         mqttClient.on('connect', () => {
-          isConnecting = false;
           logDebugMessage("Conexión MQTT establecida con éxito", 'connected');
           updateConnectionStatus(true, `Conectado a ${broker.description}`);
-          connectionAttempts = 0; // Reiniciar contador de intentos
-          reconnectDelay = 2000; // Reiniciar retraso de reconexión
           
           // === SUSCRIBIRSE A TODO LO QUE EMPIECE CON "horus/" ===
           mqttClient.subscribe("horus/#", (err) => {
@@ -1408,50 +1263,18 @@
         });
         
         mqttClient.on('error', (err) => {
-          isConnecting = false;
           logDebugMessage(`Error MQTT: ${err.message}`, 'error');
           updateConnectionStatus(false, `Error de conexión: ${err.message}`);
-          
-          // Intentar reconectar con retraso exponencial
-          if (connectionAttempts <= maxConnectionAttempts) {
-            logDebugMessage(`Reintentando en ${reconnectDelay}ms...`, 'info');
-            
-            reconnectTimeout = setTimeout(() => {
-              connectToMqtt();
-            }, reconnectDelay);
-            
-            // Incrementar el retraso para el próximo intento (máximo 30 segundos)
-            reconnectDelay = Math.min(reconnectDelay * 2, 30000);
-          } else {
-            logDebugMessage('Alcanzado el máximo de intentos de conexión', 'error');
-          }
         });
         
         mqttClient.on('close', () => {
-          isConnecting = false;
           logDebugMessage("Conexión cerrada", 'info');
-          
-          // Si no hubo datos recientes, intentar reconectar
-          if (!lastDataTime || (Date.now() - lastDataTime) > 30000) {
-            updateConnectionStatus(false, 'Conexión cerrada. Intentando reconectar...');
-            
-            if (connectionAttempts < maxConnectionAttempts) {
-              reconnectTimeout = setTimeout(connectToMqtt, reconnectDelay);
-              reconnectDelay = Math.min(reconnectDelay * 2, 30000);
-            }
-          }
+          updateConnectionStatus(false, 'Conexión cerrada');
         });
         
       } catch (error) {
-        isConnecting = false;
         logDebugMessage(`Error al inicializar MQTT: ${error.message}`, 'error');
         updateConnectionStatus(false, `Error de inicialización: ${error.message}`);
-        
-        // Intentar reconectar
-        if (connectionAttempts < maxConnectionAttempts) {
-          reconnectTimeout = setTimeout(connectToMqtt, reconnectDelay);
-          reconnectDelay = Math.min(reconnectDelay * 2, 30000);
-        }
       }
     }
     
@@ -1541,29 +1364,6 @@
       vrExitButton.innerHTML = '✕';
       vrExitButton.onclick = exitVRMode;
       document.body.appendChild(vrExitButton);
-      
-      // Asegurar que el dashboard sea siempre visible
-      setTimeout(() => {
-        const dashboard = document.getElementById('dashboard');
-        const cameraRig = document.getElementById('camera-rig');
-        
-        if (dashboard) {
-          // POSICIÓN AJUSTADA PARA ESCRITORIO (más cerca y ligeramente más baja)
-          dashboard.setAttribute('position', '0 1.5 -1.2');
-        }
-        
-        if (cameraRig) {
-          cameraRig.setAttribute('position', '0 1.6 0');
-        }
-        
-        // Asegurar que el loader desaparezca después de 3 segundos
-        setTimeout(() => {
-          loader.style.opacity = '0';
-          setTimeout(() => {
-            loader.style.display = 'none';
-          }, 500);
-        }, 3000);
-      }, 1000);
       
       // Conectar al broker HiveMQ
       connectToMqtt();
