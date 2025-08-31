@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.0/dist/nipplejs.min.js"></script>
   
   <style>
-    /* Estilos idénticos a tu versión anterior */
+    /* Variables de tema coherente con el resto del proyecto */
     :root {
       --primary-color: #4a90e2;
       --card-bg: #ffffff;
@@ -53,30 +53,963 @@
       --card-hover-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
     }
 
-    /* ... (el resto de tus estilos permanecen iguales) ... */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      transition: background-color 0.3s ease;
+      overflow-x: hidden;
+      height: 100vh;
+      position: relative;
+    }
+
+    /* Navegación - idéntico a las otras páginas */
+    .nav {
+      background-color: var(--card-bg);
+      padding: 0.75rem 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--text-color);
+      transition: var(--transition);
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .nav-btn:hover {
+      background-color: var(--background-color);
+    }
+
+    .nav-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .nav-icon {
+      font-size: 1.1rem;
+    }
+
+    /* Indicador de conexión - Estilo VR */
+    #connection-status {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 1000;
+      padding: 8px 12px;
+      background: rgba(0, 15, 40, 0.85);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(0, 234, 255, 0.3);
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
     
-    /* Mantengo todos tus estilos existentes para no alterar tu interfaz */
+    .led {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #f00;
+      box-shadow: 0 0 6px rgba(255, 0, 0, 0.7);
+      transition: var(--transition);
+      position: relative;
+    }
     
+    .led:after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: inherit;
+      animation: pulse-inner 2s infinite;
+      opacity: 0.7;
+    }
+    
+    @keyframes pulse-inner {
+      0% { transform: scale(1); opacity: 0.7; }
+      70% { transform: scale(1.4); opacity: 0; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+    
+    .led.connected {
+      background: #0f0;
+      box-shadow: 0 0 6px rgba(0, 255, 0, 0.7);
+    }
+    
+    #connection-text {
+      color: white;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    /* Botón VR - SOLO PARA MÓVILES */
+    #vr-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(0, 234, 255, 0.2);
+      color: var(--vr-primary);
+      border: none;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 12px rgba(0, 234, 255, 0.4);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(0, 234, 255, 0.3);
+      display: none;
+    }
+    
+    #vr-button:hover {
+      transform: scale(1.15);
+      background: rgba(0, 234, 255, 0.3);
+      box-shadow: 0 0 18px rgba(0, 234, 255, 0.6);
+    }
+
+    /* Joystick REALISTA - SOLO PARA MÓVILES */
+    #joystick-container {
+      position: fixed;
+      left: 25px;
+      bottom: 25px;
+      width: 90px;
+      height: 90px;
+      z-index: 1000;
+      display: none;
+    }
+
+    /* Overlay para solicitar permisos de orientación */
+    .orientation-permission {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 10, 30, 0.95);
+      z-index: 3000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 25px;
+      text-align: center;
+    }
+    
+    .orientation-permission h3 {
+      color: var(--vr-primary);
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+    
+    .orientation-permission p {
+      margin-bottom: 20px;
+      font-size: 15px;
+      color: #a0a0a0;
+      max-width: 300px;
+      line-height: 1.5;
+    }
+    
+    .orientation-btn {
+      background: var(--vr-primary);
+      color: #000;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 12px rgba(0, 234, 255, 0.5);
+    }
+    
+    .orientation-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 18px rgba(0, 234, 255, 0.7);
+    }
+
+    /* Panel de datos 3D - Estilo VR */
+    .sensor-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      background: var(--vr-card-bg);
+      padding: 16px 20px;
+      text-align: center;
+      box-shadow: inset 0 3px 10px rgba(0, 5, 20, 0.5), 0 5px 12px rgba(0, 0, 0, 0.18);
+      transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      border: 1px solid rgba(0, 234, 255, 0.12);
+      transform-style: preserve-3d;
+      perspective: 1000px;
+    }
+    
+    .sensor-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: inset 0 3px 10px rgba(0, 5, 20, 0.5), 0 8px 20px rgba(0, 100, 200, 0.3);
+      border-color: var(--vr-primary);
+    }
+    
+    .sensor-icon {
+      font-size: 28px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 71, 119, 0.25);
+      border-radius: 10px;
+      margin: 0 auto 10px;
+      border: 1px solid rgba(0, 234, 255, 0.25);
+    }
+    
+    .sensor-name {
+      color: var(--vr-text-secondary);
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      margin-bottom: 7px;
+      text-transform: uppercase;
+    }
+    
+    .sensor-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--vr-primary);
+      line-height: 1.2;
+      text-shadow: 0 0 6px var(--vr-primary-glow);
+      transition: all 0.3s ease;
+    }
+    
+    .unit {
+      font-size: 16px;
+      color: var(--vr-text-secondary);
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Contenedor principal */
+    .container {
+      max-width: 1200px;
+      margin: 7rem auto 4rem;
+      padding: 0 1.5rem;
+    }
+
+    header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-color);
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* Diseño de tarjetas mejorado */
+    #weather-data {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .data-card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      border: 1px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .data-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary-color);
+    }
+
+    .data-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--card-hover-shadow);
+    }
+
+    .data-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .data-card-icon {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+    }
+
+    .data-card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+
+    .data-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin: 0.5rem 0;
+      color: var(--primary-color);
+      line-height: 1.2;
+    }
+
+    .data-unit {
+      font-size: 1rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Mensaje de estado de conexión */
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+    }
+    
+    .connection-status.connected {
+      background-color: #d4edda;
+      color: #155724;
+      border-color: #c3e6cb;
+    }
+    
+    .connection-status.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border-color: #f5c6cb;
+    }
+    
+    .connection-status .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    .connection-status .status-text {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: 2rem;
+    }
+
+    footer strong {
+      color: var(--primary-color);
+    }
+
+    /* Estilos para móviles */
+    @media (max-width: 768px) {
+      .container {
+        margin-top: 6rem;
+        padding: 0 1rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .data-card {
+        padding: 1.2rem;
+      }
+      
+      .data-value {
+        font-size: 1.8rem;
+      }
+    }
+    
+    /* Escena VR - COMPLETAMENTE MEJORADA */
+    #vr-scene {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10000;
+      display: none;
+      background-color: #000000;
+      touch-action: manipulation;
+    }
+    
+    /* Mensaje de instrucciones VR */
+    .vr-instructions {
+      position: fixed;
+      bottom: 20px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: white;
+      font-size: 0.9rem;
+      z-index: 10001;
+      padding: 0 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .vr-instructions.active {
+      opacity: 1;
+    }
+    
+    /* Solo mostrar el botón VR en pantallas pequeñas (móviles) */
+    @media (min-width: 768px) {
+      #vr-button {
+        display: none !important;
+      }
+    }
+    
+    /* Asegurar que el botón esté visible en móviles */
+    @media (max-width: 767px) {
+      #vr-button {
+        display: flex !important;
+      }
+    }
+    
+    /* Switch de tema oscuro - CORREGIDO */
+    .theme-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    
+    .theme-switch__checkbox {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .theme-switch__container {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+    
+    .theme-switch__container:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    
+    .theme-switch__checkbox:checked + .theme-switch__container {
+      background-color: #2196F3;
+    }
+    
+    .theme-switch__checkbox:checked + .theme-switch__container:before {
+      transform: translateX(26px);
+    }
+    
+    /* Estilos adicionales para el switch */
+    .theme-switch__clouds {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .theme-switch__stars-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      opacity: 1;
+      transition: opacity 0.3s;
+    }
+    
+    .theme-switch__circle-container {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      top: 2px;
+      left: 2px;
+      background-color: #fff;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    
+    .theme-switch__sun-moon-container {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      top: 3px;
+      left: 3px;
+      background-color: #FFC107;
+      border-radius: 50%;
+      transition: background-color 0.3s;
+    }
+    
+    .theme-switch__moon {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    
+    .theme-switch__spot {
+      position: absolute;
+      background-color: #E0E0E0;
+      border-radius: 50%;
+    }
+    
+    .theme-switch__spot:nth-child(1) {
+      width: 4px;
+      height: 4px;
+      top: 3px;
+      left: 4px;
+    }
+    
+    .theme-switch__spot:nth-child(2) {
+      width: 3px;
+      height: 3px;
+      top: 7px;
+      left: 2px;
+    }
+    
+    .theme-switch__spot:nth-child(3) {
+      width: 4px;
+      height: 4px;
+      top: 5px;
+      left: 8px;
+    }
+    
+    /* Cuando el tema oscuro está activo */
+    body.dark-mode .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__clouds {
+      opacity: 1;
+    }
+    
+    body.dark-mode .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__stars-container {
+      opacity: 0;
+    }
+    
+    body.dark-mode .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container {
+      transform: translateX(26px);
+    }
+    
+    body.dark-mode .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__sun-moon-container {
+      background-color: #616161;
+    }
   </style>
 </head>
 <body class="light-mode">
-  <!-- ... (tu estructura HTML permanece igual) ... -->
+  <nav class="nav">
+    <div class="nav-container">
+      <div class="nav-buttons">
+        <a href="../index.html" class="nav-btn">
+          <span class="nav-icon">🏠</span> Inicio
+        </a>
+        <a href="mqtt.html" class="nav-btn active">
+          <span class="nav-icon">📡</span> Datos en Vivo
+        </a>
+        <a href="analisis.html" class="nav-btn">
+          <span class="nav-icon">📊</span> Análisis
+        </a>
+        <!-- Botón del chatbot añadido -->
+        <a href="chatbot.html" class="nav-btn">
+          <span class="nav-icon">🤖</span> Chatbot
+        </a>
+      </div>
+
+      <!-- Switch de Galahad - CORREGIDO -->
+      <div class="nav-right">
+        <label class="theme-switch">
+          <input type="checkbox" class="theme-switch__checkbox">
+          <div class="theme-switch__container">
+            <div class="theme-switch__clouds"></div>
+            <div class="theme-switch__stars-container">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none">
+                <path d="M135.831 3.00688C135.055 3.85027 134.111 4.29946 133 4.35447C134.111 4.40947 135.055 4.85867 135.831 5.71123C136.607 6.55462 136.996 7.56303 136.996 8.72727C136.996 7.95722 137.172 7.25134 137.525 6.59129C137.886 5.93124 138.372 5.39954 138.98 5.00535C139.598 4.60199 140.268 4.39114 141 4.35447C139.88 4.2903 138.936 3.85027 138.16 3.00688C137.384 2.16348 136.996 1.16425 136.996 0C136.996 1.16425 136.607 2.16348 135.831 3.00688ZM31 23.3545C32.1114 23.2995 33.0551 22.8503 33.8313 22.0069C34.6075 21.1635 34.9956 20.1642 34.9956 19C34.9956 20.1642 35.3837 21.1635 36.1599 22.0069C36.9361 22.8503 37.8798 23.2903 39 23.3545C38.2679 23.3911 37.5976 23.602 36.9802 24.0053C36.3716 24.3995 35.8864 24.9312 35.5248 25.5913C35.172 26.2513 34.9956 26.9572 34.9956 27.7273C34.9956 26.563 34.6075 25.5546 33.8313 24.7112C33.0551 23.8587 32.1114 23.4095 31 23.3545ZM0 36.3545C1.11136 36.2995 2.05513 35.8503 2.83131 35.0069C3.6075 34.1635 3.99559 33.1642 3.99559 32C3.99559 33.1642 4.38368 34.1635 5.15987 35.0069C5.93605 35.8503 6.87982 36.2903 8 36.3545C7.26792 36.3911 6.59757 36.602 5.98015 37.0053C5.37155 37.3995 4.88644 37.9312 4.52481 38.5913C4.172 39.2513 3.99559 39.9572 3.99559 40.7273C3.99559 39.563 3.6075 38.5546 2.83131 37.7112C2.05513 36.8587 1.11136 36.4095 0 36.3545ZM56.8313 24.0069C56.0551 24.8503 55.1114 25.2995 54 25.3545C55.1114 25.4095 56.0551 25.8587 56.8313 26.7112C57.6075 27.5546 57.9956 28.563 57.9956 29.7273C57.9956 28.9572 58.172 28.2513 58.5248 27.5913C58.8864 26.9312 59.3716 26.3995 59.9802 26.0053C60.5976 25.602 61.2679 25.3911 62 25.3545C60.8798 25.2903 59.9361 24.8503 59.1599 24.0069C58.3837 23.1635 57.9956 22.1642 57.9956 21C57.9956 22.1642 57.6075 23.1635 56.8313 24.0069ZM81 25.3545C82.1114 25.2995 83.0551 24.8503 83.8313 24.0069C84.6075 23.1635 84.9956 22.1642 84.9956 21C84.9956 22.1642 85.3837 23.1635 86.1599 24.0069C86.9361 24.8503 87.8798 25.2903 89 25.3545C88.2679 25.3911 87.5976 25.602 86.9802 26.0053C86.3716 26.3995 85.8864 26.9312 85.5248 27.5913C85.172 28.2513 84.9956 28.9572 84.9956 29.7273C84.9956 28.563 84.6075 27.5546 83.8313 26.7112C83.0551 25.8587 82.1114 25.4095 81 25.3545ZM136 36.3545C137.111 36.2995 138.055 35.8503 138.831 35.0069C139.607 34.1635 139.996 33.1642 139.996 32C139.996 33.1642 140.384 34.1635 141.16 35.0069C141.936 35.8503 142.88 36.2903 144 36.3545C143.268 36.3911 142.598 36.602 141.98 37.0053C141.372 37.3995 140.886 37.9312 140.525 38.5913C140.172 39.2513 139.996 39.9572 139.996 40.7273C139.996 39.563 139.607 38.5546 138.831 37.7112C138.055 36.8587 137.111 36.4095 136 36.3545ZM101.831 49.0069C101.055 49.8503 100.111 50.2995 99 50.3545C100.111 50.4095 101.055 50.8587 101.831 51.7112C102.607 52.5546 102.996 53.563 102.996 54.7273C102.996 53.9572 103.172 53.2513 103.525 52.5913C103.886 51.9312 104.372 51.3995 104.98 51.0053C105.598 50.602 106.268 50.3911 107 50.3545C105.88 50.2903 104.936 49.8503 104.16 49.0069C103.384 48.1635 102.996 47.1642 102.996 46C102.996 47.1642 102.607 48.1635 101.831 49.0069Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="theme-switch__circle-container">
+              <div class="theme-switch__sun-moon-container">
+                <div class="theme-switch__moon">
+                  <div class="theme-switch__spot"></div>
+                  <div class="theme-switch__spot"></div>
+                  <div class="theme-switch__spot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </label>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Estado de conexión - CORREGIDO -->
+  <div class="connection-status-small">
+    <span class="status-dot"></span>
+    <span class="status-text">Conectando...</span>
+    <div class="last-update">última: nunca</div>
+  </div>
+  
+  <!-- Botón VR - SOLO PARA MÓVILES -->
+  <button id="vr-button" title="Modo VR">🕶️</button>
+  
+  <!-- Joystick REALISTA - SOLO PARA MÓVILES -->
+  <div id="joystick-container" class="mobile-only"></div>
+  
+  <!-- Overlay para solicitar permisos de orientación -->
+  <div class="orientation-permission" id="orientation-permission">
+    <h3>📱 Permiso Necesario</h3>
+    <p>Para usar el modo VR, necesitamos acceso a la orientación de tu dispositivo.</p>
+    <button class="orientation-btn" id="orientation-btn">Permitir</button>
+  </div>
+
+  <!-- Escena VR con A-Frame - COMPLETAMENTE MEJORADA -->
+  <a-scene id="vr-scene" embedded
+           vr-mode-ui="enabled: false"
+           loading-screen="enabled: false"
+           device-orientation-permission-ui="enabled: false"
+           style="display: none; background-color: #000000;">
+    
+    <!-- CONFIGURACIÓN CORREGIDA - POSICIÓN DE LA CÁMARA PARA A-FRAME 1.4.2 -->
+    <a-entity id="camera-rig" position="0 1.6 0">
+      <a-entity id="camera" camera="fov: 85" look-controls>
+        <a-cursor 
+          raycaster="objects: .sensor-card" 
+          color="#00eaff" 
+          opacity="0.5"
+          radiusInner="0.01"
+          radiusOuter="0.02">
+        </a-cursor>
+      </a-entity>
+    </a-entity>
+    
+    <!-- Panel de datos - POSICIÓN AJUSTADA PARA VISIBILIDAD EN ESCRITORIO -->
+    <a-entity id="dashboard" position="0 1.5 -1.2" rotation="0 0 0">
+      <!-- Temperatura -->
+      <a-entity position="-1.6 0.7 0.1" class="sensor-card">
+        <a-entity class="sensor-header">
+          <a-text value="🌡️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+          <a-text value="TEMP" color="#FF5722" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+        </a-entity>
+        <a-text id="vr-temp" value="--" color="#FF5722" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+        <a-text value="°C" color="#a0a0a0" position="0.35 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+      </a-entity>
+      
+      <!-- Humedad -->
+      <a-entity position="-0.5 0.7 0.1" class="sensor-card">
+        <a-entity class="sensor-header">
+          <a-text value="💧" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+          <a-text value="HUM" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+        </a-entity>
+        <a-text id="vr-hum" value="--" color="#2196F3" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+        <a-text value="%" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+      </a-entity>
+      
+      <!-- Presión -->
+      <a-entity position="0.6 0.7 0.1" class="sensor-card">
+        <a-entity class="sensor-header">
+          <a-text value="🔽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+          <a-text value="PRES" color="#9E9E9E" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+        </a-entity>
+        <a-text id="vr-press" value="--" color="#9E9E9E" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+        <a-text value="hPa" color="#a0a0a0" position="0.4 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+      </a-entity>
+      
+      <!-- Altitud -->
+      <a-entity position="-1.6 0 0.1" class="sensor-card">
+        <a-entity class="sensor-header">
+          <a-text value="⛰️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+          <a-text value="ALT" color="#673AB7" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+        </a-entity>
+        <a-text id="vr-alt" value="--" color="#673AB7" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+        <a-text value="m" color="#a0a0a0" position="0.25 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+      </a-entity>
+      
+      <!-- Gas -->
+      <a-entity position="-0.5 0 0.1" class="sensor-card">
+        <a-entity class="sensor-header">
+          <a-text value="⛽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+          <a-text value="GAS" color="#FFEB3B" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+        </a-entity>
+        <a-text id="vr-gas" value="--" color="#FFEB3B" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+        <a-text value="%" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+      </a-entity>
+      
+      <!-- Lluvia -->
+      <a-entity position="0.6 0 0.1" class="sensor-card">
+        <a-entity class="sensor-header">
+          <a-text value="🌧️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+          <a-text value="LLUVIA" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+        </a-entity>
+        <a-text id="vr-lluvia" value="no" color="#2196F3" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+      </a-entity>
+      
+      <!-- PM2.5 -->
+      <a-entity position="-1.6 -0.7 0.1" class="sensor-card">
+        <a-entity class="sensor-header">
+          <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+          <a-text value="PM2.5" color="#9C27B0" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+        </a-entity>
+        <a-text id="vr-pm25" value="--" color="#9C27B0" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+        <a-text value="μg/m³" color="#a0a0a0" position="0.5 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+      </a-entity>
+      
+      <!-- PM10 -->
+      <a-entity position="-0.5 -0.7 0.1" class="sensor-card">
+        <a-entity class="sensor-header">
+          <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+          <a-text value="PM10" color="#673AB7" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+        </a-entity>
+        <a-text id="vr-pm10" value="--" color="#673AB7" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+        <a-text value="μg/m³" color="#a0a0a0" position="0.5 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+      </a-entity>
+      
+      <!-- Dirección del Viento -->
+      <a-entity position="0.6 -0.7 0.1" class="sensor-card">
+        <a-entity class="sensor-header">
+          <a-text value="🌀" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+          <a-text value="VIENTO" color="#03A9F4" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+        </a-entity>
+        <a-text id="vr-windDir" value="--" color="#03A9F4" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+        <a-text value="°" color="#a0a0a0" position="0.25 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+      </a-entity>
+      
+      <!-- Velocidad del Viento -->
+      <a-entity position="-1.6 -1.4 0.1" class="sensor-card">
+        <a-entity class="sensor-header">
+          <a-text value="💨" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+          <a-text value="VEL. VIENTO" color="#4CAF50" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
+        </a-entity>
+        <a-text id="vr-wind" value="--" color="#4CAF50" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
+        <a-text value="m/s" color="#a0a0a0" position="0.35 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+      </a-entity>
+    </a-entity>
+  </a-scene>
+
+  <div class="container" id="normal-view">
+    <header>
+      <h1>📡 Datos en Vivo - Estación Horus</h1>
+      <p class="subtitle">Monitoreo meteorológico en tiempo real con tecnología de vanguardia</p>
+    </header>
+
+    <!-- Estado de conexión - CORREGIDO -->
+    <div class="connection-status">
+      <span class="status-dot" style="background-color: #e74c3c;"></span>
+      <span class="status-text">Conectando al broker MQTT...</span>
+    </div>
+
+    <div id="weather-data">
+      <div class="data-card temp-card">
+        <div class="data-card-header">
+          <span class="data-card-icon">🌡️</span>
+          <h2 class="data-card-title">Temperatura</h2>
+        </div>
+        <div class="data-value" id="temp">--</div>
+        <div class="data-unit">°C</div>
+      </div>
+      
+      <div class="data-card hum-card">
+        <div class="data-card-header">
+          <span class="data-card-icon">💧</span>
+          <h2 class="data-card-title">Humedad</h2>
+        </div>
+        <div class="data-value" id="hum">--</div>
+        <div class="data-unit">%</div>
+      </div>
+      
+      <div class="data-card press-card">
+        <div class="data-card-header">
+          <span class="data-card-icon">🔽</span>
+          <h2 class="data-card-title">Presión</h2>
+        </div>
+        <div class="data-value" id="press">--</div>
+        <div class="data-unit">hPa</div>
+      </div>
+      
+      <div class="data-card alt-card">
+        <div class="data-card-header">
+          <span class="data-card-icon">⛰️</span>
+          <h2 class="data-card-title">Altitud</h2>
+        </div>
+        <div class="data-value" id="alt">--</div>
+        <div class="data-unit">m</div>
+      </div>
+      
+      <div class="data-card pm25-card">
+        <div class="data-card-header">
+          <span class="data-card-icon">🌫️</span>
+          <h2 class="data-card-title">PM2.5</h2>
+        </div>
+        <div class="data-value" id="pm25">--</div>
+        <div class="data-unit">μg/m³</div>
+      </div>
+      
+      <div class="data-card pm10-card">
+        <div class="data-card-header">
+          <span class="data-card-icon">🌫️</span>
+          <h2 class="data-card-title">PM10</h2>
+        </div>
+        <div class="data-value" id="pm10">--</div>
+        <div class="data-unit">μg/m³</div>
+      </div>
+      
+      <div class="data-card wind-card">
+        <div class="data-card-header">
+          <span class="data-card-icon">💨</span>
+          <h2 class="data-card-title">Viento</h2>
+        </div>
+        <div class="data-value" id="wind">--</div>
+        <div class="data-unit">km/h</div>
+      </div>
+      
+      <div class="data-card wind-dir-card">
+        <div class="data-card-header">
+          <span class="data-card-icon">🧭</span>
+          <h2 class="data-card-title">Dirección</h2>
+        </div>
+        <div class="data-value" id="windDir">--</div>
+        <div class="data-unit">°</div>
+      </div>
+      
+      <div class="data-card gas-card">
+        <div class="data-card-header">
+          <span class="data-card-icon">⛽</span>
+          <h2 class="data-card-title">Gas</h2>
+        </div>
+        <div class="data-value" id="gas">--</div>
+        <div class="data-unit">kΩ</div>
+      </div>
+      
+      <div class="data-card rain-card">
+        <div class="data-card-header">
+          <span class="data-card-icon">🌧️</span>
+          <h2 class="data-card-title">Lluvia</h2>
+        </div>
+        <div class="data-value" id="lluvia">--</div>
+        <div class="data-unit">mm</div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Estación Horus • Diseño y desarrollo por <strong>Tu Nombre</strong></p>
+    </footer>
+  </div>
+
+  <!-- Carga main.js desde la ruta correcta -->
+  <script src="../js/main.js"></script>
   
   <script>
     // Variables globales
     let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    let isDesktop = !isMobile;
     let mqttClient;
     let mqttConnected = false;
+    let cameraRig, camera;
+    let isVRMode = false;
+    let joystick;
+    let movementSpeed = 0.06;
+    let vrPermissionRequested = false;
     
-    // Elementos UI
-    const connectionStatusElement = document.getElementById('connection-status');
-    const connectionLed = document.getElementById('connection-led');
-    const connectionText = document.getElementById('connection-text');
+    // Elementos UI - CORREGIDOS
+    const statusDot = document.querySelector('.status-dot');
+    const statusText = document.querySelector('.status-text');
+    const lastUpdate = document.querySelector('.last-update');
+    const vrButton = document.getElementById('vr-button');
+    const joystickContainer = document.getElementById('joystick-container');
+    const orientationPermission = document.getElementById('orientation-permission');
+    const orientationBtn = document.getElementById('orientation-btn');
+    const vrScene = document.getElementById('vr-scene');
+    const normalView = document.getElementById('normal-view');
+    
+    // Variables para manejo de datos
+    let lastDataTime = null;
     
     // Función para registrar mensajes en la consola
     function logDebugMessage(message, type = 'info') {
       const timestamp = new Date().toLocaleTimeString();
       
+      // Registrar en la consola con el tipo apropiado
       switch(type) {
         case 'connected':
         case 'success':
@@ -95,15 +1028,256 @@
       }
     }
     
-    // Actualizar estado de conexión
-    function updateConnectionStatus(connected, message = "") {
-      mqttConnected = connected;
-      connectionLed.className = connected ? "led connected" : "led";
-      connectionText.textContent = connected ? "Conectado" : (message || "Desconectado");
+    // Eliminar cualquier elemento residual de A-Frame
+    function removeAFrameResiduals() {
+      // Asegurar que los elementos de A-Frame están ocultos
+      const aframeElements = document.querySelectorAll('.a-enter-vr, .a-canvas, .a-loader, .a-enter-ar, .a-fullscreen, .a-no-cursor, .a-cursor');
+      aframeElements.forEach(element => {
+        element.style.display = 'none';
+        element.style.opacity = '0';
+        element.style.pointerEvents = 'none';
+        element.style.visibility = 'hidden';
+      });
+      
+      // Eliminar cualquier estilo residual
+      const style = document.createElement('style');
+      style.innerHTML = `
+        .a-enter-vr, .a-canvas, .a-loader, .a-enter-ar, .a-fullscreen, .a-no-cursor, .a-cursor {
+          display: none !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+          visibility: hidden !important;
+        }
+      `;
+      document.head.appendChild(style);
     }
     
-    // === CONEXIÓN MQTT - SOLUCIÓN DEFINITIVA PARA HIVE MQ ===
+    // Actualizar estado de conexión con animación - CORREGIDO
+    function updateConnectionStatus(connected, message = "") {
+      mqttConnected = connected;
+      
+      // Actualizar el indicador visual
+      if (statusDot) {
+        statusDot.className = connected ? "status-dot connected" : "status-dot";
+      }
+      
+      if (statusText) {
+        statusText.textContent = connected ? "Conectado" : (message || "Desconectado");
+      }
+      
+      // Actualizar el tiempo de última actualización
+      if (lastUpdate) {
+        lastUpdate.textContent = connected ? "última: ahora" : "última: nunca";
+      }
+      
+      // Actualizar también el estado en la vista normal
+      const connectionStatusNormal = document.querySelector('.connection-status');
+      if (connectionStatusNormal) {
+        if (connected) {
+          connectionStatusNormal.className = 'connection-status connected';
+          connectionStatusNormal.innerHTML = `
+            <span class="status-dot" style="background-color: #28a745;"></span>
+            <span class="status-text">Conectado</span>
+          `;
+        } else {
+          connectionStatusNormal.className = 'connection-status';
+          connectionStatusNormal.innerHTML = `
+            <span class="status-dot" style="background-color: #ffc107;"></span>
+            <span class="status-text">${message || 'Desconectado'}</span>
+          `;
+        }
+      }
+    }
+    
+    // Actualizar el tiempo de última recepción
+    function updateLastDataTime() {
+      if (!lastUpdate) return;
+      
+      if (!lastDataTime) {
+        lastUpdate.textContent = "última: nunca";
+        return;
+      }
+      
+      const now = Date.now();
+      const secondsAgo = Math.floor((now - lastDataTime) / 1000);
+      
+      if (secondsAgo < 60) {
+        lastUpdate.textContent = `última: hace ${secondsAgo}s`;
+      } else if (secondsAgo < 3600) {
+        const minutes = Math.floor(secondsAgo / 60);
+        lastUpdate.textContent = `última: hace ${minutes}m`;
+      } else {
+        const hours = Math.floor(secondsAgo / 3600);
+        lastUpdate.textContent = `última: hace ${hours}h`;
+      }
+    }
+    
+    // Solicitar permiso de orientación para VR en móviles
+    function requestOrientationPermission() {
+      orientationPermission.style.display = 'flex';
+    }
+    
+    // Inicializar VR después de obtener permisos
+    function initVR() {
+      orientationPermission.style.display = 'none';
+      vrPermissionRequested = true;
+      
+      const scene = document.querySelector('a-scene');
+      if (scene && scene.enterVR) {
+        scene.enterVR()
+          .then(() => {
+            logDebugMessage("Entró a VR exitosamente", 'success');
+            isVRMode = true;
+            
+            // Ajustar posición para VR
+            const dashboard = document.getElementById('dashboard');
+            if (dashboard) {
+              dashboard.setAttribute('position', '0 1.6 -1.0');
+            }
+            
+            // Ocultar la vista normal
+            normalView.style.display = 'none';
+          })
+          .catch(error => {
+            logDebugMessage(`Error al entrar a VR: ${error.message}`, 'error');
+            orientationPermission.style.display = 'flex';
+          });
+      } else {
+        logDebugMessage("No se encontró la escena de A-Frame", 'error');
+        isVRMode = false;
+        orientationPermission.style.display = 'flex';
+      }
+    }
+    
+    // Inicializar el joystick REALISTA para móviles
+    function initJoystick() {
+      if (!isMobile) return;
+      
+      // Mostrar joystick solo en móviles
+      joystickContainer.style.display = 'block';
+      
+      // Obtener referencias a la cámara
+      cameraRig = document.getElementById('camera-rig');
+      camera = document.getElementById('camera');
+      
+      if (!cameraRig || !camera) {
+        logDebugMessage("No se encontraron elementos de cámara", 'error');
+        return;
+      }
+      
+      // Configurar el joystick con apariencia REALISTA
+      joystick = nipplejs.create({
+        zone: joystickContainer,
+        size: 85,
+        threshold: 0.2,
+        color: 'rgba(0, 234, 255, 0.6)',
+        fadeTime: 200,
+        position: {left: '50%', top: '50%'},
+        dynamic: true,
+        restOpacity: 0.4,
+        lockY: false,
+        mode: 'dynamic'
+      });
+      
+      // Manejar el movimiento del joystick REALISTA
+      joystick.on('move', (evt, data) => {
+        if (!cameraRig || !camera) return;
+        
+        const angle = data.angle.radian;
+        const force = data.force;
+        
+        // Ajustar velocidad de movimiento para mejor control en móviles
+        const moveSpeed = movementSpeed * force * 2.0;
+        const dx = Math.sin(angle) * moveSpeed;
+        const dz = Math.cos(angle) * moveSpeed;
+        
+        // Actualizar posición
+        const currentPos = cameraRig.getAttribute('position');
+        cameraRig.setAttribute('position', {
+          x: currentPos.x - dx,
+          y: currentPos.y,
+          z: currentPos.z - dz
+        });
+      });
+    }
+    
+    // Ajustar posición del dashboard para VR
+    function adjustDashboardForVR() {
+      const dashboard = document.getElementById('dashboard');
+      const cameraRig = document.getElementById('camera-rig');
+      
+      if (dashboard) {
+        dashboard.setAttribute('position', '0 1.6 -1.0');
+      }
+      
+      if (cameraRig) {
+        // BAJAR LA CÁMARA EN VR (de 1.4 a 1.2 metros)
+        cameraRig.setAttribute('position', '0 1.2 0');
+      }
+    }
+    
+    // Restaurar posición del dashboard
+    function restoreDashboardPosition() {
+      const dashboard = document.getElementById('dashboard');
+      const cameraRig = document.getElementById('camera-rig');
+      
+      if (dashboard) {
+        // POSICIÓN AJUSTADA PARA ESCRITORIO (más cerca y ligeramente más baja)
+        dashboard.setAttribute('position', '0 1.5 -1.2');
+      }
+      
+      if (cameraRig) {
+        // Restaurar altura estándar del usuario
+        cameraRig.setAttribute('position', '0 1.6 0');
+      }
+    }
+    
+    // Configurar la interfaz según el dispositivo
+    function setupDeviceInterface() {
+      if (isMobile) {
+        // Mostrar botón VR solo en móviles
+        vrButton.style.display = 'flex';
+        
+        // Inicializar joystick para móviles
+        initJoystick();
+      }
+      
+      // Asegurar que el dashboard esté visible
+      const dashboard = document.getElementById('dashboard');
+      const cameraRig = document.getElementById('camera-rig');
+      
+      if (dashboard) {
+        // POSICIÓN AJUSTADA PARA ESCRITORIO (más cerca y ligeramente más baja)
+        dashboard.setAttribute('position', '0 1.5 -1.2');
+      }
+      
+      if (cameraRig) {
+        cameraRig.setAttribute('position', '0 1.6 0');
+      }
+    }
+    
+    // === NUEVA FUNCIÓN PARA FORMATEAR VALORES CON MÁXIMO 2 DECIMALES ===
+    function formatValue(value) {
+      // Si es "N/A" o cualquier texto no numérico, devolverlo tal cual
+      if (isNaN(value) || value === null || value === undefined || value.trim() === '' || value === 'N/A') {
+        return value;
+      }
+      
+      // Intentar convertir a número
+      const numValue = parseFloat(value);
+      
+      // Si no es un número válido, devolver el valor original
+      if (isNaN(numValue)) {
+        return value;
+      }
+      
+      // Formatear a 2 decimales
+      return numValue.toFixed(2);
+    }
+    
+    // === CONEXIÓN MQTT CORREGIDA DEFINITIVAMENTE ===
     function connectToMqtt() {
+      // CORREGIDO: HiveMQ requiere protocolo específico para conexiones WebSocket
       const broker = {
         url: 'wss://broker.hivemq.com:8000/mqtt',
         description: 'Broker público HiveMQ'
@@ -111,29 +1285,23 @@
       
       logDebugMessage(`Intentando conectar a ${broker.url} (${broker.description})`, 'info');
       updateConnectionStatus(false, `Conectando a ${broker.description}...`);
-      
-      // Generar un ID de cliente único
+
       const clientId = 'horus_client_' + Math.random().toString(36).substr(2, 9);
       
-      // CONFIGURACIÓN CORRECTA PARA HIVE MQ - ¡ESTO ES LO CLAVE!
+      // Configuración ESPECÍFICA para HiveMQ - CRUCIAL
       const options = {
         clientId: clientId,
         clean: true,
-        connectTimeout: 30000,
-        reconnectPeriod: 5000,
+        connectTimeout: 30000, // Aumentado para conexiones más lentas
+        reconnectPeriod: 3000, // Intentar reconectar cada 3 segundos
         protocolVersion: 4,
         rejectUnauthorized: false,
+        // Configuración específica para HiveMQ
         protocols: ['mqttv3.1', 'mqtt'],
         properties: {
           requestProblemInformation: true
         },
-        // IMPLEMENTACIÓN CORRECTA DE transformWsUrl - ¡ESTO ES LO QUE FALTABA!
-        transformWsUrl: function(url, options, client) {
-          logDebugMessage("Transformando URL para reconexión", 'info');
-          // Devuelve la URL sin cambios para HiveMQ (¡esto es crucial!)
-          return url;
-        },
-        // Habilitar reconexión para errores de CONNACK
+        // Asegurar reconexión incluso con errores de CONNACK
         reconnectOnConnackError: true
       };
 
@@ -150,7 +1318,7 @@
 
         logDebugMessage(`Creando cliente MQTT con ID: ${clientId}`, 'info');
         
-        // Conectar usando mqtt.connect()
+        // En MQTT.js v5, se usa mqtt.connect() sin new
         mqttClient = mqtt.connect(broker.url, options);
         
         // Manejar eventos
@@ -158,14 +1326,92 @@
           logDebugMessage("Conexión MQTT establecida con éxito", 'connected');
           updateConnectionStatus(true, `Conectado a ${broker.description}`);
           
-          // Suscribirse a todos los tópicos de Horus
+          // === SUSCRIBIRSE A TODO LO QUE EMPIECE CON "horus/" ===
           mqttClient.subscribe("horus/#", (err) => {
             if (!err) {
-              logDebugMessage("Suscrito a todos los tópicos horus/#", 'success');
+              logDebugMessage("Suscrito a todos los tópicos horus/#", 'info');
             } else {
               logDebugMessage(`Error al suscribirse: ${err.message}`, 'error');
             }
           });
+        });
+        
+        mqttClient.on('message', (topic, payload) => {
+          const value = payload.toString().trim();
+          if (!value) {
+            logDebugMessage(`Mensaje vacío recibido en tópico: ${topic}`, 'info');
+            return;
+          }
+          
+          logDebugMessage(`Mensaje recibido - Tópico: ${topic}, Valor: ${value}`);
+          
+          // Actualizar el tiempo de última recepción
+          lastDataTime = Date.now();
+          
+          // MAPEO EXACTO BASADO EN LOS TÓPICOS QUE ME DISTE
+          const topicMap = {
+            'horus/vvb/temperatura': 'temp',
+            'horus/vvb/humedad': 'hum',
+            'horus/vvb/presion': 'press',
+            'horus/vvb/altitud': 'alt',
+            'horus/vvb/pm25': 'pm25',
+            'horus/vvb/pm10': 'pm10',
+            'horus/vvb/wind_direction': 'windDir',
+            'horus/vvb/wind_speed': 'wind',
+            'horus/vvb/gas': 'gas',
+            'horus/vvb/lluvia': 'lluvia'
+          };
+          
+          // Obtener el ID del elemento basado en el tópico
+          let elementId = topicMap[topic];
+          
+          // Si no encontramos el tópico exacto, intentamos con una coincidencia parcial
+          if (!elementId) {
+            for (const [key, id] of Object.entries(topicMap)) {
+              if (topic.includes(key)) {
+                elementId = id;
+                logDebugMessage(`Coincidencia parcial encontrada: ${topic} -> ${id}`, 'info');
+                break;
+              }
+            }
+          }
+          
+          // Si aún no encontramos coincidencia, intentamos con coincidencia más genérica
+          if (!elementId) {
+            if (topic.includes('temp')) elementId = 'temp';
+            else if (topic.includes('hum')) elementId = 'hum';
+            else if (topic.includes('press')) elementId = 'press';
+            else if (topic.includes('alt')) elementId = 'alt';
+            else if (topic.includes('pm2')) elementId = 'pm25';
+            else if (topic.includes('pm10')) elementId = 'pm10';
+            else if (topic.includes('wind') && topic.includes('dir')) elementId = 'windDir';
+            else if (topic.includes('wind')) elementId = 'wind';
+            else if (topic.includes('gas')) elementId = 'gas';
+            else if (topic.includes('rain') || topic.includes('lluvia')) elementId = 'lluvia';
+          }
+          
+          if (!elementId) {
+            logDebugMessage(`Tópico no reconocido: ${topic}`, 'info');
+            return;
+          }
+          
+          // Actualizar interfaz normal
+          const element = document.getElementById(elementId);
+          if (element) {
+            // Formatear el valor antes de mostrarlo
+            const formattedValue = formatValue(value);
+            element.textContent = formattedValue;
+            
+            logDebugMessage(`Actualizado ${elementId} con valor: ${formattedValue}`, 'success');
+            
+            // Actualizar modo VR si está activo
+            if (isVRMode && document.getElementById(`vr-${elementId}`)) {
+              const vrElement = document.getElementById(`vr-${elementId}`);
+              vrElement.setAttribute('text', `value: ${formattedValue}`);
+            }
+          } else {
+            logDebugMessage(`Elemento no encontrado para ${elementId}`, 'error');
+          }
         });
         
         mqttClient.on('error', (err) => {
@@ -184,14 +1430,129 @@
           }, 5000);
         });
         
+        mqttClient.on('reconnect', () => {
+          logDebugMessage("Intentando reconectar...", 'info');
+          updateConnectionStatus(false, 'Reconectando...');
+        });
+        
       } catch (error) {
         logDebugMessage(`Error al inicializar MQTT: ${error.message}`, 'error');
         updateConnectionStatus(false, `Error de inicialización: ${error.message}`);
+        
+        // Intentar reconectar después de un tiempo
+        setTimeout(() => {
+          connectToMqtt();
+        }, 5000);
       }
+    }
+    
+    // Función para salir del modo VR
+    function exitVRMode() {
+      const scene = document.querySelector('a-scene');
+      if (scene && scene.exitVR) {
+        scene.exitVR();
+      }
+      
+      isVRMode = false;
+      normalView.style.display = 'block';
+      restoreDashboardPosition();
     }
     
     // Inicializar la aplicación
     window.addEventListener('load', () => {
+      // Eliminar cualquier elemento residual de A-Frame
+      removeAFrameResiduals();
+      
+      // Configurar interfaz según el dispositivo
+      setupDeviceInterface();
+      
+      // Configurar botón VR
+      vrButton.addEventListener('click', () => {
+        if (isMobile && !vrPermissionRequested) {
+          requestOrientationPermission();
+        } else {
+          const scene = document.querySelector('a-scene');
+          if (scene && scene.enterVR) {
+            scene.enterVR()
+              .then(() => {
+                isVRMode = true;
+                adjustDashboardForVR();
+                // Ocultar la vista normal
+                normalView.style.display = 'none';
+              })
+              .catch(error => {
+                logDebugMessage(`Error al entrar a VR: ${error.message}`, 'error');
+                orientationPermission.style.display = 'flex';
+              });
+          }
+        }
+      });
+      
+      // Configurar botón de permisos
+      orientationBtn.addEventListener('click', () => {
+        if (isMobile && /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+          // Para iOS, necesitamos un evento de usuario para solicitar permisos
+          if (typeof DeviceOrientationEvent !== 'undefined' && 
+              typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission()
+              .then(permissionState => {
+                if (permissionState === 'granted') {
+                  initVR();
+                }
+              })
+              .catch(console.error);
+          } else {
+            initVR();
+          }
+        } else {
+          initVR();
+        }
+      });
+      
+      // Configurar eventos de VR
+      const scene = document.querySelector('a-scene');
+      if (scene) {
+        scene.addEventListener('enter-vr', () => {
+          isVRMode = true;
+          adjustDashboardForVR();
+          // Ocultar la vista normal
+          normalView.style.display = 'none';
+        });
+        
+        scene.addEventListener('exit-vr', () => {
+          isVRMode = false;
+          normalView.style.display = 'block';
+          restoreDashboardPosition();
+        });
+      }
+      
+      // Configurar el switch de tema oscuro - CORREGIDO
+      const themeSwitch = document.querySelector('.theme-switch__checkbox');
+      if (themeSwitch) {
+        // Cargar tema guardado
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+          document.body.classList.remove('light-mode');
+          document.body.classList.add('dark-mode');
+          themeSwitch.checked = true;
+        }
+        
+        themeSwitch.addEventListener('change', function() {
+          if (this.checked) {
+            document.body.classList.remove('light-mode');
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('theme', 'dark');
+          } else {
+            document.body.classList.remove('dark-mode');
+            document.body.classList.add('light-mode');
+            localStorage.setItem('theme', 'light');
+          }
+        });
+      }
+      
+      // Actualizar el tiempo de última recepción cada segundo
+      setInterval(updateLastDataTime, 1000);
+      
       // Conectar al broker HiveMQ
       connectToMqtt();
     });
