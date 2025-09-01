@@ -689,16 +689,15 @@
     
     // Conectar al broker HiveMQ usando PAHO.MQTT
     function connectToHiveMQ() {
-      // URL del broker HiveMQ
-      const brokerUrl = "broker.hivemq.com";
-      const brokerPort = 8000; // Puerto correcto para WebSocket
+      // URL CORREGIDA: Usa wss:// en lugar de ws:// para conexiones HTTPS
+      const brokerUrl = "wss://broker.hivemq.com:8000/mqtt";
       
       // Generar un ID de cliente único
       const clientId = "web-client-" + Math.random().toString(16).substr(2, 8);
       
       try {
-        // Crear cliente MQTT usando Paho
-        mqttClient = new Paho.MQTT.Client(brokerUrl, Number(brokerPort), clientId);
+        // Crear cliente MQTT usando Paho - CORREGIDO: URL completa con wss://
+        mqttClient = new Paho.MQTT.Client(brokerUrl, clientId);
         
         // Configurar callbacks
         mqttClient.onConnectionLost = (responseObject) => {
@@ -755,7 +754,7 @@
             setTimeout(connectToHiveMQ, 5000);
           },
           timeout: 3,
-          useSSL: false // Para WebSocket en HiveMQ
+          useSSL: true // ¡CRÍTICO! Debe ser true para WSS
         };
         
         // Conectar
