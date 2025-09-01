@@ -182,10 +182,6 @@
     .category-altitude { --card-accent: #673AB7; }
     .category-gas { --card-accent: #FFEB3B; }
     .category-rain { --card-accent: #2196F3; }
-    .category-pm25 { --card-accent: #9C27B0; }
-    .category-pm10 { --card-accent: #673AB7; }
-    .category-wind-direction { --card-accent: #03A9F4; }
-    .category-wind-speed { --card-accent: #4CAF50; }
     
     /* Tarjeta destacada */
     .featured-card {
@@ -285,10 +281,6 @@
     .data-card:nth-child(4) { animation-delay: 0.4s; }
     .data-card:nth-child(5) { animation-delay: 0.5s; }
     .data-card:nth-child(6) { animation-delay: 0.6s; }
-    .data-card:nth-child(7) { animation-delay: 0.7s; }
-    .data-card:nth-child(8) { animation-delay: 0.8s; }
-    .data-card:nth-child(9) { animation-delay: 0.9s; }
-    .data-card:nth-child(10) { animation-delay: 1.0s; }
     
     /* Tarjeta de información general */
     .summary-card {
@@ -351,29 +343,6 @@
       margin-left: 5px;
     }
     
-    /* Indicador de calidad del aire */
-    .air-quality {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 15px;
-      padding: 12px;
-      background: rgba(0, 0, 0, 0.15);
-      border-radius: 12px;
-    }
-    
-    .air-quality-level {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #4CAF50;
-    }
-    
-    .air-quality-text {
-      font-size: 14px;
-      color: #e0e0e0;
-    }
-    
     /* Footer mejorado */
     footer {
       margin-top: 30px;
@@ -413,29 +382,6 @@
       line-height: 1.5;
       margin-bottom: 25px;
       max-width: 800px;
-    }
-    
-    /* Tarjeta de alerta */
-    .alert-card {
-      grid-column: span 2;
-      background: linear-gradient(145deg, #3a2a45, #2a1a35);
-      border-left: 4px solid #ff5722;
-    }
-    
-    .alert-content {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-    
-    .alert-icon {
-      font-size: 28px;
-      color: #ff5722;
-    }
-    
-    .alert-text {
-      font-size: 16px;
-      color: #ffcccc;
     }
     
     /* Estilos para el modo oscuro */
@@ -509,31 +455,9 @@
       color: #777777;
     }
     
-    body.light-mode .air-quality-level {
-      box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
-    }
-    
     body.light-mode .summary-value {
       color: var(--primary);
       text-shadow: none;
-    }
-    
-    /* Mejoras adicionales para modo claro */
-    body.light-mode .summary-item {
-      background: rgba(240, 245, 255, 0.6);
-    }
-    
-    body.light-mode .summary-item:hover {
-      background: rgba(230, 240, 255, 0.7);
-    }
-    
-    body.light-mode .alert-card {
-      background: #fff8e6;
-      border-left: 4px solid #ff9800;
-    }
-    
-    body.light-mode .alert-text {
-      color: #e65100;
     }
   </style>
 </head>
@@ -709,84 +633,6 @@
           <div>Actualizado: ahora</div>
         </div>
       </div>
-
-      <!-- Tarjeta de PM2.5 -->
-      <div class="data-card category-pm25">
-        <div class="data-card-header">
-          <div class="data-card-icon">🌫️</div>
-          <div class="data-card-title">Partículas PM2.5</div>
-        </div>
-        <div class="data-value-container">
-          <div class="data-value" id="pm25">--</div>
-          <div class="data-unit">µg/m³</div>
-        </div>
-        <div class="air-quality">
-          <span class="air-quality-level"></span>
-          <span class="air-quality-text">Calidad del aire: Buena</span>
-        </div>
-        <div class="data-footer">
-          <div>Rango hoy: <span class="data-range">5 - 12 µg/m³</span></div>
-          <div>Actualizado: ahora</div>
-        </div>
-      </div>
-
-      <!-- Tarjeta de PM10 -->
-      <div class="data-card category-pm10">
-        <div class="data-card-header">
-          <div class="data-card-icon">🌫️</div>
-          <div class="data-card-title">Partículas PM10</div>
-        </div>
-        <div class="data-value-container">
-          <div class="data-value" id="pm10">--</div>
-          <div class="data-unit">µg/m³</div>
-        </div>
-        <div class="air-quality">
-          <span class="air-quality-level"></span>
-          <span class="air-quality-text">Calidad del aire: Buena</span>
-        </div>
-        <div class="data-footer">
-          <div>Rango hoy: <span class="data-range">10 - 22 µg/m³</span></div>
-          <div>Actualizado: ahora</div>
-        </div>
-      </div>
-
-      <!-- Tarjeta de dirección del viento -->
-      <div class="data-card category-wind-direction">
-        <div class="data-card-header">
-          <div class="data-card-icon">🧭</div>
-          <div class="data-card-title">Dirección del Viento</div>
-        </div>
-        <div class="data-value-container">
-          <div class="data-value" id="windDir">--</div>
-          <div class="data-unit">°</div>
-        </div>
-        <div class="data-trend trend-stable">
-          <span>↕️</span> Dirección predominante: Noroeste
-        </div>
-        <div class="data-footer">
-          <div>Rango hoy: <span class="data-range">280° - 320°</span></div>
-          <div>Actualizado: ahora</div>
-        </div>
-      </div>
-
-      <!-- Tarjeta de velocidad del viento -->
-      <div class="data-card category-wind-speed">
-        <div class="data-card-header">
-          <div class="data-card-icon">💨</div>
-          <div class="data-card-title">Velocidad del Viento</div>
-        </div>
-        <div class="data-value-container">
-          <div class="data-value" id="wind">--</div>
-          <div class="data-unit">km/h</div>
-        </div>
-        <div class="data-trend trend-up">
-          <span>↑</span> Aumentando ligeramente
-        </div>
-        <div class="data-footer">
-          <div>Rango hoy: <span class="data-range">8 - 15 km/h</span></div>
-          <div>Actualizado: ahora</div>
-        </div>
-      </div>
     </div>
 
     <!-- Tarjeta de resumen -->
@@ -887,10 +733,6 @@
           "horus/vvb/humedad": "hum",
           "horus/vvb/presion": "press",
           "horus/vvb/altitud": "alt",
-          "horus/vvb/pm25": "pm25",
-          "horus/vvb/pm10": "pm10",
-          "horus/vvb/wind_speed": "wind",
-          "horus/vvb/wind_direction": "windDir",
           "horus/vvb/gas": "gas",
           "horus/vvb/lluvia": "lluvia"
         };
@@ -908,8 +750,6 @@
         const unit = {
           temp: "°C",
           press: "hPa",
-          wind: "km/h",
-          windDir: "°",
           gas: "kΩ",
           lluvia: "mm"
         }[id] || "";
@@ -962,54 +802,6 @@
       
       if (isMobile && vrButton) {
         vrButton.style.display = 'flex';
-      }
-      
-      // Simular actualización de calidad del aire basada en PM2.5
-      const pm25Element = document.getElementById('pm25');
-      if (pm25Element) {
-        const observer = new MutationObserver((mutations) => {
-          mutations.forEach(mutation => {
-            if (mutation.type === 'childList' && mutation.target === pm25Element) {
-              const pm25Value = parseFloat(pm25Element.textContent);
-              if (!isNaN(pm25Value)) {
-                let qualityLevel, qualityText, qualityColor;
-                
-                if (pm25Value <= 12) {
-                  qualityLevel = 'Bueno';
-                  qualityText = 'Calidad del aire: Buena';
-                  qualityColor = '#4CAF50';
-                } else if (pm25Value <= 35) {
-                  qualityLevel = 'Moderado';
-                  qualityText = 'Calidad del aire: Moderada';
-                  qualityColor = '#FFC107';
-                } else if (pm25Value <= 55) {
-                  qualityLevel = 'No saludable';
-                  qualityText = 'Calidad del aire: Regular';
-                  qualityColor = '#FF9800';
-                } else if (pm25Value <= 150) {
-                  qualityLevel = 'Muy no saludable';
-                  qualityText = 'Calidad del aire: Mala';
-                  qualityColor = '#F44336';
-                } else {
-                  qualityLevel = 'Peligroso';
-                  qualityText = 'Calidad del aire: Muy mala';
-                  qualityColor = '#9C27B0';
-                }
-                
-                // Actualizar ambas tarjetas de calidad del aire
-                document.querySelectorAll('.air-quality').forEach(container => {
-                  const levelDot = container.querySelector('.air-quality-level');
-                  const textSpan = container.querySelector('.air-quality-text');
-                  
-                  if (levelDot) levelDot.style.background = qualityColor;
-                  if (textSpan) textSpan.textContent = qualityText;
-                });
-              }
-            }
-          });
-        });
-        
-        observer.observe(pm25Element, { childList: true });
       }
     });
   </script>
