@@ -7,6 +7,48 @@
   <link rel="stylesheet" href="../css/style.css" />
   <!-- Carga MQTT.js local -->
   <script src="../js/mqtt.js"></script>
+  <style>
+    /* Estilos para el botón flotante de VR */
+    #vr-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    #vr-button:hover {
+      background-color: #3a7bc8;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+    }
+    
+    /* Ajuste para el botón de chatbot */
+    .nav-btn:last-child {
+      margin-left: auto;
+    }
+    
+    /* Ajuste para que el botón de VR no se superponga con el contenido en móviles */
+    @media (max-width: 768px) {
+      #vr-button {
+        bottom: 15px;
+        right: 15px;
+        padding: 10px 18px;
+        font-size: 14px;
+      }
+    }
+  </style>
 </head>
 <body class="light-mode">
   <nav class="nav">
@@ -114,7 +156,9 @@
   </div>
 
   <!-- Botón flotante de VR -->
-  <button id="vr-button" onclick="window.location.href='vr.html'" style="position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; background-color: #4a90e2; color: white; border: none; border-radius: 50px; font-size: 16px; cursor: pointer; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000;">🕶️ Modo VR</button>
+  <button id="vr-button" onclick="window.location.href='vr.html'">
+    <span>🕶️ Modo VR</span>
+  </button>
 
   <!-- Carga main.js primero (tema y efectos) -->
   <script src="../js/main.js"></script>
