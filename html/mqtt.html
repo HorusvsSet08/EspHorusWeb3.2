@@ -448,32 +448,92 @@
       --text-secondary: #e0e0e0;
     }
     
-    /* Estilos para el modo claro */
+    /* Estilos para el modo claro - CORREGIDOS */
     body.light-mode {
-      --primary: #0066cc;
-      --primary-glow: #0066cc33;
-      --dark-bg: #f0f5ff;
-      --card-bg: #e6f0ff;
-      --text: #1a1a1a;
-      --text-secondary: #333333;
+      --primary: #0056b3;
+      --primary-glow: #0056b320;
+      --dark-bg: #f5f9ff;
+      --card-bg: #ffffff;
+      --text: #222222;
+      --text-secondary: #444444;
+      --border-radius: 12px;
+      --shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+      --inner-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     
     body.light-mode .data-card {
-      background: linear-gradient(145deg, #e6f0ff, #d9e6ff);
-      border: 1px solid rgba(0, 102, 204, 0.1);
+      background: #ffffff;
+      border: 1px solid rgba(0, 90, 180, 0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    body.light-mode .data-card:hover {
+      box-shadow: 0 6px 16px rgba(0, 90, 180, 0.15);
+      transform: translateY(-3px);
+    }
+    
+    body.light-mode .data-card::before {
+      background: var(--card-accent);
     }
     
     body.light-mode .connection-status-small {
-      background: rgba(240, 245, 255, 0.85);
-      border: 1px solid rgba(0, 102, 204, 0.3);
+      background: rgba(245, 249, 255, 0.95);
+      border: 1px solid rgba(0, 90, 180, 0.2);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
     }
     
     body.light-mode .status-text {
-      color: #1a1a1a;
+      color: #333333;
     }
     
     body.light-mode .last-update {
-      color: #555555;
+      color: #666666;
+      border-left: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    body.light-mode .data-value {
+      color: var(--primary);
+      text-shadow: none;
+    }
+    
+    body.light-mode .data-unit {
+      color: #666666;
+    }
+    
+    body.light-mode .data-trend {
+      color: #777777;
+    }
+    
+    body.light-mode .data-footer {
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      color: #777777;
+    }
+    
+    body.light-mode .air-quality-level {
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+    }
+    
+    body.light-mode .summary-value {
+      color: var(--primary);
+      text-shadow: none;
+    }
+    
+    /* Mejoras adicionales para modo claro */
+    body.light-mode .summary-item {
+      background: rgba(240, 245, 255, 0.6);
+    }
+    
+    body.light-mode .summary-item:hover {
+      background: rgba(230, 240, 255, 0.7);
+    }
+    
+    body.light-mode .alert-card {
+      background: #fff8e6;
+      border-left: 4px solid #ff9800;
+    }
+    
+    body.light-mode .alert-text {
+      color: #e65100;
     }
   </style>
 </head>
