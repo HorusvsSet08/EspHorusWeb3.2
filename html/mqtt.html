@@ -356,38 +356,6 @@
     body.light-mode .data-unit {
       color: #666666;
     }
-    
-    /* Sugerencias/bubbles */
-    .suggestion-bubbles {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    
-    .suggestion {
-      background: rgba(0, 90, 180, 0.1);
-      color: var(--text);
-      padding: 8px 15px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 14px;
-      white-space: nowrap;
-    }
-    
-    .suggestion:hover {
-      background: rgba(0, 90, 180, 0.2);
-      transform: translateY(-2px);
-    }
-    
-    body.light-mode .suggestion {
-      background: rgba(0, 90, 180, 0.1);
-    }
-    
-    body.light-mode .suggestion:hover {
-      background: rgba(0, 90, 180, 0.2);
-    }
   </style>
 </head>
 <body class="light-mode">
@@ -568,13 +536,6 @@
           <div class="data-unit">km/h</div>
         </div>
       </div>
-    </div>
-
-    <!-- Burbujas de sugerencia -->
-    <div class="suggestion-bubbles">
-      <span class="suggestion">¿Cómo ha sido la tendencia de temperatura en la última semana?</span>
-      <span class="suggestion">¿Qué relación hay entre la humedad y la lluvia en los últimos datos?</span>
-      <span class="suggestion">¿Cómo se compara la presión atmosférica actual con el mes pasado?</span>
     </div>
 
     <footer>
