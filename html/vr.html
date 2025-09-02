@@ -196,8 +196,8 @@
     <p>Visualización en tiempo real de los datos meteorológicos de la estación Horus</p>
     <button id="vr-start-button">Iniciar Experiencia VR</button>
     <div class="info-message">
-      <strong>Nota:</strong> Gira tu cuerpo para ver todos los datos alrededor de ti.<br>
-      Los datos están organizados en dos círculos concéntricos.
+      <strong>Nota:</strong> Gira tu cabeza o cuerpo para ver todos los datos alrededor de ti.<br>
+      Los datos están organizados en un círculo completo a tu alrededor.
     </div>
   </div>
 
@@ -225,11 +225,11 @@
       </a-entity>
     </a-entity>
     
-    <!-- Panel de datos en disposición circular -->
+    <!-- Panel de datos en disposición circular CORREGIDA -->
     <a-entity id="dashboard">
-      <!-- FILA SUPERIOR (5 elementos) -->
+      <!-- FILA SUPERIOR (5 elementos) - Disposición circular CORRECTA -->
       <!-- Temperatura - 0° -->
-      <a-entity position="0 1.8 -1.5" rotation="0 0 0" class="sensor-card">
+      <a-entity position="1.5 1.8 0" rotation="0 90 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="🌡️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="TEMP" color="#FF5722" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -239,7 +239,7 @@
       </a-entity>
       
       <!-- Humedad - 72° -->
-      <a-entity position="-1.45 1.8 -0.46" rotation="0 72 0" class="sensor-card">
+      <a-entity position="0.46 1.8 1.45" rotation="0 162 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="💧" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="HUM" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -249,7 +249,7 @@
       </a-entity>
       
       <!-- Presión - 144° -->
-      <a-entity position="-0.88 1.8 1.2" rotation="0 144 0" class="sensor-card">
+      <a-entity position="-1.2 1.8 0.88" rotation="0 234 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="🔽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="PRES" color="#9E9E9E" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -259,7 +259,7 @@
       </a-entity>
       
       <!-- Altitud - 216° -->
-      <a-entity position="0.88 1.8 1.2" rotation="0 216 0" class="sensor-card">
+      <a-entity position="-1.2 1.8 -0.88" rotation="0 306 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="⛰️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="ALT" color="#673AB7" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -269,7 +269,7 @@
       </a-entity>
       
       <!-- Gas - 288° -->
-      <a-entity position="1.45 1.8 -0.46" rotation="0 288 0" class="sensor-card">
+      <a-entity position="0.46 1.8 -1.45" rotation="0 18 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="⛽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="GAS" color="#FFEB3B" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -278,9 +278,9 @@
         <a-text value="kΩ" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
       </a-entity>
       
-      <!-- FILA INFERIOR (5 elementos) -->
+      <!-- FILA INFERIOR (5 elementos) - Disposición circular CORRECTA -->
       <!-- Lluvia - 0° -->
-      <a-entity position="0 0.8 -1.5" rotation="0 0 0" class="sensor-card">
+      <a-entity position="1.5 0.8 0" rotation="0 90 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="🌧️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="LLUVIA" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -289,7 +289,7 @@
       </a-entity>
       
       <!-- PM2.5 - 72° -->
-      <a-entity position="-1.45 0.8 -0.46" rotation="0 72 0" class="sensor-card">
+      <a-entity position="0.46 0.8 1.45" rotation="0 162 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="PM2.5" color="#9C27B0" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -299,7 +299,7 @@
       </a-entity>
       
       <!-- PM10 - 144° -->
-      <a-entity position="-0.88 0.8 1.2" rotation="0 144 0" class="sensor-card">
+      <a-entity position="-1.2 0.8 0.88" rotation="0 234 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="PM10" color="#673AB7" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -309,7 +309,7 @@
       </a-entity>
       
       <!-- Dirección del Viento - 216° -->
-      <a-entity position="0.88 0.8 1.2" rotation="0 216 0" class="sensor-card">
+      <a-entity position="-1.2 0.8 -0.88" rotation="0 306 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="🌀" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="VIENTO" color="#03A9F4" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -319,7 +319,7 @@
       </a-entity>
       
       <!-- Velocidad del Viento - 288° -->
-      <a-entity position="1.45 0.8 -0.46" rotation="0 288 0" class="sensor-card">
+      <a-entity position="0.46 0.8 -1.45" rotation="0 18 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="💨" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="VEL. VIENTO" color="#4CAF50" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
