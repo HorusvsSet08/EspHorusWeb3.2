@@ -81,23 +81,6 @@
       position: relative;
     }
     
-    .led:after {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: inherit;
-      animation: pulse-inner 2s infinite;
-      opacity: 0.7;
-    }
-    
-    @keyframes pulse-inner {
-      0% { transform: scale(1); opacity: 0.7; }
-      70% { transform: scale(1.4); opacity: 0; }
-      100% { transform: scale(1); opacity: 0; }
-    }
-    
     .led.connected {
       background: #0f0;
       box-shadow: 0 0 6px rgba(0, 255, 0, 0.7);
@@ -110,7 +93,7 @@
       letter-spacing: 0.3px;
     }
     
-    /* Estilo para el loader */
+    /* Loader de conexión */
     .loader {
       position: fixed;
       top: 0;
@@ -146,21 +129,42 @@
       letter-spacing: 1px;
       text-shadow: 0 0 8px var(--primary-glow);
     }
+    
+    /* Pantalla de inicio */
+    #splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--dark-bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+    }
   </style>
 </head>
 <body>
+  <!-- Pantalla de inicio -->
+  <div id="splash-screen">
+    <h2>Iniciando experiencia VR</h2>
+    <p>Por favor, espera un momento mientras se carga la experiencia de realidad virtual...</p>
+  </div>
+
   <!-- Indicador de conexión -->
   <div id="connection-status">
-    <span class="led" id="connection-led"></span>
+    <span class="led"></span>
     <span id="connection-text">Conectando...</span>
   </div>
 
-  <!-- Escena 3D - CONFIGURACIÓN CORRECTA PARA A-FRAME 1.4.2 -->
+  <!-- Escena 3D -->
   <a-scene embedded style="width: 100%; height: 100vh;" 
            vr-mode-ui="enabled: false"
            loading-screen="enabled: false">
     
-    <!-- CONFIGURACIÓN CORREGIDA - POSICIÓN DE LA CÁMARA PARA A-FRAME 1.4.2 -->
+    <!-- Cámara -->
     <a-entity id="camera-rig" position="0 1.6 0">
       <a-entity id="camera" camera="fov: 85" look-controls>
         <a-cursor 
@@ -173,7 +177,7 @@
       </a-entity>
     </a-entity>
     
-    <!-- Panel de datos - POSICIÓN AJUSTADA PARA VISIBILIDAD EN ESCRITORIO -->
+    <!-- Panel de datos -->
     <a-entity id="dashboard" position="0 1.5 -1.2" rotation="0 0 0">
       <!-- Temperatura -->
       <a-entity position="-1.6 0.7 0.1" class="sensor-card">
@@ -222,7 +226,7 @@
           <a-text value="GAS" color="#FFEB3B" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
         </a-entity>
         <a-text id="gas-value" value="--" color="#FFEB3B" position="0 -0.05 0.1" align="center" width="1.2" font="exo2bold"></a-text>
-        <a-text value="%" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
+        <a-text value="kΩ" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
       </a-entity>
       
       <!-- Lluvia -->
@@ -283,242 +287,184 @@
   </div>
 
   <script>
-    // Variables globales
-    let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    let isDesktop = !isMobile;
-    let mqttClient;
-    let mqttConnected = false;
-    let cameraRig, camera;
-    let isVRMode = false;
-    let vrPermissionRequested = false;
-    
-    // Elementos UI
-    const connectionStatusElement = document.getElementById('connection-status');
-    const connectionLed = document.getElementById('connection-led');
-    const connectionText = document.getElementById('connection-text');
-    const loader = document.getElementById('loader');
-    
-    // Actualizar estado de conexión con animación
-    function updateConnectionStatus(connected, message = "") {
-      mqttConnected = connected;
-      connectionLed.className = connected ? "led connected" : "led";
-      connectionText.textContent = connected ? "Conectado" : (message || "Desconectado");
+    document.addEventListener('DOMContentLoaded', function() {
+      // Variables globales
+      let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      let mqttClient;
+      let connectionStatusElement = document.getElementById('connection-status');
+      let connectionLed = document.querySelector('.led');
+      let connectionText = document.getElementById('connection-text');
+      let loader = document.getElementById('loader');
+      let splashScreen = document.getElementById('splash-screen');
       
-      if (connected) {
-        // Animación de conexión exitosa
-        connectionStatusElement.style.transform = 'scale(1.05)';
-        setTimeout(() => {
-          connectionStatusElement.style.transform = 'scale(1)';
-        }, 200);
-        
-        // Ocultar loader después de conexión
-        setTimeout(() => {
-          loader.style.opacity = '0';
-          setTimeout(() => {
-            loader.style.display = 'none';
-          }, 500);
-        }, 800);
-      } else {
-        loader.style.display = 'flex';
-        loader.style.opacity = '1';
+      // Actualizar estado de conexión
+      function updateConnectionStatus(connected, message = "") {
+        if (connected) {
+          connectionLed.classList.add('connected');
+          connectionText.textContent = "Conectado";
+        } else {
+          connectionLed.classList.remove('connected');
+          connectionText.textContent = message || "Desconectado";
+        }
       }
-    }
-    
-    // Solicitar permiso de orientación para VR en móviles
-    function requestOrientationPermission() {
-      if (isMobile && /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        // Para iOS, necesitamos un evento de usuario para solicitar permisos
-        if (typeof DeviceOrientationEvent !== 'undefined' && 
-            typeof DeviceOrientationEvent.requestPermission === 'function') {
-          DeviceOrientationEvent.requestPermission()
-            .then(permissionState => {
-              if (permissionState === 'granted') {
-                enterVR();
+      
+      // Entrar a VR
+      function enterVR() {
+        const scene = document.querySelector('a-scene');
+        if (scene && scene.enterVR) {
+          scene.enterVR()
+            .then(() => {
+              // Ocultar pantalla de inicio
+              if (splashScreen) {
+                splashScreen.style.display = 'none';
+              }
+              
+              // Ajustar posición para VR
+              const dashboard = document.getElementById('dashboard');
+              if (dashboard) {
+                dashboard.setAttribute('position', '0 1.6 -1.0');
+              }
+              
+              // Bajar la cámara en VR
+              const cameraRig = document.getElementById('camera-rig');
+              if (cameraRig) {
+                cameraRig.setAttribute('position', '0 1.2 0');
               }
             })
-            .catch(console.error);
-        } else {
-          enterVR();
+            .catch(error => {
+              console.error("Error al entrar a VR:", error);
+              
+              // En móviles, mostrar mensaje para tocar la pantalla
+              if (isMobile && splashScreen) {
+                splashScreen.innerHTML = `
+                  <h2>Toque la pantalla para iniciar VR</h2>
+                  <p>Debido a restricciones de seguridad, necesitamos una interacción del usuario</p>
+                `;
+                
+                document.body.addEventListener('touchstart', function onFirstTouch() {
+                  enterVR();
+                  document.body.removeEventListener('touchstart', onFirstTouch, false);
+                }, false);
+              }
+            });
         }
-      } else {
-        enterVR();
-      }
-    }
-    
-    // Entrar directamente a VR al cargar la página
-    function enterVR() {
-      const scene = document.querySelector('a-scene');
-      if (scene && scene.enterVR) {
-        scene.enterVR()
-          .then(() => {
-            console.log("Entró a VR exitosamente");
-            isVRMode = true;
-            
-            // Ajustar posición para VR
-            const dashboard = document.getElementById('dashboard');
-            if (dashboard) {
-              dashboard.setAttribute('position', '0 1.6 -1.0');
-            }
-            
-            // BAJAR LA CÁMARA EN VR (de 1.4 a 1.2 metros)
-            cameraRig = document.getElementById('camera-rig');
-            if (cameraRig) {
-              cameraRig.setAttribute('position', '0 1.2 0');
-            }
-          })
-          .catch(error => {
-            console.error("Error al entrar a VR:", error);
-            // Si falla, intentar de nuevo después de un momento
-            setTimeout(enterVR, 1000);
-          });
-      }
-    }
-    
-    // Configurar la interfaz según el dispositivo
-    function setupDeviceInterface() {
-      // Asegurar que el dashboard esté visible
-      const dashboard = document.getElementById('dashboard');
-      const cameraRig = document.getElementById('camera-rig');
-      
-      if (dashboard) {
-        // POSICIÓN AJUSTADA PARA ESCRITORIO (más cerca y ligeramente más baja)
-        dashboard.setAttribute('position', '0 1.5 -1.2');
       }
       
-      if (cameraRig) {
-        cameraRig.setAttribute('position', '0 1.6 0');
-      }
-    }
-    
-    // Conectar al broker HiveMQ usando MQTT.js
-    function connectToHiveMQ() {
-      // URL CORREGIDA: Usa wss:// en lugar de ws:// para conexiones HTTPS
-      const broker = "wss://broker.hivemq.com:8884/mqtt";
-      
-      // Generar un ID de cliente único
-      const clientId = "webClient_" + Math.random().toString(16).substr(2, 8);
-      
-      try {
-        // Crear cliente MQTT usando MQTT.js
-        mqttClient = mqtt.connect(broker, {
-          clientId: clientId,
-          protocolVersion: 4,
-          clean: true,
-          connectTimeout: 10000,
-          reconnectPeriod: 3000
-        });
+      // Conectar a HiveMQ usando mqtt.js
+      function connectToHiveMQ() {
+        const broker = "wss://broker.hivemq.com:8884/mqtt";
+        const clientId = "vrClient_" + Math.random().toString(16).substr(2, 8);
         
-        // Configurar callbacks
-        mqttClient.on("connect", () => {
-          console.log("✅ Conectado al broker");
-          updateConnectionStatus(true, "Conectado");
+        try {
+          // Crear cliente MQTT usando mqtt.js
+          mqttClient = mqtt.connect(broker, {
+            clientId: clientId,
+            protocolVersion: 4,
+            clean: true,
+            connectTimeout: 10000,
+            reconnectPeriod: 3000
+          });
           
-          // Suscríbete a TODO lo que empiece con "horus/"
-          mqttClient.subscribe("horus/#", (err) => {
-            if (err) {
-              console.error("❌ Error al suscribirse a horus/#");
+          // Manejar eventos de conexión
+          mqttClient.on("connect", function() {
+            console.log("✅ Conectado al broker MQTT");
+            updateConnectionStatus(true);
+            
+            // Suscribirse a todos los tópicos de Horus
+            mqttClient.subscribe("horus/#", function(err) {
+              if (!err) {
+                console.log("🔍 Suscrito a todos los tópicos de Horus");
+                
+                // Mostrar loader por un momento y luego entrar a VR
+                setTimeout(enterVR, 500);
+              }
+            });
+            
+            // Ocultar loader después de conexión
+            setTimeout(() => {
+              loader.style.opacity = '0';
+              setTimeout(() => {
+                loader.style.display = 'none';
+              }, 500);
+            }, 800);
+          });
+          
+          // Manejar mensajes
+          mqttClient.on("message", function(topic, payload) {
+            const value = payload.toString().trim();
+            if (!value) return;
+            
+            // Mapeo de topics a elementos
+            const topicMap = {
+              "horus/vvb/temperatura": "temp-value",
+              "horus/vvb/humedad": "hum-value",
+              "horus/vvb/presion": "press-value",
+              "horus/vvb/altitud": "alt-value",
+              "horus/vvb/gas": "gas-value",
+              "horus/vvb/lluvia": "rain-value",
+              "horus/vvb/pm25": "pm25-value",
+              "horus/vvb/pm10": "pm10-value",
+              "horus/vvb/wind_direction": "wind-value",
+              "horus/vvb/wind_speed": "wind-speed-value"
+            };
+            
+            const elementId = topicMap[topic];
+            if (!elementId) return;
+            
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            // Actualizar el valor
+            if (topic === "horus/vvb/lluvia") {
+              const raining = ["1", "true", "si", "yes", "sí", "rain"].includes(value.toLowerCase());
+              element.setAttribute('text', `value: ${raining ? 'sí' : 'no'}`);
             } else {
-              console.log("🔍 Suscrito a horus/# (todos los tópicos)");
+              element.setAttribute('text', `value: ${value}`);
             }
           });
-        });
-        
-        mqttClient.on("message", (topic, payload) => {
-          const value = payload.toString().trim();
-          if (!value) return;
-
-          // Mapeo de topics a elementos
-          const topicMap = {
-            "horus/vvb/temperatura": "temp-value",
-            "horus/vvb/humedad": "hum-value",
-            "horus/vvb/presion": "press-value",
-            "horus/vvb/altitud": "alt-value",
-            "horus/vvb/gas": "gas-value",
-            "horus/vvb/lluvia": "rain-value",
-            "horus/vvb/pm25": "pm25-value",
-            "horus/vvb/pm10": "pm10-value",
-            "horus/vvb/wind_direction": "wind-value",
-            "horus/vvb/wind_speed": "wind-speed-value"
-          };
           
-          const elementId = topicMap[topic];
-          if (!elementId) return;
+          // Manejar errores
+          mqttClient.on("error", function(err) {
+            console.error("❌ Error MQTT:", err);
+            updateConnectionStatus(false, "Error de conexión");
+          });
           
-          const element = document.getElementById(elementId);
-          if (!element) return;
+          // Manejar cierre
+          mqttClient.on("close", function() {
+            updateConnectionStatus(false, "Desconectado");
+          });
           
-          // Actualizar el valor
-          if (topic === "horus/vvb/lluvia") {
-            const raining = ["1", "true", "si", "yes", "sí", "rain"].includes(value.toLowerCase());
-            element.setAttribute('text', `value: ${raining ? 'sí' : 'no'}`);
-          } else {
-            element.setAttribute('text', `value: ${value}`);
-          }
-        });
-        
-        mqttClient.on("error", (err) => {
-          console.error("❌ Error MQTT:", err);
-          updateConnectionStatus(false, "Error de conexión");
-        });
-        
-        mqttClient.on("close", () => {
-          console.log("Conexión cerrada");
-          updateConnectionStatus(false, "Desconectado");
-        });
-        
-      } catch (error) {
-        console.error("Error al crear cliente MQTT:", error);
-        updateConnectionStatus(false, "Error de librería");
-      }
-    }
-    
-    // Inicializar la aplicación
-    window.addEventListener('load', () => {
-      // Configurar interfaz según el dispositivo
-      setupDeviceInterface();
-      
-      // Configurar eventos de VR
-      const scene = document.querySelector('a-scene');
-      if (scene) {
-        scene.addEventListener('enter-vr', () => {
-          isVRMode = true;
-        });
-        
-        scene.addEventListener('exit-vr', () => {
-          // Redirigir a mqtt.html al salir de VR
-          window.location.href = 'mqtt.html';
-        });
+        } catch (error) {
+          console.error("Error al crear cliente MQTT:", error);
+          updateConnectionStatus(false, "Error de librería");
+        }
       }
       
-      // Asegurar que el dashboard sea visible
+      // Configuración inicial
       setTimeout(() => {
+        // Configurar posición inicial del panel
         const dashboard = document.getElementById('dashboard');
-        const cameraRig = document.getElementById('camera-rig');
-        
         if (dashboard) {
           dashboard.setAttribute('position', '0 1.5 -1.2');
         }
         
+        // Configurar posición de la cámara
+        const cameraRig = document.getElementById('camera-rig');
         if (cameraRig) {
           cameraRig.setAttribute('position', '0 1.6 0');
         }
-        
-        // Asegurar que el loader desaparezca después de 3 segundos
-        setTimeout(() => {
-          loader.style.opacity = '0';
-          setTimeout(() => {
-            loader.style.display = 'none';
-          }, 500);
-        }, 3000);
-      }, 1000);
+      }, 500);
       
-      // Conectar al broker HiveMQ
+      // Conectar al broker
       connectToHiveMQ();
       
-      // Entrar automáticamente a VR al cargar la página
-      setTimeout(() => {
-        requestOrientationPermission();
-      }, 1500);
+      // Redirigir a mqtt.html al salir de VR
+      const scene = document.querySelector('a-scene');
+      if (scene) {
+        scene.addEventListener('exit-vr', () => {
+          window.location.href = 'mqtt.html';
+        });
+      }
     });
   </script>
 </body>
