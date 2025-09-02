@@ -196,7 +196,7 @@
     <p>Visualización en tiempo real de los datos meteorológicos de la estación Horus</p>
     <button id="vr-start-button">Iniciar Experiencia VR</button>
     <div class="info-message">
-      <strong>Nota:</strong> Gira tu cabeza o cuerpo para ver todos los datos alrededor de ti.<br>
+      <strong>Nota:</strong> Gira tu cabeza o cuerpo 360° para ver todos los datos alrededor de ti.<br>
       Los datos están organizados en un círculo completo a tu alrededor.
     </div>
   </div>
@@ -396,7 +396,7 @@
             splashScreen.innerHTML = `
               <h2>Modo 3D Normal</h2>
               <p>La realidad virtual no está disponible en tu dispositivo.</p>
-              <p>Gira tu cuerpo para ver todos los datos alrededor de ti.</p>
+              <p>Gira tu cuerpo 360° para ver todos los datos alrededor de ti.</p>
               <button id="continue-button" style="margin-top: 20px;">Continuar en modo 3D</button>
             `;
             document.getElementById('continue-button').addEventListener('click', function() {
@@ -432,7 +432,7 @@
                 splashScreen.innerHTML = `
                   <h2>Modo 3D Normal</h2>
                   <p>Tu dispositivo no soporta realidad virtual.</p>
-                  <p>Gira tu cuerpo para ver todos los datos alrededor de ti.</p>
+                  <p>Gira tu cuerpo 360° para ver todos los datos alrededor de ti.</p>
                   <button id="continue-button" style="margin-top: 20px;">Continuar en modo 3D</button>
                 `;
                 document.getElementById('continue-button').addEventListener('click', function() {
@@ -446,7 +446,7 @@
                 splashScreen.innerHTML = `
                   <h2>Error al iniciar VR</h2>
                   <p>${error.message}</p>
-                  <p>Gira tu cuerpo para ver todos los datos alrededor de ti.</p>
+                  <p>Gira tu cuerpo 360° para ver todos los datos alrededor de ti.</p>
                   <button id="continue-button" style="margin-top: 20px;">Continuar en modo 3D</button>
                 `;
                 document.getElementById('continue-button').addEventListener('click', function() {
