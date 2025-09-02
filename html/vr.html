@@ -144,13 +144,40 @@
       justify-content: center;
       z-index: 3000;
     }
+    
+    /* Botón de inicio de VR */
+    #vr-start-button {
+      background: linear-gradient(135deg, #00eaff, #0077ff);
+      color: #000;
+      border: none;
+      border-radius: 50px;
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0, 234, 255, 0.3);
+      transition: all 0.3s ease;
+      margin-top: 30px;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
+    
+    #vr-start-button:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 0 30px rgba(0, 234, 255, 0.5);
+      background: linear-gradient(135deg, #00fffe, #0099ff);
+    }
+    
+    #vr-start-button:active {
+      transform: translateY(1px);
+    }
   </style>
 </head>
 <body>
   <!-- Pantalla de inicio -->
   <div id="splash-screen">
-    <h2>Iniciando experiencia VR</h2>
-    <p>Por favor, espera un momento mientras se carga la experiencia de realidad virtual...</p>
+    <h2>Bienvenido a la Experiencia VR</h2>
+    <p>Visualización en tiempo real de los datos meteorológicos de la estación Horus</p>
+    <button id="vr-start-button">Iniciar Experiencia VR</button>
   </div>
 
   <!-- Indicador de conexión -->
@@ -296,13 +323,18 @@
       let connectionText = document.getElementById('connection-text');
       let loader = document.getElementById('loader');
       let splashScreen = document.getElementById('splash-screen');
+      let vrStartButton = document.getElementById('vr-start-button');
+      let isVRMode = false;
+      let mqttConnected = false;
       
       // Actualizar estado de conexión
       function updateConnectionStatus(connected, message = "") {
         if (connected) {
+          mqttConnected = true;
           connectionLed.classList.add('connected');
           connectionText.textContent = "Conectado";
         } else {
+          mqttConnected = false;
           connectionLed.classList.remove('connected');
           connectionText.textContent = message || "Desconectado";
         }
@@ -314,6 +346,8 @@
         if (scene && scene.enterVR) {
           scene.enterVR()
             .then(() => {
+              isVRMode = true;
+              
               // Ocultar pantalla de inicio
               if (splashScreen) {
                 splashScreen.style.display = 'none';
@@ -333,20 +367,39 @@
             })
             .catch(error => {
               console.error("Error al entrar a VR:", error);
+              connectionText.textContent = "Error al iniciar VR";
               
-              // En móviles, mostrar mensaje para tocar la pantalla
-              if (isMobile && splashScreen) {
+              // Mostrar mensaje de error en pantalla
+              if (splashScreen) {
                 splashScreen.innerHTML = `
-                  <h2>Toque la pantalla para iniciar VR</h2>
-                  <p>Debido a restricciones de seguridad, necesitamos una interacción del usuario</p>
+                  <h2>Error al iniciar VR</h2>
+                  <p>Por favor, intenta nuevamente. Asegúrate de tener un dispositivo VR compatible.</p>
+                  <button id="vr-start-button" style="margin-top: 20px;">Reintentar</button>
                 `;
-                
-                document.body.addEventListener('touchstart', function onFirstTouch() {
-                  enterVR();
-                  document.body.removeEventListener('touchstart', onFirstTouch, false);
-                }, false);
+                document.getElementById('vr-start-button').addEventListener('click', enterVR);
               }
             });
+        }
+      }
+      
+      // Configurar botón de inicio de VR
+      function setupVRButton() {
+        if (vrStartButton) {
+          vrStartButton.addEventListener('click', function() {
+            // Primero verificar si MQTT está conectado
+            if (mqttConnected) {
+              enterVR();
+            } else {
+              connectionText.textContent = "Esperando conexión MQTT...";
+              // Esperar hasta que MQTT se conecte
+              const checkMQTT = setInterval(() => {
+                if (mqttConnected) {
+                  clearInterval(checkMQTT);
+                  enterVR();
+                }
+              }, 100);
+            }
+          });
         }
       }
       
@@ -375,18 +428,15 @@
               if (!err) {
                 console.log("🔍 Suscrito a todos los tópicos de Horus");
                 
-                // Mostrar loader por un momento y luego entrar a VR
-                setTimeout(enterVR, 500);
+                // Ocultar loader después de conexión
+                setTimeout(() => {
+                  loader.style.opacity = '0';
+                  setTimeout(() => {
+                    loader.style.display = 'none';
+                  }, 500);
+                }, 800);
               }
             });
-            
-            // Ocultar loader después de conexión
-            setTimeout(() => {
-              loader.style.opacity = '0';
-              setTimeout(() => {
-                loader.style.display = 'none';
-              }, 500);
-            }, 800);
           });
           
           // Manejar mensajes
@@ -453,6 +503,9 @@
         if (cameraRig) {
           cameraRig.setAttribute('position', '0 1.6 0');
         }
+        
+        // Configurar el botón de inicio de VR
+        setupVRButton();
       }, 500);
       
       // Conectar al broker
