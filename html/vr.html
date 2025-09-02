@@ -196,7 +196,7 @@
     <p>Visualización en tiempo real de los datos meteorológicos de la estación Horus</p>
     <button id="vr-start-button">Iniciar Experiencia VR</button>
     <div class="info-message">
-      <strong>Nota:</strong> Gira tu cabeza o cuerpo 360° para ver todos los datos alrededor de ti.<br>
+      <strong>Nota:</strong> Gira tu cuerpo 360° para ver todos los datos alrededor de ti.<br>
       Los datos están organizados en un círculo completo a tu alrededor.
     </div>
   </div>
@@ -227,7 +227,7 @@
     
     <!-- Panel de datos en disposición circular CORREGIDA -->
     <a-entity id="dashboard">
-      <!-- FILA SUPERIOR (5 elementos) - Disposición circular CORRECTA -->
+      <!-- FILA SUPERIOR (5 elementos) - Cálculo matemático PRECISO -->
       <!-- Temperatura - 0° -->
       <a-entity position="1.5 1.8 0" rotation="0 90 0" class="sensor-card">
         <a-entity class="sensor-header">
@@ -239,7 +239,7 @@
       </a-entity>
       
       <!-- Humedad - 72° -->
-      <a-entity position="0.46 1.8 1.45" rotation="0 162 0" class="sensor-card">
+      <a-entity position="-0.46 1.8 1.45" rotation="0 162 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="💧" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="HUM" color="#2196F3" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -269,7 +269,7 @@
       </a-entity>
       
       <!-- Gas - 288° -->
-      <a-entity position="0.46 1.8 -1.45" rotation="0 18 0" class="sensor-card">
+      <a-entity position="-0.46 1.8 -1.45" rotation="0 18 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="⛽" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="GAS" color="#FFEB3B" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -278,7 +278,7 @@
         <a-text value="kΩ" color="#a0a0a0" position="0.3 -0.05 0.1" align="center" width="1.2" font="roboto" class="unit"></a-text>
       </a-entity>
       
-      <!-- FILA INFERIOR (5 elementos) - Disposición circular CORRECTA -->
+      <!-- FILA INFERIOR (5 elementos) - Cálculo matemático PRECISO -->
       <!-- Lluvia - 0° -->
       <a-entity position="1.5 0.8 0" rotation="0 90 0" class="sensor-card">
         <a-entity class="sensor-header">
@@ -289,7 +289,7 @@
       </a-entity>
       
       <!-- PM2.5 - 72° -->
-      <a-entity position="0.46 0.8 1.45" rotation="0 162 0" class="sensor-card">
+      <a-entity position="-0.46 0.8 1.45" rotation="0 162 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="🌫️" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="PM2.5" color="#9C27B0" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
@@ -319,7 +319,7 @@
       </a-entity>
       
       <!-- Velocidad del Viento - 288° -->
-      <a-entity position="0.46 0.8 -1.45" rotation="0 18 0" class="sensor-card">
+      <a-entity position="-0.46 0.8 -1.45" rotation="0 18 0" class="sensor-card">
         <a-entity class="sensor-header">
           <a-text value="💨" position="-0.5 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
           <a-text value="VEL. VIENTO" color="#4CAF50" position="0 0.2 0.1" align="center" width="1.2" font="roboto"></a-text>
