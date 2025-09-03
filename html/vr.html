@@ -16,12 +16,20 @@
       --primary: #00eaff;
       --primary-glow: #00ffff33;
       --dark-bg: #000a1a;
+      --card-bg: #1d3a5d;
       --text: #f0f0f0;
+      --text-secondary: #e0e0e0;
+      --border-radius: 12px;
+      --transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      --shadow: 0 6px 16px rgba(0, 10, 30, 0.35);
+      --inner-shadow: inset 0 3px 10px rgba(0, 5, 20, 0.5);
+      --hover-scale: 1.02;
     }
     
     * {
       box-sizing: border-box;
       touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
       user-select: none;
       margin: 0;
       padding: 0;
@@ -30,7 +38,7 @@
     body {
       margin: 0;
       overflow: hidden;
-      font-family: 'Segoe UI', Arial, sans-serif;
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
       background: linear-gradient(135deg, var(--dark-bg), #000510);
       color: var(--text);
       height: 100vh;
@@ -38,7 +46,7 @@
       cursor: default;
     }
     
-    /* Eliminar elementos residuales de A-Frame */
+    /* Eliminar completamente cualquier elemento residual de A-Frame */
     .a-enter-vr, .a-canvas, .a-loader, .a-enter-ar, .a-fullscreen, .a-no-cursor, .a-cursor {
       display: none !important;
       opacity: 0 !important;
@@ -69,6 +77,7 @@
       border-radius: 50%;
       background: #f00;
       box-shadow: 0 0 6px rgba(255, 0, 0, 0.7);
+      transition: var(--transition);
       position: relative;
     }
     
@@ -158,6 +167,10 @@
       background: linear-gradient(135deg, #00fffe, #0099ff);
     }
     
+    #vr-start-button:active {
+      transform: translateY(1px);
+    }
+    
     /* Mensaje de información */
     .info-message {
       background: rgba(0, 30, 60, 0.7);
@@ -203,7 +216,7 @@
     <a-entity id="camera-rig" position="0 1.6 0">
       <a-entity id="camera" camera="fov: 85; active: true" look-controls>
         <a-cursor 
-          raycaster="objects: .data-element" 
+          raycaster="objects: .data-card" 
           color="#00eaff" 
           opacity="0.5"
           radiusInner="0.01"
@@ -212,85 +225,116 @@
       </a-entity>
     </a-entity>
     
-    <!-- Panel de datos en BANDA CIRCULAR ÚNICA - POSICIONAMIENTO MATEMÁTICAMENTE PERFECTO -->
+    <!-- Panel de datos en BANDA CIRCULAR ÚNICA - CÁLCULOS MATEMÁTICOS VERIFICADOS -->
     <a-entity id="dashboard">
-      <!-- FÓRMULAS CORRECTAS:
+      <!-- BANDA CIRCULAR ÚNICA - 10 elementos distribuidos uniformemente en un círculo -->
+      <!-- FÓRMULAS VERIFICADAS: 
            x = radio * cos(ángulo en radianes)
-           z = radio * sin(ángulo en radianes)  [CORRECTO: en A-Frame, el eje Z positivo apunta hacia el usuario]
-           rotación = 0 0 0  [NO SE NECESITA ROTACIÓN ADICIONAL] -->
+           z = radio * sin(ángulo en radianes)  [CORREGIDO: en A-Frame, el eje Z positivo apunta hacia el usuario]
+           rotación = ángulo + 180° para que mire al usuario -->
       
       <!-- Temperatura - 0° (frente) -->
-      <a-entity position="4.0 1.8 0" class="data-element">
-        <a-text value="🌡️ TEMPERATURA" color="#FF5722" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
-        <a-text id="temp-value" value="25.5" color="#FF5722" align="center" width="3.0" font="exo2bold" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center" value="25.5"></a-text>
-        <a-text value="°C" color="#a0a0a0" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
+      <a-entity position="3.5 1.6 0" rotation="0 180 0" class="data-card">
+        <a-entity position="0 0.3 0">
+          <a-text value="🌡️" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
+          <a-text value="TEMPERATURA" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
+          <a-text id="temp-value" value="--" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text value="°C" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
+        </a-entity>
       </a-entity>
       
       <!-- Humedad - 36° -->
-      <a-entity position="3.24 1.8 2.35" class="data-element">
-        <a-text value="💧 HUMEDAD" color="#2196F3" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
-        <a-text id="hum-value" value="65" color="#2196F3" align="center" width="3.0" font="exo2bold" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center" value="65"></a-text>
-        <a-text value="%" color="#a0a0a0" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
+      <a-entity position="2.84 1.6 2.05" rotation="0 216 0" class="data-card">
+        <a-entity position="0 0.3 0">
+          <a-text value="💧" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
+          <a-text value="HUMEDAD" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
+          <a-text id="hum-value" value="--" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text value="%" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
+        </a-entity>
       </a-entity>
       
       <!-- Presión - 72° -->
-      <a-entity position="1.24 1.8 3.81" class="data-element">
-        <a-text value="🔽 PRESIÓN" color="#9E9E9E" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
-        <a-text id="press-value" value="1013" color="#9E9E9E" align="center" width="3.0" font="exo2bold" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center" value="1013"></a-text>
-        <a-text value="hPa" color="#a0a0a0" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
+      <a-entity position="1.08 1.6 3.34" rotation="0 252 0" class="data-card">
+        <a-entity position="0 0.3 0">
+          <a-text value="🔽" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
+          <a-text value="PRESIÓN" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
+          <a-text id="press-value" value="--" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text value="hPa" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
+        </a-entity>
       </a-entity>
       
       <!-- Altitud - 108° -->
-      <a-entity position="-1.24 1.8 3.81" class="data-element">
-        <a-text value="⛰️ ALTITUD" color="#673AB7" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
-        <a-text id="alt-value" value="150" color="#673AB7" align="center" width="3.0" font="exo2bold" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center" value="150"></a-text>
-        <a-text value="m" color="#a0a0a0" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
+      <a-entity position="-1.08 1.6 3.34" rotation="0 288 0" class="data-card">
+        <a-entity position="0 0.3 0">
+          <a-text value="⛰️" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
+          <a-text value="ALTITUD" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
+          <a-text id="alt-value" value="--" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text value="m" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
+        </a-entity>
       </a-entity>
       
       <!-- Gas - 144° -->
-      <a-entity position="-3.24 1.8 2.35" class="data-element">
-        <a-text value="⛽ GAS" color="#FFEB3B" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
-        <a-text id="gas-value" value="1.2" color="#FFEB3B" align="center" width="3.0" font="exo2bold" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center" value="1.2"></a-text>
-        <a-text value="kΩ" color="#a0a0a0" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
+      <a-entity position="-2.84 1.6 2.05" rotation="0 324 0" class="data-card">
+        <a-entity position="0 0.3 0">
+          <a-text value="⛽" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
+          <a-text value="GAS" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
+          <a-text id="gas-value" value="--" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text value="kΩ" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
+        </a-entity>
       </a-entity>
       
       <!-- Lluvia - 180° (atrás) -->
-      <a-entity position="-4.0 1.8 0" class="data-element">
-        <a-text value="🌧️ LLUVIA" color="#2196F3" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
-        <a-text id="rain-value" value="no" color="#2196F3" align="center" width="3.0" font="exo2bold" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center" value="no"></a-text>
+      <a-entity position="-3.5 1.6 0" rotation="0 0 0" class="data-card">
+        <a-entity position="0 0.3 0">
+          <a-text value="🌧️" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
+          <a-text value="LLUVIA" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
+          <a-text id="rain-value" value="no" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+        </a-entity>
       </a-entity>
       
       <!-- PM2.5 - 216° -->
-      <a-entity position="-3.24 1.8 -2.35" class="data-element">
-        <a-text value="🌫️ PM2.5" color="#9C27B0" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
-        <a-text id="pm25-value" value="12" color="#9C27B0" align="center" width="3.0" font="exo2bold" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center" value="12"></a-text>
-        <a-text value="μg/m³" color="#a0a0a0" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
+      <a-entity position="-2.84 1.6 -2.05" rotation="0 36 0" class="data-card">
+        <a-entity position="0 0.3 0">
+          <a-text value="🌫️" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
+          <a-text value="PM2.5" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
+          <a-text id="pm25-value" value="--" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text value="μg/m³" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
+        </a-entity>
       </a-entity>
       
       <!-- PM10 - 252° -->
-      <a-entity position="-1.24 1.8 -3.81" class="data-element">
-        <a-text value="🌫️ PM10" color="#673AB7" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
-        <a-text id="pm10-value" value="25" color="#673AB7" align="center" width="3.0" font="exo2bold" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center" value="25"></a-text>
-        <a-text value="μg/m³" color="#a0a0a0" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
+      <a-entity position="-1.08 1.6 -3.34" rotation="0 72 0" class="data-card">
+        <a-entity position="0 0.3 0">
+          <a-text value="🌫️" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
+          <a-text value="PM10" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
+          <a-text id="pm10-value" value="--" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text value="μg/m³" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
+        </a-entity>
       </a-entity>
       
       <!-- Dirección del Viento - 288° -->
-      <a-entity position="1.24 1.8 -3.81" class="data-element">
-        <a-text value="🌀 VIENTO" color="#03A9F4" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
-        <a-text id="wind-value" value="180" color="#03A9F4" align="center" width="3.0" font="exo2bold" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center" value="180"></a-text>
-        <a-text value="°" color="#a0a0a0" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
+      <a-entity position="1.08 1.6 -3.34" rotation="0 108 0" class="data-card">
+        <a-entity position="0 0.3 0">
+          <a-text value="🌀" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
+          <a-text value="VIENTO" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
+          <a-text id="wind-value" value="--" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text value="°" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
+        </a-entity>
       </a-entity>
       
       <!-- Velocidad del Viento - 324° -->
-      <a-entity position="3.24 1.8 -2.35" class="data-element">
-        <a-text value="💨 VEL. VIENTO" color="#4CAF50" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
-        <a-text id="wind-speed-value" value="5.2" color="#4CAF50" align="center" width="3.0" font="exo2bold" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center" value="5.2"></a-text>
-        <a-text value="m/s" color="#a0a0a0" align="center" width="3.0" font="roboto" font-weight="bold" side="double" shader="flat" anchor="center" baseline="center"></a-text>
+      <a-entity position="2.84 1.6 -2.05" rotation="0 144 0" class="data-card">
+        <a-entity position="0 0.3 0">
+          <a-text value="💨" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
+          <a-text value="VEL. VIENTO" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
+          <a-text id="wind-speed-value" value="--" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text value="m/s" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
+        </a-entity>
       </a-entity>
     </a-entity>
     
     <!-- Anillo de referencia para mejor orientación -->
-    <a-ring color="#00eaff" radius-inner="3.95" radius-outer="4.0" rotation="-90 0 0" position="0 1.8 0" opacity="0.3"></a-ring>
+    <a-ring color="#00eaff" radius-inner="3.45" radius-outer="3.5" rotation="-90 0 0" position="0 1.6 0" opacity="0.3"></a-ring>
   </a-scene>
 
   <!-- Loader de conexión -->
