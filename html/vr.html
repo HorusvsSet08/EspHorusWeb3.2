@@ -225,16 +225,16 @@
       </a-entity>
     </a-entity>
     
-    <!-- Panel de datos en BANDA CIRCULAR ÚNICA - ORIENTACIÓN PERFECTA PARA USUARIO ESTÁTICO -->
+    <!-- Panel de datos en BANDA CIRCULAR ÚNICA - ORIENTACIÓN MATEMÁTICAMENTE PRECISA -->
     <a-entity id="dashboard">
       <!-- BANDA CIRCULAR ÚNICA - 10 elementos distribuidos uniformemente en un círculo -->
-      <!-- FÓRMULAS VERIFICADAS PARA USUARIO ESTÁTICO:
+      <!-- FÓRMULAS MATEMÁTICAMENTE PRECISAS:
            x = radio * sin(ángulo en radianes)
            z = radio * cos(ángulo en radianes)
-           rotación en Y = ángulo en grados -->
+           rotación en Y = ángulo + 180° -->
       
       <!-- Temperatura - 0° (frente) -->
-      <a-entity position="0 1.8 3.5" rotation="0 0 0" class="data-card">
+      <a-entity position="0 1.8 3.5" rotation="0 180 0" class="data-card">
         <a-entity>
           <a-text value="🌡️" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0.3 0.1"></a-text>
           <a-text value="TEMPERATURA" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.1 0.1"></a-text>
@@ -244,7 +244,7 @@
       </a-entity>
       
       <!-- Humedad - 36° -->
-      <a-entity position="2.05 1.8 2.84" rotation="0 36 0" class="data-card">
+      <a-entity position="2.05 1.8 2.84" rotation="0 216 0" class="data-card">
         <a-entity>
           <a-text value="💧" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0.3 0.1"></a-text>
           <a-text value="HUMEDAD" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.1 0.1"></a-text>
@@ -254,7 +254,7 @@
       </a-entity>
       
       <!-- Presión - 72° -->
-      <a-entity position="3.34 1.8 1.08" rotation="0 72 0" class="data-card">
+      <a-entity position="3.34 1.8 1.08" rotation="0 252 0" class="data-card">
         <a-entity>
           <a-text value="🔽" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0.3 0.1"></a-text>
           <a-text value="PRESIÓN" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.1 0.1"></a-text>
@@ -264,7 +264,7 @@
       </a-entity>
       
       <!-- Altitud - 108° -->
-      <a-entity position="3.34 1.8 -1.08" rotation="0 108 0" class="data-card">
+      <a-entity position="3.34 1.8 -1.08" rotation="0 288 0" class="data-card">
         <a-entity>
           <a-text value="⛰️" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0.3 0.1"></a-text>
           <a-text value="ALTITUD" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.1 0.1"></a-text>
@@ -274,7 +274,7 @@
       </a-entity>
       
       <!-- Gas - 144° -->
-      <a-entity position="2.05 1.8 -2.84" rotation="0 144 0" class="data-card">
+      <a-entity position="2.05 1.8 -2.84" rotation="0 324 0" class="data-card">
         <a-entity>
           <a-text value="⛽" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0.3 0.1"></a-text>
           <a-text value="GAS" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.1 0.1"></a-text>
@@ -284,7 +284,7 @@
       </a-entity>
       
       <!-- Lluvia - 180° (atrás) -->
-      <a-entity position="0 1.8 -3.5" rotation="0 180 0" class="data-card">
+      <a-entity position="0 1.8 -3.5" rotation="0 0 0" class="data-card">
         <a-entity>
           <a-text value="🌧️" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0.3 0.1"></a-text>
           <a-text value="LLUVIA" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.1 0.1"></a-text>
@@ -293,7 +293,7 @@
       </a-entity>
       
       <!-- PM2.5 - 216° -->
-      <a-entity position="-2.05 1.8 -2.84" rotation="0 216 0" class="data-card">
+      <a-entity position="-2.05 1.8 -2.84" rotation="0 36 0" class="data-card">
         <a-entity>
           <a-text value="🌫️" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0.3 0.1"></a-text>
           <a-text value="PM2.5" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.1 0.1"></a-text>
@@ -303,7 +303,7 @@
       </a-entity>
       
       <!-- PM10 - 252° -->
-      <a-entity position="-3.34 1.8 -1.08" rotation="0 252 0" class="data-card">
+      <a-entity position="-3.34 1.8 -1.08" rotation="0 72 0" class="data-card">
         <a-entity>
           <a-text value="🌫️" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0.3 0.1"></a-text>
           <a-text value="PM10" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.1 0.1"></a-text>
@@ -313,7 +313,7 @@
       </a-entity>
       
       <!-- Dirección del Viento - 288° -->
-      <a-entity position="-3.34 1.8 1.08" rotation="0 288 0" class="data-card">
+      <a-entity position="-3.34 1.8 1.08" rotation="0 108 0" class="data-card">
         <a-entity>
           <a-text value="🌀" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0.3 0.1"></a-text>
           <a-text value="VIENTO" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.1 0.1"></a-text>
@@ -323,7 +323,7 @@
       </a-entity>
       
       <!-- Velocidad del Viento - 324° -->
-      <a-entity position="-2.05 1.8 2.84" rotation="0 324 0" class="data-card">
+      <a-entity position="-2.05 1.8 2.84" rotation="0 144 0" class="data-card">
         <a-entity>
           <a-text value="💨" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0.3 0.1"></a-text>
           <a-text value="VEL. VIENTO" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.1 0.1"></a-text>
