@@ -187,20 +187,6 @@
     .info-message strong {
       color: var(--primary);
     }
-    
-    /* Estilo para los elementos 3D */
-    .data-card {
-      transform-origin: center;
-    }
-    
-    .trend-indicator {
-      font-size: 0.35;
-      position: 0 -1.3 0;
-    }
-    
-    .glow-effect {
-      filter: bloom(1.0);
-    }
   </style>
 </head>
 <body>
@@ -239,154 +225,113 @@
       </a-entity>
     </a-entity>
     
-    <!-- Sistema de coordenadas visual -->
-    <a-entity id="coordinate-system">
-      <!-- Eje X (rojo) -->
-      <a-box color="#FF5722" width="0.02" height="0.02" depth="5" position="2.5 0 0" opacity="0.3"></a-box>
-      <a-box color="#FF5722" width="0.02" height="0.02" depth="5" position="-2.5 0 0" opacity="0.3"></a-box>
-      
-      <!-- Eje Z (azul) -->
-      <a-box color="#2196F3" width="0.02" height="0.02" depth="5" position="0 0 2.5" opacity="0.3"></a-box>
-      <a-box color="#2196F3" width="0.02" height="0.02" depth="5" position="0 0 -2.5" opacity="0.3"></a-box>
-      
-      <!-- Eje Y (verde) -->
-      <a-box color="#4CAF50" width="0.02" height="5" depth="0.02" position="0 2.5 0" opacity="0.3"></a-box>
-      <a-box color="#4CAF50" width="0.02" height="5" depth="0.02" position="0 -2.5 0" opacity="0.3"></a-box>
-      
-      <!-- Plano de referencia -->
-      <a-plane color="#333333" opacity="0.1" width="5" height="5" rotation="-90 0 0" position="0 0 0"></a-plane>
-    </a-entity>
-    
     <!-- Panel de datos en BANDA CIRCULAR ÚNICA -->
     <a-entity id="dashboard">
+      <!-- BANDA CIRCULAR ÚNICA - 10 elementos distribuidos uniformemente en un círculo -->
+      <!-- FÓRMULA CORREGIDA PARA LA ROTACIÓN: rotation="0 ${-ángulo + 180} 0" -->
+      
       <!-- Temperatura - 0° (frente) -->
       <a-entity position="3.5 1.6 0" rotation="0 180 0" class="data-card">
         <a-entity position="0 0.3 0">
-          <a-text value="🌡️" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.5" glow="1.5"></a-text>
-          <a-text value="TEMPERATURA" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.35" position="0 -0.4 0"></a-text>
-          <a-text id="temp-value" value="25.5" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.7" position="0 -0.8 0" glow="2.0"></a-text>
-          <a-text value="°C" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 -1.1 0"></a-text>
-          <a-text id="temp-trend" value="↑" color="#4CAF50" class="trend-indicator"></a-text>
+          <a-text value="🌡️" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.6" position="0 0.4 0.1"></a-text>
+          <a-text value="TEMPERATURA" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0 0.1"></a-text>
+          <a-text id="temp-value" value="25.5" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="1.0" position="0 -0.5 0.1"></a-text>
+          <a-text value="°C" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -1.0 0.1"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Humedad - 36° -->
       <a-entity position="2.84 1.6 2.05" rotation="0 144 0" class="data-card">
         <a-entity position="0 0.3 0">
-          <a-text value="💧" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.5" glow="1.5"></a-text>
-          <a-text value="HUMEDAD" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.35" position="0 -0.4 0"></a-text>
-          <a-text id="hum-value" value="65" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.7" position="0 -0.8 0" glow="2.0"></a-text>
-          <a-text value="%" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 -1.1 0"></a-text>
-          <a-text id="hum-trend" value="→" color="#FFC107" class="trend-indicator"></a-text>
+          <a-text value="💧" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.6" position="0 0.4 0.1"></a-text>
+          <a-text value="HUMEDAD" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0 0.1"></a-text>
+          <a-text id="hum-value" value="65" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="1.0" position="0 -0.5 0.1"></a-text>
+          <a-text value="%" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -1.0 0.1"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Presión - 72° -->
       <a-entity position="1.08 1.6 3.34" rotation="0 108 0" class="data-card">
         <a-entity position="0 0.3 0">
-          <a-text value="🔽" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.5" glow="1.5"></a-text>
-          <a-text value="PRESIÓN" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.35" position="0 -0.4 0"></a-text>
-          <a-text id="press-value" value="1013" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.7" position="0 -0.8 0" glow="2.0"></a-text>
-          <a-text value="hPa" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 -1.1 0"></a-text>
-          <a-text id="press-trend" value="↓" color="#F44336" class="trend-indicator"></a-text>
+          <a-text value="🔽" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.6" position="0 0.4 0.1"></a-text>
+          <a-text value="PRESIÓN" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0 0.1"></a-text>
+          <a-text id="press-value" value="1013" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="1.0" position="0 -0.5 0.1"></a-text>
+          <a-text value="hPa" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -1.0 0.1"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Altitud - 108° -->
       <a-entity position="-1.08 1.6 3.34" rotation="0 72 0" class="data-card">
         <a-entity position="0 0.3 0">
-          <a-text value="⛰️" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.5" glow="1.5"></a-text>
-          <a-text value="ALTITUD" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.35" position="0 -0.4 0"></a-text>
-          <a-text id="alt-value" value="150" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.7" position="0 -0.8 0" glow="2.0"></a-text>
-          <a-text value="m" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 -1.1 0"></a-text>
-          <a-text id="alt-trend" value="→" color="#FFC107" class="trend-indicator"></a-text>
+          <a-text value="⛰️" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.6" position="0 0.4 0.1"></a-text>
+          <a-text value="ALTITUD" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0 0.1"></a-text>
+          <a-text id="alt-value" value="150" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="1.0" position="0 -0.5 0.1"></a-text>
+          <a-text value="m" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -1.0 0.1"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Gas - 144° -->
       <a-entity position="-2.84 1.6 2.05" rotation="0 36 0" class="data-card">
         <a-entity position="0 0.3 0">
-          <a-text value="⛽" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.5" glow="1.5"></a-text>
-          <a-text value="GAS" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.35" position="0 -0.4 0"></a-text>
-          <a-text id="gas-value" value="1.2" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.7" position="0 -0.8 0" glow="2.0"></a-text>
-          <a-text value="kΩ" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 -1.1 0"></a-text>
-          <a-text id="gas-trend" value="↑" color="#4CAF50" class="trend-indicator"></a-text>
+          <a-text value="⛽" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.6" position="0 0.4 0.1"></a-text>
+          <a-text value="GAS" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0 0.1"></a-text>
+          <a-text id="gas-value" value="1.2" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="1.0" position="0 -0.5 0.1"></a-text>
+          <a-text value="kΩ" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -1.0 0.1"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Lluvia - 180° (atrás) -->
       <a-entity position="-3.5 1.6 0" rotation="0 0 0" class="data-card">
         <a-entity position="0 0.3 0">
-          <a-text value="🌧️" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.5" glow="1.5"></a-text>
-          <a-text value="LLUVIA" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.35" position="0 -0.4 0"></a-text>
-          <a-text id="rain-value" value="no" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.7" position="0 -0.8 0" glow="2.0"></a-text>
-          <a-text id="rain-trend" value="→" color="#FFC107" class="trend-indicator"></a-text>
+          <a-text value="🌧️" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.6" position="0 0.4 0.1"></a-text>
+          <a-text value="LLUVIA" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0 0.1"></a-text>
+          <a-text id="rain-value" value="no" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="1.0" position="0 -0.5 0.1"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- PM2.5 - 216° -->
       <a-entity position="-2.84 1.6 -2.05" rotation="0 324 0" class="data-card">
         <a-entity position="0 0.3 0">
-          <a-text value="🌫️" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.5" glow="1.5"></a-text>
-          <a-text value="PM2.5" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.35" position="0 -0.4 0"></a-text>
-          <a-text id="pm25-value" value="12" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.7" position="0 -0.8 0" glow="2.0"></a-text>
-          <a-text value="μg/m³" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 -1.1 0"></a-text>
-          <a-text id="pm25-trend" value="↑" color="#4CAF50" class="trend-indicator"></a-text>
+          <a-text value="🌫️" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.6" position="0 0.4 0.1"></a-text>
+          <a-text value="PM2.5" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0 0.1"></a-text>
+          <a-text id="pm25-value" value="12" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="1.0" position="0 -0.5 0.1"></a-text>
+          <a-text value="μg/m³" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -1.0 0.1"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- PM10 - 252° -->
       <a-entity position="-1.08 1.6 -3.34" rotation="0 288 0" class="data-card">
         <a-entity position="0 0.3 0">
-          <a-text value="🌫️" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.5" glow="1.5"></a-text>
-          <a-text value="PM10" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.35" position="0 -0.4 0"></a-text>
-          <a-text id="pm10-value" value="25" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.7" position="0 -0.8 0" glow="2.0"></a-text>
-          <a-text value="μg/m³" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 -1.1 0"></a-text>
-          <a-text id="pm10-trend" value="↑" color="#4CAF50" class="trend-indicator"></a-text>
+          <a-text value="🌫️" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.6" position="0 0.4 0.1"></a-text>
+          <a-text value="PM10" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0 0.1"></a-text>
+          <a-text id="pm10-value" value="25" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="1.0" position="0 -0.5 0.1"></a-text>
+          <a-text value="μg/m³" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -1.0 0.1"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Dirección del Viento - 288° -->
       <a-entity position="1.08 1.6 -3.34" rotation="0 252 0" class="data-card">
         <a-entity position="0 0.3 0">
-          <a-text value="🌀" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.5" glow="1.5"></a-text>
-          <a-text value="VIENTO" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.35" position="0 -0.4 0"></a-text>
-          <a-text id="wind-value" value="180" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.7" position="0 -0.8 0" glow="2.0"></a-text>
-          <a-text value="°" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 -1.1 0"></a-text>
-          <a-text id="wind-trend" value="→" color="#FFC107" class="trend-indicator"></a-text>
+          <a-text value="🌀" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.6" position="0 0.4 0.1"></a-text>
+          <a-text value="VIENTO" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0 0.1"></a-text>
+          <a-text id="wind-value" value="180" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="1.0" position="0 -0.5 0.1"></a-text>
+          <a-text value="°" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -1.0 0.1"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Velocidad del Viento - 324° -->
       <a-entity position="2.84 1.6 -2.05" rotation="0 216 0" class="data-card">
         <a-entity position="0 0.3 0">
-          <a-text value="💨" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.5" glow="1.5"></a-text>
-          <a-text value="VEL. VIENTO" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.35" position="0 -0.4 0"></a-text>
-          <a-text id="wind-speed-value" value="5.2" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.7" position="0 -0.8 0" glow="2.0"></a-text>
-          <a-text value="m/s" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 -1.1 0"></a-text>
-          <a-text id="wind-speed-trend" value="↑" color="#4CAF50" class="trend-indicator"></a-text>
+          <a-text value="💨" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.6" position="0 0.4 0.1"></a-text>
+          <a-text value="VEL. VIENTO" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.4" position="0 0 0.1"></a-text>
+          <a-text id="wind-speed-value" value="5.2" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="1.0" position="0 -0.5 0.1"></a-text>
+          <a-text value="m/s" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -1.0 0.1"></a-text>
         </a-entity>
       </a-entity>
     </a-entity>
     
     <!-- Anillo de referencia para mejor orientación -->
     <a-ring color="#00eaff" radius-inner="3.45" radius-outer="3.5" rotation="-90 0 0" position="0 1.6 0" opacity="0.3"></a-ring>
-    
-    <!-- Efecto de estrellas en el fondo para mejor inmersión -->
-    <a-entity id="stars">
-      <!-- Generar 100 estrellas aleatorias -->
-      <a-entity position="-1.2 3.4 -2.7" geometry="primitive: sphere; radius: 0.01" material="color: white; shader: flat"></a-entity>
-      <a-entity position="2.3 1.8 3.1" geometry="primitive: sphere; radius: 0.01" material="color: white; shader: flat"></a-entity>
-      <a-entity position="-3.2 -0.5 -1.9" geometry="primitive: sphere; radius: 0.01" material="color: white; shader: flat"></a-entity>
-      <a-entity position="0.7 -2.4 2.5" geometry="primitive: sphere; radius: 0.01" material="color: white; shader: flat"></a-entity>
-      <a-entity position="3.8 0.2 -0.6" geometry="primitive: sphere; radius: 0.01" material="color: white; shader: flat"></a-entity>
-      <a-entity position="-2.1 -1.7 0.3" geometry="primitive: sphere; radius: 0.01" material="color: white; shader: flat"></a-entity>
-      <a-entity position="1.5 2.9 -3.2" geometry="primitive: sphere; radius: 0.01" material="color: white; shader: flat"></a-entity>
-      <a-entity position="-0.4 0.8 3.7" geometry="primitive: sphere; radius: 0.01" material="color: white; shader: flat"></a-entity>
-      <a-entity position="2.6 -1.1 -2.4" geometry="primitive: sphere; radius: 0.01" material="color: white; shader: flat"></a-entity>
-      <a-entity position="-3.5 2.3 1.1" geometry="primitive: sphere; radius: 0.01" material="color: white; shader: flat"></a-entity>
-      <!-- Más estrellas aquí... -->
-    </a-entity>
   </a-scene>
 
   <!-- Loader de conexión -->
@@ -409,20 +354,6 @@
       let isVRMode = false;
       let mqttConnected = false;
       let xrSupported = false;
-      
-      // Almacenar valores anteriores para calcular tendencias
-      const previousValues = {
-        temp: null,
-        hum: null,
-        press: null,
-        alt: null,
-        gas: null,
-        rain: null,
-        pm25: null,
-        pm10: null,
-        wind: null,
-        windSpeed: null
-      };
       
       // Verificar soporte de WebXR
       function checkXRSupport() {
@@ -453,73 +384,6 @@
           connectionLed.classList.remove('connected');
           connectionText.textContent = message || "Desconectado";
         }
-      }
-      
-      // Calcular tendencia
-      function calculateTrend(parameter, newValue) {
-        if (previousValues[parameter] === null) {
-          previousValues[parameter] = newValue;
-          return "→"; // Sin tendencia inicial
-        }
-        
-        const oldValue = previousValues[parameter];
-        previousValues[parameter] = newValue;
-        
-        // Convertir a número si es necesario
-        const numNewValue = parseFloat(newValue);
-        const numOldValue = parseFloat(oldValue);
-        
-        // Si no son números válidos, mantener tendencia neutral
-        if (isNaN(numNewValue) || isNaN(numOldValue)) {
-          return "→";
-        }
-        
-        // Calcular porcentaje de cambio
-        const change = numNewValue - numOldValue;
-        const changePercent = Math.abs((change / numOldValue) * 100);
-        
-        // Determinar tendencia con umbral del 1%
-        if (changePercent > 1) {
-          return change > 0 ? "↑" : "↓";
-        } else {
-          return "→";
-        }
-      }
-      
-      // Actualizar indicador de tendencia
-      function updateTrendIndicator(parameter, trend) {
-        const trendElement = document.getElementById(`${parameter}-trend`);
-        if (!trendElement) return;
-        
-        // Actualizar texto
-        trendElement.setAttribute('text', `value: ${trend}`);
-        
-        // Actualizar color según tendencia
-        let color = "#FFC107"; // Neutro por defecto
-        if (trend === "↑") {
-          color = "#4CAF50"; // Subiendo - verde
-        } else if (trend === "↓") {
-          color = "#F44336"; // Bajando - rojo
-        }
-        trendElement.setAttribute('color', color);
-        
-        // Animar brevemente
-        trendElement.setAttribute('animation__scale', {
-          property: 'scale',
-          from: '1 1 1',
-          to: '1.2 1.2 1.2',
-          dur: '200',
-          easing: 'easeOutQuad'
-        });
-        setTimeout(() => {
-          trendElement.setAttribute('animation__scale', {
-            property: 'scale',
-            from: '1.2 1.2 1.2',
-            to: '1 1 1',
-            dur: '300',
-            easing: 'easeOutQuad'
-          });
-        }, 200);
       }
       
       // Entrar a VR
@@ -661,30 +525,31 @@
             
             // Mapeo de topics a elementos
             const topicMap = {
-              "horus/vvb/temperatura": {valueId: "temp-value", trendId: "temp-trend", parameter: "temp"},
-              "horus/vvb/humedad": {valueId: "hum-value", trendId: "hum-trend", parameter: "hum"},
-              "horus/vvb/presion": {valueId: "press-value", trendId: "press-trend", parameter: "press"},
-              "horus/vvb/altitud": {valueId: "alt-value", trendId: "alt-trend", parameter: "alt"},
-              "horus/vvb/gas": {valueId: "gas-value", trendId: "gas-trend", parameter: "gas"},
-              "horus/vvb/lluvia": {valueId: "rain-value", trendId: "rain-trend", parameter: "rain"},
-              "horus/vvb/pm25": {valueId: "pm25-value", trendId: "pm25-trend", parameter: "pm25"},
-              "horus/vvb/pm10": {valueId: "pm10-value", trendId: "pm10-trend", parameter: "pm10"},
-              "horus/vvb/wind_direction": {valueId: "wind-value", trendId: "wind-trend", parameter: "wind"},
-              "horus/vvb/wind_speed": {valueId: "wind-speed-value", trendId: "wind-speed-trend", parameter: "windSpeed"}
+              "horus/vvb/temperatura": "temp-value",
+              "horus/vvb/humedad": "hum-value",
+              "horus/vvb/presion": "press-value",
+              "horus/vvb/altitud": "alt-value",
+              "horus/vvb/gas": "gas-value",
+              "horus/vvb/lluvia": "rain-value",
+              "horus/vvb/pm25": "pm25-value",
+              "horus/vvb/pm10": "pm10-value",
+              "horus/vvb/wind_direction": "wind-value",
+              "horus/vvb/wind_speed": "wind-speed-value"
             };
             
-            const mapping = topicMap[topic];
-            if (!mapping) return;
+            const elementId = topicMap[topic];
+            if (!elementId) return;
             
-            const valueElement = document.getElementById(mapping.valueId);
-            if (!valueElement) return;
+            const element = document.getElementById(elementId);
+            if (!element) return;
             
             // Actualizar el valor
-            valueElement.setAttribute('text', `value: ${value}`);
-            
-            // Calcular y actualizar tendencia
-            const trend = calculateTrend(mapping.parameter, value);
-            updateTrendIndicator(mapping.parameter, trend);
+            if (topic === "horus/vvb/lluvia") {
+              const raining = ["1", "true", "si", "yes", "sí", "rain"].includes(value.toLowerCase());
+              element.setAttribute('text', `value: ${raining ? 'sí' : 'no'}`);
+            } else {
+              element.setAttribute('text', `value: ${value}`);
+            }
           });
           
           // Manejar errores
