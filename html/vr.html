@@ -187,6 +187,20 @@
     .info-message strong {
       color: var(--primary);
     }
+    
+    /* Estilo para los elementos 3D */
+    .data-card {
+      transform-origin: center;
+    }
+    
+    .card-background {
+      width: 2.0;
+      height: 0.9;
+      depth: 0.1;
+      color: #000a1a;
+      opacity: 0.85;
+      transparent: true;
+    }
   </style>
 </head>
 <body>
@@ -225,66 +239,69 @@
       </a-entity>
     </a-entity>
     
-    <!-- Panel de datos en BANDA CIRCULAR ÚNICA - CÁLCULOS MATEMÁTICOS VERIFICADOS -->
+    <!-- Panel de datos en BANDA CIRCULAR ÚNICA -->
     <a-entity id="dashboard">
       <!-- BANDA CIRCULAR ÚNICA - 10 elementos distribuidos uniformemente en un círculo -->
-      <!-- FÓRMULAS VERIFICADAS: 
-           x = radio * cos(ángulo en radianes)
-           z = radio * sin(ángulo en radianes)  [CORREGIDO: en A-Frame, el eje Z positivo apunta hacia el usuario]
-           rotación = ángulo + 180° para que mire al usuario -->
+      <!-- FÓRMULA CORREGIDA PARA LA ROTACIÓN: rotation="0 ${-ángulo + 180} 0" -->
       
       <!-- Temperatura - 0° (frente) -->
       <a-entity position="3.5 1.6 0" rotation="0 180 0" class="data-card">
+        <a-box class="card-background" position="0 0 -0.1"></a-box>
         <a-entity position="0 0.3 0">
           <a-text value="🌡️" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
           <a-text value="TEMPERATURA" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
-          <a-text id="temp-value" value="--" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text id="temp-value" value="25.5" color="#FF5722" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
           <a-text value="°C" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Humedad - 36° -->
-      <a-entity position="2.84 1.6 2.05" rotation="0 216 0" class="data-card">
+      <a-entity position="2.84 1.6 2.05" rotation="0 144 0" class="data-card">
+        <a-box class="card-background" position="0 0 -0.1"></a-box>
         <a-entity position="0 0.3 0">
           <a-text value="💧" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
           <a-text value="HUMEDAD" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
-          <a-text id="hum-value" value="--" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text id="hum-value" value="65" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
           <a-text value="%" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Presión - 72° -->
-      <a-entity position="1.08 1.6 3.34" rotation="0 252 0" class="data-card">
+      <a-entity position="1.08 1.6 3.34" rotation="0 108 0" class="data-card">
+        <a-box class="card-background" position="0 0 -0.1"></a-box>
         <a-entity position="0 0.3 0">
           <a-text value="🔽" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
           <a-text value="PRESIÓN" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
-          <a-text id="press-value" value="--" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text id="press-value" value="1013" color="#9E9E9E" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
           <a-text value="hPa" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Altitud - 108° -->
-      <a-entity position="-1.08 1.6 3.34" rotation="0 288 0" class="data-card">
+      <a-entity position="-1.08 1.6 3.34" rotation="0 72 0" class="data-card">
+        <a-box class="card-background" position="0 0 -0.1"></a-box>
         <a-entity position="0 0.3 0">
           <a-text value="⛰️" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
           <a-text value="ALTITUD" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
-          <a-text id="alt-value" value="--" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text id="alt-value" value="150" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
           <a-text value="m" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Gas - 144° -->
-      <a-entity position="-2.84 1.6 2.05" rotation="0 324 0" class="data-card">
+      <a-entity position="-2.84 1.6 2.05" rotation="0 36 0" class="data-card">
+        <a-box class="card-background" position="0 0 -0.1"></a-box>
         <a-entity position="0 0.3 0">
           <a-text value="⛽" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
           <a-text value="GAS" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
-          <a-text id="gas-value" value="--" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text id="gas-value" value="1.2" color="#FFEB3B" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
           <a-text value="kΩ" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Lluvia - 180° (atrás) -->
       <a-entity position="-3.5 1.6 0" rotation="0 0 0" class="data-card">
+        <a-box class="card-background" position="0 0 -0.1"></a-box>
         <a-entity position="0 0.3 0">
           <a-text value="🌧️" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
           <a-text value="LLUVIA" color="#2196F3" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
@@ -293,41 +310,45 @@
       </a-entity>
       
       <!-- PM2.5 - 216° -->
-      <a-entity position="-2.84 1.6 -2.05" rotation="0 36 0" class="data-card">
+      <a-entity position="-2.84 1.6 -2.05" rotation="0 324 0" class="data-card">
+        <a-box class="card-background" position="0 0 -0.1"></a-box>
         <a-entity position="0 0.3 0">
           <a-text value="🌫️" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
           <a-text value="PM2.5" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
-          <a-text id="pm25-value" value="--" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text id="pm25-value" value="12" color="#9C27B0" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
           <a-text value="μg/m³" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- PM10 - 252° -->
-      <a-entity position="-1.08 1.6 -3.34" rotation="0 72 0" class="data-card">
+      <a-entity position="-1.08 1.6 -3.34" rotation="0 288 0" class="data-card">
+        <a-box class="card-background" position="0 0 -0.1"></a-box>
         <a-entity position="0 0.3 0">
           <a-text value="🌫️" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
           <a-text value="PM10" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
-          <a-text id="pm10-value" value="--" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text id="pm10-value" value="25" color="#673AB7" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
           <a-text value="μg/m³" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Dirección del Viento - 288° -->
-      <a-entity position="1.08 1.6 -3.34" rotation="0 108 0" class="data-card">
+      <a-entity position="1.08 1.6 -3.34" rotation="0 252 0" class="data-card">
+        <a-box class="card-background" position="0 0 -0.1"></a-box>
         <a-entity position="0 0.3 0">
           <a-text value="🌀" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
           <a-text value="VIENTO" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
-          <a-text id="wind-value" value="--" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text id="wind-value" value="180" color="#03A9F4" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
           <a-text value="°" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
         </a-entity>
       </a-entity>
       
       <!-- Velocidad del Viento - 324° -->
-      <a-entity position="2.84 1.6 -2.05" rotation="0 144 0" class="data-card">
+      <a-entity position="2.84 1.6 -2.05" rotation="0 216 0" class="data-card">
+        <a-box class="card-background" position="0 0 -0.1"></a-box>
         <a-entity position="0 0.3 0">
           <a-text value="💨" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.4"></a-text>
           <a-text value="VEL. VIENTO" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -0.4 0"></a-text>
-          <a-text id="wind-speed-value" value="--" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
+          <a-text id="wind-speed-value" value="5.2" color="#4CAF50" width="4" align="center" shader="flat" side="double" font-size="0.5" position="0 -0.8 0"></a-text>
           <a-text value="m/s" color="#a0a0a0" width="4" align="center" shader="flat" side="double" font-size="0.3" position="0 -1.1 0"></a-text>
         </a-entity>
       </a-entity>
