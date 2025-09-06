@@ -634,7 +634,7 @@
 
   // Mapeo de intenciones mejorado
   const intentMap = {
-    current_ {
+    current_data: {
       keywords: ['actual', 'ahora', 'en este momento', 'en directo', 'presente', 'en tiempo real', 'hoy', 'en benavente'],
       parameters: ['temperatura', 'humedad', 'presión', 'lluvia', 'viento', 'gas', 'dirección'],
       required: []
@@ -1047,7 +1047,7 @@
       if (domainAnalysis.isWeatherQuestion && !bestIntent) {
         if (entities.parameters.length > 0) {
           return {
-            type: 'current_',
+            type: 'current_data',
             confidence: 0.5,
             parameters: entities.parameters,
             periods: ['hoy'],
@@ -1056,7 +1056,7 @@
         }
         
         return {
-          type: 'current_',
+          type: 'current_data',
           confidence: 0.4,
           parameters: ['temperatura'],
           periods: ['hoy'],
@@ -1282,46 +1282,70 @@
     }
   };
 
-  // Cargar datos históricos (simulación)
+  // Cargar datos históricos reales de Benavente
   const loadHistoricalData = async () => {
-    return new Promise((resolve) => {
-      // Simulación de carga de datos
-      setTimeout(() => {
-        // Generar datos simulados para los últimos 30 días
-        const now = new Date();
-        historicalData = [];
-        
-        for (let i = 29; i >= 0; i--) {
-          const date = new Date(now);
-          date.setDate(now.getDate() - i);
+    return new Promise((resolve, reject) => {
+      try {
+        // Simulación de carga de datos (en producción, esto vendría de un archivo CSV o API)
+        setTimeout(() => {
+          // Datos reales de Benavente (ejemplo de formato)
+          const rawData = `2025-08-18 23:32:38	28.88	34.86	935.87	665.09	16	17	N/A	0.00	0.42	0.00
+2025-08-18 23:35:48	28.53	34.94	935.87	665.14	16	19	N/A	0.00	0.42	0.00
+2025-08-18 23:38:48	28.34	35.78	935.92	664.66	15	16	N/A	0.00	0.42	0.00
+2025-08-18 23:41:48	28.19	36.60	935.97	664.28	17	18	N/A	0.00	0.42	0.00
+2025-08-18 23:44:48	28.13	36.87	935.92	664.70	13	13	N/A	0.00	0.42	0.00
+2025-08-18 23:47:48	28.08	36.36	935.92	664.71	16	17	N/A	0.00	0.42	0.00
+2025-08-18 23:50:48	27.99	36.24	935.88	665.05	15	17	N/A	0.00	0.42	0.00
+2025-08-18 23:53:48	27.88	35.87	935.88	665.01	15	16	N/A	0.00	0.42	0.00
+2025-08-18 23:56:48	27.67	36.02	935.93	664.55	14	15	N/A	0.00	0.42	0.00
+2025-08-18 23:59:48	27.59	36.38	935.89	664.94	16	17	N/A	0.00	0.42	0.00`;
+
+          // Procesar los datos
+          historicalData = [];
+          const lines = rawData.trim().split('\n');
           
-          // Datos específicos para Benavente (simulación)
-          // Temperatura: en Benavente varía entre 5°C y 30°C según estación
-          // Humedad: promedio del 65% en Benavente
-          // Presión: alrededor de 1013 hPa (varía con altitud)
-          // Viento: velocidad promedio de 5 m/s
-          // Dirección del viento: predominante del oeste
-          
-          historicalData.push({
-            timestamp: date.toISOString(),
-            temp: 15 + Math.random() * 15 - 7 * (i/30), // Rango más realista para Benavente
-            hum: 65 + Math.random() * 20 - 10 * (i/30), // Humedad promedio de Benavente
-            pres: 1010 + Math.random() * 5 - 2 * (i/30), // Presión ajustada a la altitud de Benavente (719m)
-            lluvia: i < 5 ? 1 : 0,
-            wind: 4 + Math.random() * 6, // Velocidad del viento típica de la zona
-            wind_dir: Math.floor(Math.random() * 360),
-            gas: 1.0 + Math.random() * 0.5
+          lines.forEach(line => {
+            const [timestampStr, tempStr, humStr, presStr, presCorrStr, windDirStr, windSpeedStr, rainStr, extra1Str, gasStr, extra2Str] = line.split('\t');
+            
+            // Convertir valores a números
+            const temp = parseFloat(tempStr);
+            const hum = parseFloat(humStr);
+            const pres = parseFloat(presStr);
+            const windDir = parseFloat(windDirStr);
+            const windSpeed = parseFloat(windSpeedStr);
+            const gas = parseFloat(gasStr);
+            
+            // Determinar si está lloviendo (simplificado para el ejemplo)
+            const isRaining = rainStr === 'N/A' ? 0 : (parseFloat(rainStr) > 0 ? 1 : 0);
+            
+            historicalData.push({
+              timestamp: new Date(timestampStr).toISOString(),
+              temp: temp,
+              hum: hum,
+              pres: pres,
+              lluvia: isRaining,
+              wind: windSpeed,
+              wind_dir: windDir,
+              gas: gas
+            });
           });
-        }
-        
-        resolve();
-      }, 800);
+          
+          // Ordenar por fecha
+          historicalData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+          
+          console.log(`Datos cargados: ${historicalData.length} registros históricos de Benavente`);
+          resolve();
+        }, 800);
+      } catch (error) {
+        console.error("Error procesando datos históricos:", error);
+        reject(error);
+      }
     });
   };
 
   // Manejadores de intenciones
   const intentHandlers = {
-    current_ (entities, context) => {
+    current_data: (entities, context) => {
       // Si no hay parámetros específicos, usar el último parámetro mencionado o uno por defecto
       let parameters = entities.parameters.length > 0 ? entities.parameters : 
                       (context.lastParameter ? [context.lastParameter] : ['temperatura']);
@@ -1379,9 +1403,9 @@
             break;
           case 'humedad':
             if (latestData.hum > 70) {
-              contextAnalysis = `La alta humedad en ${benaventeInfo.location} puede hacer que la temperatura se sienta más alta de lo que realmente es. La humedad promedio en Benavente es del 65%.`;
+              contextAnalysis = `La alta humedad en ${benaventeInfo.location} puede hacer que la temperatura se sienta más alta de lo que realmente es. Considera usar ropa transpirable. La humedad promedio en Benavente es del 65%.`;
             } else if (latestData.hum < 30) {
-              contextAnalysis = `La baja humedad en ${benaventeInfo.location} puede causar sequedad en la piel y las vías respiratorias. Esto es menos común en Benavente, que tiene una humedad promedio del 65%.`;
+              contextAnalysis = `La baja humedad en ${benaventeInfo.location} puede causar sequedad en la piel y las vías respiratorias. Considera usar humectante y mantenerte hidratado. Esto es menos común en Benavente, que tiene una humedad promedio del 65%.`;
             } else {
               contextAnalysis = `La humedad actual en ${benaventeInfo.location} está cerca del promedio típico de la zona (65%). Benavente tiene un clima mediterráneo continentalizado con humedad moderada.`;
             }
@@ -1390,7 +1414,7 @@
             if (latestData.pres < 1000) {
               contextAnalysis = `La presión atmosférica baja en ${benaventeInfo.location} suele indicar condiciones climáticas inestables. Considera que Benavente está a ${benaventeInfo.altitude} sobre el nivel del mar, lo que afecta la presión atmosférica.`;
             } else if (latestData.pres > 1020) {
-              contextAnalysis = `La presión atmosférica alta en ${benaventeInfo.location} suele indicar condiciones climáticas estables y buen tiempo. Benavente tiene una presión atmosférica promedio de alrededor de 1010 hPa debido a su altitud de ${benaventeInfo.altitude}.`;
+              contextAnalysis = `La presión atmosférica alta en ${benaventeInfo.location} suele indicar condiciones climáticas estables y buen tiempo. Es un buen momento para actividades al aire libre. Benavente tiene una presión atmosférica promedio de alrededor de 1010 hPa debido a su altitud de ${benaventeInfo.altitude}.`;
             } else {
               contextAnalysis = `La presión atmosférica en ${benaventeInfo.location} está en un nivel normal para su altitud (${benaventeInfo.altitude}). Benavente se encuentra en la llanura del Duero, lo que influye en sus patrones de presión.`;
             }
@@ -1941,10 +1965,10 @@
           if (correlationCoefficient < 0) {
             response += `<p>Es común observar una correlación negativa entre temperatura y humedad en ${benaventeInfo.location}, `;
             response += `ya que el aire caliente puede contener más vapor de agua, pero la humedad relativa disminuye a medida que la temperatura aumenta. `;
-            response += `Este patrón es típico del clima mediterráneo continentalizado de Benavente.`;
+            response += `Este patrón es típico del clima mediterráneo continentalizado de Benavente.</p>`;
           } else {
             response += `<p>En ${benaventeInfo.location}, normalmente se observa una correlación negativa entre temperatura y humedad. `;
-            response += `El hecho de que estemos observando una correlación positiva sugiere condiciones climáticas inusuales en el periodo analizado.`;
+            response += `El hecho de que estemos observando una correlación positiva sugiere condiciones climáticas inusuales en el periodo analizado.</p>`;
           }
         }
         
@@ -1952,7 +1976,7 @@
             (parameter1 === 'lluvia' && parameter2 === 'presión')) {
           if (correlationCoefficient < 0) {
             response += `<p>Es típico observar que la presión atmosférica baja antes de una lluvia en ${benaventeInfo.location}, `;
-            response += `lo que explica la correlación negativa. Este patrón es consistente con el clima mediterráneo continentalizado de la zona.`;
+            response += `lo que explica la correlación negativa. Este patrón es consistente con el clima mediterráneo continentalizado de la zona.</p>`;
           }
         }
         
@@ -1960,7 +1984,7 @@
             (parameter1 === 'presión' && parameter2 === 'temperatura')) {
           if (Math.abs(correlationCoefficient) < 0.3) {
             response += `<p>La temperatura y la presión atmosférica en ${benaventeInfo.location} suelen tener una relación compleja que depende de muchos factores, `;
-            response += `por lo que no siempre se observa una correlación clara. La altitud de ${benaventeInfo.altitude} influye en esta relación.`;
+            response += `por lo que no siempre se observa una correlación clara. La altitud de ${benaventeInfo.altitude} influye en esta relación.</p>`;
           }
         }
         
@@ -2317,7 +2341,7 @@
             <li>Utilizar asistentes diseñados para esos temas</li>
           </ul>
           
-          <p class="benavente-context">Si tu pregunta está relacionada con el clima de Benavente o el sistema Horus instalado en la zona, ¡haré lo posible por ayudarte! Recuerda que Benavente tiene un clima mediterráneo continentalizado con temperaturas que varían desde -5°C en invierno hasta más de 35°C en verano.</p>
+          <p class="benavente-context"><strong>Información clave sobre Benavente:</strong> Ubicado a ${benaventeInfo.altitude} en la llanura del Duero, tiene un clima mediterráneo continentalizado con veranos calurosos e inviernos fríos.</p>
         </div>`
       };
       
@@ -2526,10 +2550,10 @@
     // Crea el nuevo gráfico
     const chart = new Chart(chartCtx, {
       type: 'line',
-       {
+      data: {
         datasets: [{
           label: paramName,
-           chartData,
+          data: chartData,
           borderColor: color,
           backgroundColor: `${color}40`,
           borderWidth: 3,
@@ -2623,11 +2647,11 @@
     // Crea el nuevo gráfico
     const chart = new Chart(chartCtx, {
       type: 'line',
-       {
+      data: {
         datasets: [
           {
             label: period1,
-             chartData1,
+            data: chartData1,
             borderColor: color1,
             backgroundColor: `${color1}40`,
             borderWidth: 3,
@@ -2636,7 +2660,7 @@
           },
           {
             label: period2,
-             chartData2,
+            data: chartData2,
             borderColor: color2,
             backgroundColor: `${color2}40`,
             borderWidth: 3,
@@ -2746,10 +2770,10 @@
     // Crea el nuevo gráfico
     const chart = new Chart(chartCtx, {
       type: 'line',
-       {
+      data: {
         datasets: [{
           label: paramName,
-           dataWithMarkers,
+          data: dataWithMarkers,
           borderColor: color,
           backgroundColor: `${color}40`,
           borderWidth: 3,
@@ -2852,11 +2876,11 @@
     // Crea el nuevo gráfico
     const chart = new Chart(chartCtx, {
       type: 'line',
-       {
+      data: {
         datasets: [
           {
             label: paramName1,
-             chartData.map(item => ({ x: item.x, y: item.y1 })),
+            data: chartData.map(item => ({ x: item.x, y: item.y1 })),
             borderColor: color1,
             backgroundColor: `${color1}40`,
             borderWidth: 3,
@@ -2865,7 +2889,7 @@
           },
           {
             label: paramName2,
-             chartData.map(item => ({ x: item.x, y: item.y2 })),
+            data: chartData.map(item => ({ x: item.x, y: item.y2 })),
             borderColor: color2,
             backgroundColor: `${color2}40`,
             borderWidth: 3,
@@ -3015,7 +3039,7 @@
         // Intentar identificar parámetros incluso sin intención clara
         if (entities.parameters.length > 0) {
           // Si hay parámetros pero no intención clara, asumir consulta actual
-          return intentHandlers.current_({
+          return intentHandlers.current_data({
             parameters: entities.parameters,
             periods: ['hoy'],
             locations: ['benavente']
