@@ -1268,7 +1268,7 @@
 
   // Manejadores de intenciones
   const intentHandlers = {
-    current_ (entities, context) => {
+    current_data: (entities, context) => {
       // Si no hay parámetros específicos, usar el último parámetro mencionado o uno por defecto
       let parameters = entities.parameters.length > 0 ? entities.parameters : 
                       (context.lastParameter ? [context.lastParameter] : ['temperatura']);
