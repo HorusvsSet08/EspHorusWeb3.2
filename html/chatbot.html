@@ -49,8 +49,8 @@
 
 <div class="container">
   <header>
-    <h1>🤖 Horus AI - Análisis Avanzado</h1>
-    <p>Un asistente inteligente con análisis semántico avanzado y procesamiento profundo de preguntas</p>
+    <h1>🤖 Horus AI - Asistente Inteligente</h1>
+    <p>Un asistente con análisis meteorológico avanzado y soporte para preguntas generales</p>
   </header>
   
   <main id="chat-container" class="chat-main-container">
@@ -60,18 +60,20 @@
           <span>🤖</span>
         </div>
         <div class="message-content">
-          ¡Hola! Soy Horus AI, tu asistente meteorológico especializado.<br><br>
+          ¡Hola! Soy Horus AI, tu asistente inteligente especializado en meteorología.<br><br>
           <strong>Puedo ayudarte con:</strong>
           <ul>
             <li>Consultar la temperatura, humedad, presión y otros datos actuales</li>
             <li>Analizar tendencias históricas de los últimos días, semanas o meses</li>
             <li>Comparar condiciones meteorológicas entre diferentes periodos</li>
             <li>Predecir condiciones climáticas basado en datos históricos</li>
+            <li>Responder preguntas generales sobre el sistema Horus</li>
+            <li>Ayudar con preguntas básicas no relacionadas con el clima</li>
           </ul>
           <br>
           <strong>Ejemplos de preguntas:</strong>
           <div class="suggestion">¿Cuál es la temperatura actual?</div>
-          <div class="suggestion">¿Cómo ha sido la humedad esta semana?</div>
+          <div class="suggestion">¿Cómo funciona este sistema?</div>
           <div class="suggestion">Muestra la tendencia de presión de los últimos 7 días</div>
         </div>
         <div class="message-time">Ahora</div>
@@ -79,7 +81,7 @@
     </div>
     
     <div class="chat-input-container">
-      <input type="text" id="user-input" placeholder="Escribe tu pregunta sobre el clima...">
+      <input type="text" id="user-input" placeholder="Escribe tu pregunta...">
       <button id="send-button">Enviar</button>
     </div>
     
@@ -397,6 +399,65 @@
     font-size: 0.8rem;
     margin-top: 5px;
   }
+  
+  /* Soporte para preguntas generales */
+  .general-answer {
+    margin-top: 15px;
+    background: rgba(0, 150, 255, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+  }
+  
+  .general-answer h3 {
+    color: var(--primary);
+    margin-top: 0;
+  }
+  
+  .general-answer p {
+    line-height: 1.6;
+  }
+  
+  .general-answer ul {
+    padding-left: 20px;
+    margin: 10px 0;
+  }
+  
+  .general-answer li {
+    margin-bottom: 5px;
+  }
+  
+  .system-info {
+    margin-top: 15px;
+    background: rgba(76, 175, 80, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+  }
+  
+  .system-info h3 {
+    color: #4CAF50;
+    margin-top: 0;
+  }
+  
+  .system-info p {
+    line-height: 1.6;
+  }
+  
+  /* Soporte para preguntas fuera del ámbito */
+  .out-of-scope {
+    margin-top: 15px;
+    background: rgba(244, 67, 54, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+  }
+  
+  .out-of-scope h3 {
+    color: #f44336;
+    margin-top: 0;
+  }
+  
+  .out-of-scope p {
+    line-height: 1.6;
+  }
 </style>
 
 <script>
@@ -518,9 +579,47 @@
     probabilidad: ['probabilidad', 'probable', 'posibilidad', 'posible', 'chance', 'oportunidad', 'riesgo']
   };
 
+  // Diccionario de términos generales
+  const generalTerms = {
+    // Sistema Horus
+    horus: ['horus', 'sistema horus', 'estación horus', 'estacion horus', 'estación meteorológica', 'estacion meteorologica', 'sistema meteorológico', 'sistema meteorologico'],
+    
+    // Información general
+    about: ['qué es', 'que es', 'qué es esto', 'que es esto', 'para qué sirve', 'para que sirve', 'qué hace', 'que hace', 'funciona', 'cómo funciona', 'como funciona'],
+    
+    // Ayuda
+    help: ['ayuda', 'funciona', 'cómo', 'como', 'puedo', 'capaz', 'hacer', 'qué', 'que', 'preguntar', 'instrucciones', 'ejemplo', 'ejemplos', 'guía', 'manual', 'tutorial'],
+    
+    // Saludos
+    greeting: ['hola', 'buenos días', 'buenos dias', 'buenas tardes', 'hey', 'saludos', 'buen día', 'buen dia', 'buenas noches', 'que tal', 'como estas', 'cómo estás'],
+    
+    // Despedidas
+    goodbye: ['adiós', 'adios', 'gracias', 'chao', 'hasta luego', 'hasta pronto', 'nos vemos', 'bye', 'gracías', 'gracias', 'fue útil', 'fue util'],
+    
+    // Soporte técnico
+    support: ['problema', 'error', 'no funciona', 'fallo', 'bug', 'no carga', 'lento', 'lentitud', 'lenta', 'lento', 'no responde', 'no me deja', 'no puedo'],
+    
+    // Información personal
+    personal: ['quién eres', 'quien eres', 'quién eres tú', 'quien eres tu', 'quién te hizo', 'quien te hizo', 'quién te creó', 'quien te creo', 'tu creador', 'tu creador es'],
+    
+    // Preguntas generales
+    general: ['cuál es tu nombre', 'cual es tu nombre', 'cómo te llamas', 'como te llamas', 'qué edad tienes', 'que edad tienes', 'dónde vives', 'donde vives', 'qué hora es', 'que hora es'],
+    
+    // Soporte para preguntas fuera del ámbito
+    outOfScope: {
+      salud: ['salud', 'médico', 'doctor', 'enfermedad', 'enfermo', 'hospital', 'farmacia', 'medicina', 'medicamento', 'cura'],
+      tecnología: ['tecnología', 'tecnologia', 'computadora', 'ordenador', 'pc', 'laptop', 'smartphone', 'móvil', 'celular', 'internet', 'wifi', 'redes'],
+      deportes: ['deportes', 'fútbol', 'futbol', 'baloncesto', 'tenis', 'golf', 'atletismo', 'deporte', 'equipo', 'partido', 'liga'],
+      entretenimiento: ['entretenimiento', 'película', 'pelicula', 'cine', 'música', 'musica', 'canción', 'cancion', 'serie', 'televisión', 'tv'],
+      comida: ['comida', 'receta', 'cocina', 'plato', 'platos', 'cocinar', 'comer', 'restaurante', 'recetas', 'recetario'],
+      educación: ['educación', 'educacion', 'escuela', 'colegio', 'universidad', 'clase', 'clases', 'estudio', 'estudiar', 'profesor'],
+      finanzas: ['finanzas', 'dinero', 'banco', 'cuenta', 'tarjeta', 'crédito', 'credito', 'ahorro', 'inversión', 'inversion']
+    }
+  };
+
   // Mapeo de intenciones mejorado
   const intentMap = {
-    current_data: {
+    current_ {
       keywords: ['actual', 'ahora', 'en este momento', 'en directo', 'presente', 'en tiempo real', 'hoy'],
       parameters: ['temperatura', 'humedad', 'presión', 'lluvia', 'viento', 'gas', 'dirección'],
       required: []
@@ -565,7 +664,27 @@
       parameters: [],
       required: []
     },
-    unrelated: {
+    about_horus: {
+      keywords: ['horus', 'sistema horus', 'estación horus', 'estacion horus', 'estación meteorológica', 'estacion meteorologica', 'sistema meteorológico', 'sistema meteorologico', 'para qué sirve', 'para que sirve', 'qué hace', 'que hace'],
+      parameters: [],
+      required: []
+    },
+    support: {
+      keywords: ['problema', 'error', 'no funciona', 'fallo', 'bug', 'no carga', 'lento', 'lentitud', 'lenta', 'lento', 'no responde', 'no me deja', 'no puedo'],
+      parameters: [],
+      required: []
+    },
+    personal: {
+      keywords: ['quién eres', 'quien eres', 'quién eres tú', 'quien eres tu', 'quién te hizo', 'quien te hizo', 'quién te creó', 'quien te creo', 'tu creador', 'tu creador es'],
+      parameters: [],
+      required: []
+    },
+    general: {
+      keywords: ['cuál es tu nombre', 'cual es tu nombre', 'cómo te llamas', 'como te llamas', 'qué edad tienes', 'que edad tienes', 'dónde vives', 'donde vives', 'qué hora es', 'que hora es'],
+      parameters: [],
+      required: []
+    },
+    out_of_scope: {
       keywords: [],
       parameters: [],
       required: []
@@ -702,7 +821,8 @@
         locations: [],
         numbers: [],
         comparisons: [],
-        operations: []
+        operations: [],
+        general: []
       };
       
       const normalizedText = text.toLowerCase();
@@ -760,11 +880,40 @@
         entities.operations.push('difference');
       }
       
+      // Identificar términos generales
+      Object.keys(generalTerms).forEach(term => {
+        if (term === 'outOfScope') return;
+        
+        // Verificar el término principal
+        if (normalizedText.includes(term)) {
+          entities.general.push(term);
+        }
+        
+        // Verificar sinónimos
+        if (Array.isArray(generalTerms[term])) {
+          generalTerms[term].forEach(synonym => {
+            if (normalizedText.includes(synonym)) {
+              entities.general.push(term);
+            }
+          });
+        }
+      });
+      
+      // Identificar preguntas fuera del ámbito
+      Object.keys(generalTerms.outOfScope).forEach(domain => {
+        generalTerms.outOfScope[domain].forEach(keyword => {
+          if (normalizedText.includes(keyword)) {
+            entities.general.push(`outOfScope_${domain}`);
+          }
+        });
+      });
+      
       // Eliminar duplicados
       entities.parameters = [...new Set(entities.parameters)];
       entities.periods = [...new Set(entities.periods)];
       entities.comparisons = [...new Set(entities.comparisons)];
       entities.operations = [...new Set(entities.operations)];
+      entities.general = [...new Set(entities.general)];
       
       return entities;
     },
@@ -774,147 +923,125 @@
       let bestIntent = null;
       let highestConfidence = 0;
       
-      // Si es una pregunta meteorológica, analizar intenciones meteorológicas
-      if (domainAnalysis.isWeatherQuestion) {
-        // Analizar cada posible intención
-        Object.keys(intentMap).forEach(intentType => {
-          if (intentType === 'unrelated') return; // Saltar la intención unrelated en este paso
-          
-          const intent = intentMap[intentType];
-          let confidence = 0;
-          
-          // Calcular coincidencia con palabras clave
-          intent.keywords.forEach(keyword => {
-            if (text.toLowerCase().includes(keyword)) {
-              confidence += 0.2;
-            }
-          });
-          
-          // Aumentar confianza si se encontraron parámetros relevantes
-          if (entities.parameters.length > 0 && intent.parameters.length > 0) {
-            const commonParams = entities.parameters.filter(p => intent.parameters.includes(p));
-            confidence += commonParams.length * 0.15;
-          }
-          
-          // Aumentar confianza si se encontraron periodos y la intención los requiere
-          if (intent.required.includes('period') && entities.periods.length > 0) {
+      // Analizar cada posible intención
+      Object.keys(intentMap).forEach(intentType => {
+        const intent = intentMap[intentType];
+        let confidence = 0;
+        
+        // Calcular coincidencia con palabras clave
+        intent.keywords.forEach(keyword => {
+          if (text.toLowerCase().includes(keyword)) {
             confidence += 0.2;
           }
-          
-          // Aumentar confianza si se encontraron múltiples periodos y la intención los requiere
-          if (intent.required.includes('periods') && entities.periods.length > 1) {
-            confidence += 0.25;
-          }
-          
-          // Aumentar confianza si se encontraron operaciones específicas
-          if (intentType === 'max_min' && entities.operations.includes('max')) {
-            confidence += 0.15;
-          }
-          if (intentType === 'max_min' && entities.operations.includes('min')) {
-            confidence += 0.15;
-          }
-          
-          // Ajustar confianza según el dominio
-          confidence *= domainAnalysis.confidence;
-          
-          // Verificar si es la mejor intención hasta ahora
-          if (confidence > highestConfidence) {
-            highestConfidence = confidence;
-            bestIntent = {
-              type: intentType,
-              confidence: confidence,
-              parameters: entities.parameters,
-              periods: entities.periods
-            };
-          }
         });
-      }
+        
+        // Aumentar confianza si se encontraron parámetros relevantes
+        if (entities.parameters.length > 0 && intent.parameters.length > 0) {
+          const commonParams = entities.parameters.filter(p => intent.parameters.includes(p));
+          confidence += commonParams.length * 0.15;
+        }
+        
+        // Aumentar confianza si se encontraron periodos y la intención los requiere
+        if (intent.required.includes('period') && entities.periods.length > 0) {
+          confidence += 0.2;
+        }
+        
+        // Aumentar confianza si se encontraron múltiples periodos y la intención los requiere
+        if (intent.required.includes('periods') && entities.periods.length > 1) {
+          confidence += 0.25;
+        }
+        
+        // Ajustar confianza según el dominio
+        if (intentType !== 'greeting' && intentType !== 'goodbye' && intentType !== 'help') {
+          confidence *= domainAnalysis.confidence;
+        }
+        
+        // Verificar si es la mejor intención hasta ahora
+        if (confidence > highestConfidence) {
+          highestConfidence = confidence;
+          bestIntent = {
+            type: intentType,
+            confidence: confidence,
+            parameters: entities.parameters,
+            periods: entities.periods
+          };
+        }
+      });
       
+      // CORRECCIÓN: Usar semanticAnalysis en lugar de this
       // Si no se encontró una intención clara, verificar saludos, despedidas o ayuda
       if (!bestIntent || highestConfidence < 0.4) {
-        if (this.isGreeting(text)) {
+        if (semanticAnalysis.isGreeting(text)) {
           return { type: 'greeting', confidence: 0.9, parameters: [], periods: [] };
         }
-        if (this.isGoodbye(text)) {
+        if (semanticAnalysis.isGoodbye(text)) {
           return { type: 'goodbye', confidence: 0.9, parameters: [], periods: [] };
         }
-        if (this.isHelpRequest(text)) {
+        if (semanticAnalysis.isHelpRequest(text)) {
           return { type: 'help', confidence: 0.8, parameters: [], periods: [] };
         }
       }
       
-      // Si no se encontró una intención clara pero hay parámetros, asumir que es una consulta actual
-      if (!bestIntent && entities.parameters.length > 0) {
+      // Si no se encontró una intención clara pero hay términos generales
+      if (!bestIntent && entities.general.length > 0) {
+        for (const generalTerm of entities.general) {
+          if (generalTerm.startsWith('outOfScope_')) {
+            const domain = generalTerm.replace('outOfScope_', '');
+            return {
+              type: 'out_of_scope',
+              confidence: 0.5,
+              domain: domain,
+              parameters: [],
+              periods: []
+            };
+          }
+          
+          // Mapear términos generales a intenciones
+          const intentMap = {
+            'about_horus': 'about_horus',
+            'support': 'support',
+            'personal': 'personal',
+            'general': 'general'
+          };
+          
+          if (intentMap[generalTerm]) {
+            return {
+              type: intentMap[generalTerm],
+              confidence: 0.6,
+              parameters: [],
+              periods: []
+            };
+          }
+        }
+      }
+      
+      // Si no se encontró una intención clara, pero es meteorológico
+      if (domainAnalysis.isWeatherQuestion && !bestIntent) {
+        if (entities.parameters.length > 0) {
+          return {
+            type: 'current_data',
+            confidence: 0.5,
+            parameters: entities.parameters,
+            periods: ['hoy']
+          };
+        }
+        
         return {
           type: 'current_data',
-          confidence: 0.7,
-          parameters: entities.parameters,
+          confidence: 0.4,
+          parameters: ['temperatura'],
           periods: ['hoy']
         };
       }
       
-      // Si no se encontró una intención clara pero hay periodos, asumir análisis histórico
-      if (!bestIntent && entities.periods.length > 0) {
+      // Si no se encontró una intención clara y no es meteorológico
+      if (!domainAnalysis.isWeatherQuestion && !bestIntent) {
         return {
-          type: 'historical_trend',
-          confidence: 0.65,
-          parameters: entities.parameters.length > 0 ? entities.parameters : ['temperatura'],
-          periods: entities.periods
-        };
-      }
-      
-      // Si no se encontró una intención clara pero hay comparaciones, asumir comparación
-      if (!bestIntent && entities.comparisons.length > 0) {
-        return {
-          type: 'comparison',
-          confidence: 0.6,
-          parameters: entities.parameters.length > 0 ? entities.parameters : ['temperatura'],
-          periods: entities.periods.length >= 2 ? entities.periods.slice(0, 2) : 
-                  (entities.periods.length === 1 ? [entities.periods[0], 'hoy'] : ['esta semana', 'hoy'])
-        };
-      }
-      
-      // Si hay parámetros pero no intención clara, intentar determinar la intención
-      if (entities.parameters.length > 0 && !bestIntent) {
-        // Si hay palabras como "máximo" o "mínimo", asumir max_min
-        if (text.toLowerCase().includes('máximo') || text.toLowerCase().includes('maximo') ||
-            text.toLowerCase().includes('mínimo') || text.toLowerCase().includes('minimo')) {
-          return {
-            type: 'max_min',
-            confidence: 0.55,
-            parameters: entities.parameters,
-            periods: entities.periods.length > 0 ? entities.periods : ['últimos 7 días']
-          };
-        }
-        
-        // Si hay palabras como "tendencia" o "evolución", asumir historical_trend
-        if (text.toLowerCase().includes('tendencia') || text.toLowerCase().includes('evolución') ||
-            text.toLowerCase().includes('analizar') || text.toLowerCase().includes('analisis')) {
-          return {
-            type: 'historical_trend',
-            confidence: 0.5,
-            parameters: entities.parameters,
-            periods: entities.periods.length > 0 ? entities.periods : ['últimos 7 días']
-          };
-        }
-        
-        // Si hay palabras como "mañana" o "futuro", asumir prediction
-        if (text.toLowerCase().includes('mañana') || text.toLowerCase().includes('futuro') ||
-            text.toLowerCase().includes('próximo') || text.toLowerCase().includes('siguiente')) {
-          return {
-            type: 'prediction',
-            confidence: 0.5,
-            parameters: entities.parameters,
-            periods: []
-          };
-        }
-        
-        // Por defecto, asumir consulta actual
-        return {
-          type: 'current_data',
-          confidence: 0.45,
-          parameters: entities.parameters,
-          periods: ['hoy']
+          type: 'out_of_scope',
+          confidence: 0.3,
+          domain: 'general',
+          parameters: [],
+          periods: []
         };
       }
       
@@ -1112,8 +1239,6 @@
 
   // Cargar datos históricos (simulación)
   const loadHistoricalData = async () => {
-    updateStatus("Cargando datos históricos...");
-    
     return new Promise((resolve) => {
       // Simulación de carga de datos
       setTimeout(() => {
@@ -1144,7 +1269,7 @@
 
   // Manejadores de intenciones
   const intentHandlers = {
-    current_data: (entities, context) => {
+    current_ (entities, context) => {
       // Si no hay parámetros específicos, usar el último parámetro mencionado o uno por defecto
       let parameters = entities.parameters.length > 0 ? entities.parameters : 
                       (context.lastParameter ? [context.lastParameter] : ['temperatura']);
@@ -1768,26 +1893,289 @@
         greeting = "¡Buenas noches! ";
       }
       
-      return `${greeting}Soy Horus AI, tu asistente meteorológico especializado. ¿En qué puedo ayudarte hoy?`;
+      return `${greeting}Soy Horus AI, tu asistente inteligente especializado en meteorología y sistemas Horus. ¿En qué puedo ayudarte hoy?`;
     },
     
     goodbye: () => {
-      return "¡Hasta luego! No dudes en volver si necesitas más información meteorológica.";
+      const hours = new Date().getHours();
+      let farewell;
+      
+      if (hours < 12) {
+        farewell = "¡Que tengas un buen día!";
+      } else if (hours < 18) {
+        farewell = "¡Que tengas una buena tarde!";
+      } else {
+        farewell = "¡Que tengas una buena noche!";
+      }
+      
+      return `${farewell} Si necesitas más ayuda en el futuro, no dudes en regresar. ¡Cuídate!`;
     },
     
     help: () => {
-      return `Puedo ayudarte con consultas meteorológicas como:\n\n` +
-             `- Consultar datos actuales: "¿Cuál es la temperatura ahora?"\n` +
-             `- Analizar tendencias históricas: "Muestra la tendencia de humedad esta semana"\n` +
-             `- Comparar periodos: "Compara la presión de esta semana con la semana pasada"\n` +
-             `- Predecir condiciones: "¿Qué tiempo hará mañana?"\n` +
-             `- Encontrar valores extremos: "¿Cuál fue la temperatura máxima esta semana?"\n` +
-             `- Analizar correlaciones: "¿Cómo se relaciona la temperatura con la humedad?"\n\n` +
-             `¿Sobre qué parámetro meteorológico te gustaría obtener información?`;
+      return `<div class="general-answer">
+        <h3>Ayuda con Horus AI</h3>
+        <p>Puedo ayudarte con consultas meteorológicas y sobre el sistema Horus:</p>
+        
+        <h4>Preguntas meteorológicas</h4>
+        <ul>
+          <li>"¿Cuál es la temperatura actual?"</li>
+          <li>"¿Cómo ha sido la tendencia de humedad esta semana?"</li>
+          <li>"Muestra la tendencia de presión de los últimos 7 días"</li>
+          <li>"¿Cómo se relaciona la humedad con la lluvia?"</li>
+          <li>"¿Qué tiempo hará mañana?"</li>
+        </ul>
+        
+        <h4>Preguntas sobre Horus</h4>
+        <ul>
+          <li>"¿Qué es Horus?"</li>
+          <li>"¿Cómo funciona el sistema Horus?"</li>
+          <li>"¿Qué sensores tiene Horus?"</li>
+          <li>"¿Dónde está ubicado Horus?"</li>
+        </ul>
+        
+        <h4>Preguntas generales</h4>
+        <ul>
+          <li>"¿Cómo te llamas?"</li>
+          <li>"¿Quién te creó?"</li>
+          <li>"¿Qué puedes hacer?"</li>
+        </ul>
+        
+        <p>¡Hazme cualquier pregunta y haré lo posible por ayudarte!</p>
+      </div>`;
+    },
+    
+    about_horus: () => {
+      return `<div class="system-info">
+        <h3>Sistema Horus</h3>
+        <p>Horus es una estación meteorológica avanzada diseñada para monitorear condiciones climáticas en tiempo real.</p>
+        
+        <h4>Características principales:</h4>
+        <ul>
+          <li>Medición de temperatura, humedad, presión atmosférica y dirección del viento</li>
+          <li>Sensores de calidad del aire (PM2.5, PM10, CO2)</li>
+          <li>Registro de precipitaciones y velocidad del viento</li>
+          <li>Transmisión de datos en tiempo real vía MQTT</li>
+          <li>Interfaz web para visualización y análisis de datos</li>
+        </ul>
+        
+        <h4>Tecnología utilizada:</h4>
+        <ul>
+          <li>ESP32 para procesamiento y comunicación</li>
+          <li>Sensores BME280, BMP180, anemómetro, pluviómetro</li>
+          <li>Protocolo MQTT para transmisión de datos</li>
+          <li>Visualización con A-Frame para realidad virtual</li>
+          <li>Plataforma web con análisis de datos en tiempo real</li>
+        </ul>
+        
+        <p>Horus proporciona datos meteorológicos precisos para análisis climáticos, predicciones y estudios ambientales.</p>
+      </div>`;
+    },
+    
+    support: () => {
+      return `<div class="system-info">
+        <h3>Soporte Técnico</h3>
+        <p>Si estás teniendo problemas con Horus AI, aquí hay algunas soluciones:</p>
+        
+        <h4>Problemas comunes:</h4>
+        <ul>
+          <li><strong>Datos no actualizados:</strong> Verifica la conexión de la estación Horus y espera unos minutos para que se actualicen los datos.</li>
+          <li><strong>Interfaz lenta:</strong> Intenta actualizar la página o limpiar la caché del navegador.</li>
+          <li><strong>Gráficos no visibles:</strong> Asegúrate de que JavaScript está habilitado en tu navegador.</li>
+          <li><strong>Error de conexión:</strong> Verifica tu conexión a internet y recarga la página.</li>
+        </ul>
+        
+        <h4>Solución de problemas:</h4>
+        <ol>
+          <li>Recarga la página (F5 o Ctrl + R)</li>
+          <li>Limpia la caché del navegador</li>
+          <li>Intenta con otro navegador (Chrome, Firefox, Edge)</li>
+          <li>Verifica tu conexión a internet</li>
+        </ol>
+        
+        <p>Si el problema persiste, contacta al administrador del sistema para obtener ayuda adicional.</p>
+      </div>`;
+    },
+    
+    personal: () => {
+      return `<div class="system-info">
+        <h3>Sobre Horus AI</h3>
+        <p>Soy Horus AI, un asistente inteligente especializado en meteorología y sistemas Horus.</p>
+        
+        <h4>Mis capacidades:</h4>
+        <ul>
+          <li>Analizar y explicar datos meteorológicos en tiempo real</li>
+          <li>Identificar tendencias y patrones climáticos</li>
+          <li>Realizar predicciones basadas en datos históricos</li>
+          <li>Explicar el funcionamiento del sistema Horus</li>
+          <li>Proporcionar recomendaciones basadas en condiciones climáticas</li>
+        </ul>
+        
+        <h4>Mi propósito:</h4>
+        <p>Fui creado para facilitar el acceso y comprensión de los datos meteorológicos recopilados por la estación Horus, ayudando a usuarios a tomar decisiones informadas basadas en el clima.</p>
+        
+        <p>No soy un humano, sino un sistema de inteligencia artificial diseñado específicamente para análisis meteorológico y soporte del sistema Horus.</p>
+      </div>`;
+    },
+    
+    general: () => {
+      const now = new Date();
+      return `<div class="system-info">
+        <h3>Información General</h3>
+        
+        <h4>Nombre:</h4>
+        <p>Horus AI - Asistente Meteorológico Inteligente</p>
+        
+        <h4>Hora actual:</h4>
+        <p>${now.toLocaleTimeString('es-ES', { 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          second: '2-digit'
+        })}</p>
+        
+        <h4>Fecha actual:</h4>
+        <p>${now.toLocaleDateString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })}</p>
+        
+        <h4>Ubicación:</h4>
+        <p>Estoy alojado en un servidor web y no tengo una ubicación física específica. Los datos meteorológicos provienen de la estación Horus.</p>
+        
+        <h4>Edad:</h4>
+        <p>Fui desarrollado recientemente como parte del sistema Horus. No tengo una edad en el sentido humano.</p>
+      </div>`;
+    },
+    
+    out_of_scope: (intent) => {
+      const domain = intent.domain || 'general';
+      
+      // Mensajes personalizados según el ámbito
+      const domainMessages = {
+        salud: `<div class="out-of-scope">
+          <h3>Preguntas sobre Salud</h3>
+          <p>Soy un asistente meteorológico especializado, no tengo información médica. Para consultas sobre salud:</p>
+          <ul>
+            <li>Contacta a un profesional médico calificado</li>
+            <li>Visita un centro de salud o hospital</li>
+            <li>Consulta fuentes oficiales de salud pública</li>
+          </ul>
+          <p>La información meteorológica puede influir en ciertas condiciones de salud, pero no sustituye el consejo médico profesional.</p>
+        </div>`,
+        
+        tecnología: `<div class="out-of-scope">
+          <h3>Preguntas sobre Tecnología</h3>
+          <p>Soy un asistente meteorológico especializado. Para consultas sobre tecnología:</p>
+          <ul>
+            <li>Consulta foros especializados como Stack Overflow</li>
+            <li>Revisa documentación oficial de los productos</li>
+            <li>Busca tutoriales en YouTube o plataformas educativas</li>
+          </ul>
+          <p>Puedo ayudarte con aspectos tecnológicos relacionados con el sistema Horus, pero no con otros temas tecnológicos generales.</p>
+        </div>`,
+        
+        deportes: `<div class="out-of-scope">
+          <h3>Preguntas sobre Deportes</h3>
+          <p>Soy un asistente meteorológico especializado. Para información sobre deportes:</p>
+          <ul>
+            <li>Visita sitios web especializados en deportes</li>
+            <li>Sigue canales deportivos de televisión</li>
+            <li>Consulta aplicaciones deportivas oficiales</li>
+          </ul>
+          <p>Puedo informarte cómo las condiciones meteorológicas pueden afectar actividades deportivas al aire libre.</p>
+        </div>`,
+        
+        entretenimiento: `<div class="out-of-scope">
+          <h3>Preguntas sobre Entretenimiento</h3>
+          <p>Soy un asistente meteorológico especializado. Para información sobre entretenimiento:</p>
+          <ul>
+            <li>Visita plataformas de streaming como Netflix, Spotify</li>
+            <li>Sigue medios especializados en cine, música y televisión</li>
+            <li>Consulta sitios web oficiales de artistas y producciones</li>
+          </ul>
+          <p>El clima puede influir en tus planes de entretenimiento al aire libre, pero no puedo recomendarte películas o música.</p>
+        </div>`,
+        
+        comida: `<div class="out-of-scope">
+          <h3>Preguntas sobre Comida</h3>
+          <p>Soy un asistente meteorológico especializado. Para recetas o información sobre comida:</p>
+          <ul>
+            <li>Consulta sitios web especializados en gastronomía</li>
+            <li>Sigue chefs y canales culinarios</li>
+            <li>Usa aplicaciones de recetas como Tasty o AllRecipes</li>
+          </ul>
+          <p>El clima puede afectar la disponibilidad de ciertos alimentos de temporada, pero no puedo proporcionar recetas específicas.</p>
+        </div>`,
+        
+        educación: `<div class="out-of-scope">
+          <h3>Preguntas sobre Educación</h3>
+          <p>Soy un asistente meteorológico especializado. Para información educativa:</p>
+          <ul>
+            <li>Consulta plataformas educativas como Khan Academy</li>
+            <li>Visita bibliotecas digitales y recursos académicos</li>
+            <li>Contacta a profesores o instituciones educativas</li>
+          </ul>
+          <p>Puedo proporcionar información sobre meteorología y ciencias atmosféricas, pero no sobre otros temas educativos.</p>
+        </div>`,
+        
+        finanzas: `<div class="out-of-scope">
+          <h3>Preguntas sobre Finanzas</h3>
+          <p>Soy un asistente meteorológico especializado. Para consultas financieras:</p>
+          <ul>
+            <li>Consulta a un asesor financiero certificado</li>
+            <li>Visita sitios web especializados en finanzas</li>
+            <li>Revisa información oficial de instituciones financieras</li>
+          </ul>
+          <p>El clima puede afectar ciertos sectores económicos, pero no puedo proporcionar asesoramiento financiero.</p>
+        </div>`,
+        
+        general: `<div class="out-of-scope">
+          <h3>Preguntas Fuera de Mi Ámbito</h3>
+          <p>Soy un asistente meteorológico especializado en el sistema Horus. Mi conocimiento está limitado a:</p>
+          <ul>
+            <li>Monitoreo y análisis de datos meteorológicos</li>
+            <li>Funcionamiento del sistema Horus</li>
+            <li>Análisis de tendencias climáticas</li>
+            <li>Predicciones basadas en datos históricos</li>
+          </ul>
+          
+          <p>Para otras preguntas, te recomiendo:</p>
+          <ul>
+            <li>Buscar en fuentes especializadas en el tema</li>
+            <li>Consultar a expertos en el campo específico</li>
+            <li>Utilizar asistentes diseñados para esos temas</li>
+          </ul>
+          
+          <p>Si tu pregunta está relacionada con el clima o Horus, ¡haré lo posible por ayudarte!</p>
+        </div>`
+      };
+      
+      return domainMessages[domain] || domainMessages.general;
     },
     
     unrelated: (entities, context) => {
-      return "No estoy seguro de entender tu pregunta. Soy un asistente meteorológico especializado. ¿Podrías reformular tu pregunta relacionada con el clima o las condiciones atmosféricas? Por ejemplo, puedes preguntar sobre temperatura, humedad, presión atmosférica o viento.";
+      return `<div class="out-of-scope">
+        <h3>No Entiendo Tu Pregunta</h3>
+        <p>No estoy seguro de entender tu pregunta. Soy un asistente meteorológico especializado en el sistema Horus.</p>
+        
+        <h4>¿Cómo puedo ayudarte?</h4>
+        <ul>
+          <li>Consultar datos meteorológicos actuales</li>
+          <li>Analizar tendencias climáticas históricas</li>
+          <li>Realizar predicciones basadas en datos</li>
+          <li>Explicar el funcionamiento de Horus</li>
+        </ul>
+        
+        <p>Ejemplos de preguntas que puedo responder:</p>
+        <ul>
+          <li>"¿Cuál es la temperatura actual?"</li>
+          <li>"¿Cómo funciona el sistema Horus?"</li>
+          <li>"Muestra la tendencia de presión de los últimos 7 días"</li>
+        </ul>
+        
+        <p>Por favor, reformula tu pregunta para que esté relacionada con el clima o el sistema Horus.</p>
+      </div>`;
     }
   };
 
@@ -1965,10 +2353,10 @@
     // Crea el nuevo gráfico
     const chart = new Chart(chartCtx, {
       type: 'line',
-      data: {
+       {
         datasets: [{
           label: paramName,
-          data: chartData,
+           chartData,
           borderColor: color,
           backgroundColor: `${color}40`,
           borderWidth: 3,
@@ -2062,11 +2450,11 @@
     // Crea el nuevo gráfico
     const chart = new Chart(chartCtx, {
       type: 'line',
-      data: {
+       {
         datasets: [
           {
             label: period1,
-            data: chartData1,
+             chartData1,
             borderColor: color1,
             backgroundColor: `${color1}40`,
             borderWidth: 3,
@@ -2075,7 +2463,7 @@
           },
           {
             label: period2,
-            data: chartData2,
+             chartData2,
             borderColor: color2,
             backgroundColor: `${color2}40`,
             borderWidth: 3,
@@ -2185,10 +2573,10 @@
     // Crea el nuevo gráfico
     const chart = new Chart(chartCtx, {
       type: 'line',
-      data: {
+       {
         datasets: [{
           label: paramName,
-          data: dataWithMarkers,
+           dataWithMarkers,
           borderColor: color,
           backgroundColor: `${color}40`,
           borderWidth: 3,
@@ -2291,11 +2679,11 @@
     // Crea el nuevo gráfico
     const chart = new Chart(chartCtx, {
       type: 'line',
-      data: {
+       {
         datasets: [
           {
             label: paramName1,
-            data: chartData.map(item => ({ x: item.x, y: item.y1 })),
+             chartData.map(item => ({ x: item.x, y: item.y1 })),
             borderColor: color1,
             backgroundColor: `${color1}40`,
             borderWidth: 3,
@@ -2304,7 +2692,7 @@
           },
           {
             label: paramName2,
-            data: chartData.map(item => ({ x: item.x, y: item.y2 })),
+             chartData.map(item => ({ x: item.x, y: item.y2 })),
             borderColor: color2,
             backgroundColor: `${color2}40`,
             borderWidth: 3,
@@ -2395,7 +2783,7 @@
     // Entidades para la respuesta
     const detectedEntities = {
       parameters: entities.parameters,
-      temporal: entities.periods,
+      temporal: entities.temporal,
       comparisons: entities.comparisons,
       operations: entities.operations
     };
@@ -2468,12 +2856,50 @@
       
       // Si no se identifica un ámbito específico
       if (!domainAnalysis.isWeatherQuestion) {
-        if (normalizedMessage.includes('política') || normalizedMessage.includes('politica')) {
-          return "Soy un asistente meteorológico especializado. Para información política, te recomiendo consultar fuentes especializadas en política y actualidad.";
+        // Verificar si es una pregunta sobre Horus
+        if (normalizedMessage.includes('horus') || normalizedMessage.includes('sistema')) {
+          return intentHandlers.about_horus();
         }
-        if (normalizedMessage.includes('religión') || normalizedMessage.includes('religion')) {
-          return "Soy un asistente meteorológico especializado. Para información sobre religión, te recomiendo consultar fuentes especializadas en este tema.";
+        
+        // Verificar si es una pregunta de soporte técnico
+        if (normalizedMessage.includes('problema') || normalizedMessage.includes('error') || 
+            normalizedMessage.includes('no funciona') || normalizedMessage.includes('lento')) {
+          return intentHandlers.support();
         }
+        
+        // Verificar si es una pregunta personal
+        if (normalizedMessage.includes('quién eres') || normalizedMessage.includes('quien eres') ||
+            normalizedMessage.includes('cómo te llamas') || normalizedMessage.includes('como te llamas')) {
+          return intentHandlers.personal();
+        }
+        
+        // Verificar si es una pregunta general
+        if (normalizedMessage.includes('nombre') || normalizedMessage.includes('hora') ||
+            normalizedMessage.includes('edad') || normalizedMessage.includes('vives')) {
+          return intentHandlers.general();
+        }
+        
+        // Verificar el dominio de preguntas fuera del ámbito
+        let domain = 'general';
+        if (normalizedMessage.includes('salud') || normalizedMessage.includes('médico')) {
+          domain = 'salud';
+        } else if (normalizedMessage.includes('tecnología') || normalizedMessage.includes('tecnologia') ||
+                   normalizedMessage.includes('computadora') || normalizedMessage.includes('internet')) {
+          domain = 'tecnología';
+        } else if (normalizedMessage.includes('deportes') || normalizedMessage.includes('fútbol')) {
+          domain = 'deportes';
+        } else if (normalizedMessage.includes('entretenimiento') || normalizedMessage.includes('película') ||
+                   normalizedMessage.includes('música')) {
+          domain = 'entretenimiento';
+        } else if (normalizedMessage.includes('comida') || normalizedMessage.includes('receta')) {
+          domain = 'comida';
+        } else if (normalizedMessage.includes('educación') || normalizedMessage.includes('escuela')) {
+          domain = 'educación';
+        } else if (normalizedMessage.includes('finanzas') || normalizedMessage.includes('dinero')) {
+          domain = 'finanzas';
+        }
+        
+        return intentHandlers.out_of_scope({ domain });
       }
       
       // Si es una pregunta hipotética
@@ -2514,7 +2940,27 @@
       }
       
       // Si no hay contexto previo y no es claramente fuera de ámbito, asumimos que es general
-      return "No estoy seguro de entender tu pregunta. Soy un asistente meteorológico especializado. ¿Podrías reformular tu pregunta relacionada con el clima o las condiciones atmosféricas? Por ejemplo, puedes preguntar sobre temperatura, humedad, presión atmosférica o viento.";
+      return `<div class="out-of-scope">
+        <h3>No Entiendo Tu Pregunta</h3>
+        <p>No estoy seguro de entender tu pregunta. Soy un asistente meteorológico especializado en el sistema Horus.</p>
+        
+        <h4>¿Cómo puedo ayudarte?</h4>
+        <ul>
+          <li>Consultar datos meteorológicos actuales</li>
+          <li>Analizar tendencias climáticas históricas</li>
+          <li>Realizar predicciones basadas en datos</li>
+          <li>Explicar el funcionamiento de Horus</li>
+        </ul>
+        
+        <p>Ejemplos de preguntas que puedo responder:</p>
+        <ul>
+          <li>"¿Cuál es la temperatura actual?"</li>
+          <li>"¿Cómo funciona el sistema Horus?"</li>
+          <li>"Muestra la tendencia de presión de los últimos 7 días"</li>
+        </ul>
+        
+        <p>Por favor, reformula tu pregunta para que esté relacionada con el clima o el sistema Horus.</p>
+      </div>`;
       
     } catch (error) {
       console.error('Error procesando mensaje:', error);
