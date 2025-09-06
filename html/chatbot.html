@@ -968,16 +968,15 @@
         }
       });
       
-      // CORRECCIÓN: Usar semanticAnalysis en lugar de this
       // Si no se encontró una intención clara, verificar saludos, despedidas o ayuda
       if (!bestIntent || highestConfidence < 0.4) {
-        if (semanticAnalysis.isGreeting(text)) {
+        if (this.isGreeting(text)) {
           return { type: 'greeting', confidence: 0.9, parameters: [], periods: [] };
         }
-        if (semanticAnalysis.isGoodbye(text)) {
+        if (this.isGoodbye(text)) {
           return { type: 'goodbye', confidence: 0.9, parameters: [], periods: [] };
         }
-        if (semanticAnalysis.isHelpRequest(text)) {
+        if (this.isHelpRequest(text)) {
           return { type: 'help', confidence: 0.8, parameters: [], periods: [] };
         }
       }
@@ -2783,7 +2782,7 @@
     // Entidades para la respuesta
     const detectedEntities = {
       parameters: entities.parameters,
-      temporal: entities.temporal,
+      temporal: entities.periods,
       comparisons: entities.comparisons,
       operations: entities.operations
     };
