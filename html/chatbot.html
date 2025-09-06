@@ -2683,7 +2683,7 @@
         datasets: [
           {
             label: paramName1,
-             chartData.map(item => ({ x: item.x, y: item.y1 })),
+            data: chartData.map(item => ({ x: item.x, y: item.y1 })),
             borderColor: color1,
             backgroundColor: `${color1}40`,
             borderWidth: 3,
@@ -2692,7 +2692,7 @@
           },
           {
             label: paramName2,
-             chartData.map(item => ({ x: item.x, y: item.y2 })),
+            data: chartData.map(item => ({ x: item.x, y: item.y2 })),
             borderColor: color2,
             backgroundColor: `${color2}40`,
             borderWidth: 3,
