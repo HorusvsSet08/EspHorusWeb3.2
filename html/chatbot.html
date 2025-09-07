@@ -43,6 +43,9 @@
           </div>
         </div>
       </label>
+      <button id="api-config-toggle" class="nav-btn" title="Configuración de API">
+        <span class="nav-icon">⚙️</span>
+      </button>
     </div>
   </div>
 </nav>
@@ -88,6 +91,15 @@
     <div class="status-bar">
       <div id="status-indicator" class="status-indicator"></div>
       <span id="status-text"></span>
+    </div>
+    
+    <!-- Configuración de API de OpenAI -->
+    <div class="api-config" id="api-config">
+      <h3>Configuración de API de OpenAI</h3>
+      <p>Configura tu clave API de OpenAI para obtener respuestas más avanzadas y precisas.</p>
+      <input type="password" id="api-key-input" placeholder="Ingresa tu clave API de OpenAI aquí">
+      <button id="save-api-key">Guardar API Key</button>
+      <div class="api-status" id="api-status">Estado: No configurado</div>
     </div>
   </main>
 </div>
@@ -439,23 +451,22 @@
   
   /* Configuración de API */
   .api-config {
-    margin-top: 15px;
-    background: rgba(0, 100, 200, 0.1);
     padding: 15px;
+    margin: 15px;
+    background: var(--dark-bg);
     border-radius: 10px;
     display: none;
   }
-  
+
   .api-config h3 {
-    color: #2196F3;
+    color: var(--primary);
     margin-top: 0;
   }
-  
+
   .api-config p {
-    line-height: 1.6;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
   }
-  
+
   .api-config input {
     width: 100%;
     padding: 8px 12px;
@@ -465,31 +476,31 @@
     background: rgba(0, 0, 0, 0.2);
     color: white;
   }
-  
+
   .api-config button {
-    background: #2196F3;
-    color: white;
+    background: var(--primary);
+    color: #000;
     border: none;
     padding: 8px 15px;
     border-radius: 5px;
     cursor: pointer;
     transition: background 0.3s;
   }
-  
+
   .api-config button:hover {
-    background: #0d8bf2;
+    background: #00d0e0;
   }
-  
+
   .api-status {
     font-size: 0.9rem;
     margin-top: 5px;
     opacity: 0.7;
   }
-  
+
   .api-status.connected {
     color: #4CAF50;
   }
-  
+
   .api-status.disconnected {
     color: #f44336;
   }
@@ -559,6 +570,13 @@
   const sendButton = document.getElementById('send-button');
   const statusIndicator = document.getElementById('status-indicator');
   const statusText = document.getElementById('status-text');
+  
+  // Elementos de configuración de API
+  const apiConfig = document.getElementById('api-config');
+  const apiKeyInput = document.getElementById('api-key-input');
+  const saveApiKeyBtn = document.getElementById('save-api-key');
+  const apiStatus = document.getElementById('api-status');
+  const apiConfigToggle = document.getElementById('api-config-toggle');
 
   // Actualizar estado
   const updateStatus = (message, isError = false) => {
@@ -634,7 +652,7 @@
     return loadingId;
   };
 
-  // Nueva integración con OpenAI API - ¡AHORA CON AUTENTICACIÓN REAL!
+  // Nueva integración con OpenAI API
   const openAIApi = {
     apiKey: null,
     apiUrl: 'https://api.openai.com/v1/chat/completions',
@@ -3531,7 +3549,7 @@
     // Crea el nuevo gráfico - CORREGIDO: estructura correcta de data
     const chart = new Chart(chartCtx, {
       type: 'line',
-      data: {
+       {
         datasets: [{
           label: paramName,
           data: chartData,
@@ -3628,11 +3646,11 @@
     // Crea el nuevo gráfico - CORREGIDO: estructura correcta de data
     const chart = new Chart(chartCtx, {
       type: 'line',
-      data: {
+       {
         datasets: [
           {
             label: period1,
-            data: chartData1,
+             chartData1,
             borderColor: color1,
             backgroundColor: `${color1}40`,
             borderWidth: 3,
@@ -3751,10 +3769,10 @@
     // Crea el nuevo gráfico - CORREGIDO: estructura correcta de data
     const chart = new Chart(chartCtx, {
       type: 'line',
-      data: {
+       {
         datasets: [{
           label: paramName,
-          data: dataWithMarkers,
+           dataWithMarkers,
           borderColor: color,
           backgroundColor: `${color}40`,
           borderWidth: 3,
@@ -3857,7 +3875,7 @@
     // Crea el nuevo gráfico - CORREGIDO: estructura correcta de data
     const chart = new Chart(chartCtx, {
       type: 'line',
-      data: {
+       {
         datasets: [
           {
             label: paramName1,
@@ -3870,7 +3888,7 @@
           },
           {
             label: paramName2,
-            data: chartData.map(item => ({ x: item.x, y: item.y2 })),
+             chartData.map(item => ({ x: item.x, y: item.y2 })),
             borderColor: color2,
             backgroundColor: `${color2}40`,
             borderWidth: 3,
@@ -3916,6 +3934,57 @@
     // Almacenar instancia del gráfico para actualizarla al cambiar de tema
     charts.push(chart);
   };
+
+  // Configurar API de OpenAI
+  const toggleApiConfig = () => {
+    apiConfig.style.display = apiConfig.style.display === 'none' ? 'block' : 'none';
+  };
+
+  // Verificar estado de la API
+  const checkApiKeyStatus = async () => {
+    if (openAIApi.isConfigured()) {
+      const isValid = await openAIApi.verifyApiKey();
+      if (isValid) {
+        apiStatus.textContent = 'Estado: API configurada y válida';
+        apiStatus.className = 'api-status connected';
+        updateStatus("OpenAI API configurada correctamente - Usando IA avanzada");
+      } else {
+        apiStatus.textContent = 'Estado: API configurada pero inválida';
+        apiStatus.className = 'api-status disconnected';
+        updateStatus("Error con la API de OpenAI - Usando sistema local", true);
+      }
+    } else {
+      apiStatus.textContent = 'Estado: No configurado';
+      apiStatus.className = 'api-status disconnected';
+      updateStatus("API de IA no configurada - Usando sistema local");
+    }
+  };
+
+  // Guardar API key
+  saveApiKeyBtn.addEventListener('click', () => {
+    const apiKey = apiKeyInput.value.trim();
+    if (apiKey) {
+      openAIApi.configure(apiKey);
+      checkApiKeyStatus();
+      apiKeyInput.value = '';
+      setTimeout(async () => {
+        const isValid = await openAIApi.verifyApiKey();
+        if (isValid) {
+          addMessage("✅ API de OpenAI configurada correctamente. ¡Ahora podrás obtener respuestas más avanzadas!", false, 'local');
+        } else {
+          addMessage("⚠️ La API key parece ser inválida. Por favor, verifica que la clave sea correcta.", false, 'local');
+        }
+      }, 300);
+    }
+  });
+
+  // Configurar botón de configuración de API
+  if (apiConfigToggle) {
+    apiConfigToggle.addEventListener('click', toggleApiConfig);
+  }
+
+  // Inicializar estado de la API
+  checkApiKeyStatus();
 
   // Inicializar chatbot
   const initChatbot = async () => {
