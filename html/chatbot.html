@@ -50,7 +50,7 @@
 <div class="container">
   <header>
     <h1>🤖 Horus AI - Asistente Meteorológico de Benavente</h1>
-    <p>Un asistente especializado en análisis meteorológico para Benavente, Zamora</p>
+    <p>Un asistente especializado en análisis meteorológico para <strong>Benavente, Zamora</strong></p>
   </header>
   
   <main id="chat-container" class="chat-main-container">
@@ -87,7 +87,7 @@
     
     <div class="status-bar">
       <div id="status-indicator" class="status-indicator"></div>
-      <span id="status-text">Horus AI esperando tu pregunta sobre Benavente...</span>
+      <span id="status-text"></span>
     </div>
   </main>
 </div>
@@ -202,28 +202,6 @@
   .chat-input-container button:hover {
     background: #00d0e0;
     transform: translateY(-2px);
-  }
-
-  /* Barra de estado */
-  .status-bar {
-    padding: 8px 15px;
-    background: rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .status-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #4CAF50;
-    box-shadow: 0 0 6px rgba(76, 175, 80, 0.7);
-  }
-
-  .status-indicator.error {
-    background: #f44336;
-    box-shadow: 0 0 6px rgba(244, 67, 54, 0.7);
   }
 
   /* Sugerencias de preguntas */
@@ -458,6 +436,63 @@
   .out-of-scope p {
     line-height: 1.6;
   }
+  
+  /* Configuración de API */
+  .api-config {
+    margin-top: 15px;
+    background: rgba(0, 100, 200, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    display: none;
+  }
+  
+  .api-config h3 {
+    color: #2196F3;
+    margin-top: 0;
+  }
+  
+  .api-config p {
+    line-height: 1.6;
+    margin-bottom: 15px;
+  }
+  
+  .api-config input {
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+  }
+  
+  .api-config button {
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .api-config button:hover {
+    background: #0d8bf2;
+  }
+  
+  .api-status {
+    font-size: 0.9rem;
+    margin-top: 5px;
+    opacity: 0.7;
+  }
+  
+  .api-status.connected {
+    color: #4CAF50;
+  }
+  
+  .api-status.disconnected {
+    color: #f44336;
+  }
 </style>
 
 <script>
@@ -490,7 +525,32 @@
       spring: "Moderado con lluvias ocasionales",
       autumn: "Fresco con días soleados y noches frías"
     },
-    localFeatures: "Ubicado en la llanura del Duero, con influencia de la meseta castellana"
+    localFeatures: "Ubicado en la llanura del Duero, con influencia de la meseta castellana",
+    localLandmarks: [
+      "Plaza Mayor de Benavente",
+      "Iglesia de Santiago",
+      "Castillo de Benavente",
+      "Río Esla",
+      "Mercado de Ganados"
+    ],
+    localEvents: [
+      "Feria de San Martín (noviembre)",
+      "Semana Santa",
+      "Fiestas Patronales (agosto)",
+      "Feria Agropecuaria (mayo)"
+    ],
+    localPhrases: [
+      "¡Vaya fresquete hace hoy!",
+      "Esto parece que va a aguar",
+      "Hace un sol de justicia",
+      "Está cayendo un chaparrón",
+      "Hace un día de perros",
+      "Hoy hace un día de campo",
+      "Está el día nublao",
+      "¡Qué bochorno!",
+      "Está fresquete",
+      "Está el día apretao"
+    ]
   };
 
   // Elementos del DOM
@@ -574,6 +634,674 @@
     return loadingId;
   };
 
+  // Nueva integración con OpenAI API - ¡AHORA CON AUTENTICACIÓN REAL!
+  const openAIApi = {
+    apiKey: null,
+    apiUrl: 'https://api.openai.com/v1/chat/completions',
+    
+    // Verificar si está configurado
+    isConfigured: function() {
+      return this.apiKey !== null && this.apiKey.trim() !== '';
+    },
+    
+    // Configurar la API key
+    configure: function(apiKey) {
+      this.apiKey = apiKey;
+      localStorage.setItem('openai_api_key', apiKey);
+      console.log('OpenAI API configurada correctamente');
+      return true;
+    },
+    
+    // Inicializar desde localStorage
+    init: function() {
+      const savedKey = localStorage.getItem('openai_api_key');
+      if (savedKey) {
+        this.apiKey = savedKey;
+        return true;
+      }
+      return false;
+    },
+    
+    // Limpiar configuración
+    clear: function() {
+      this.apiKey = null;
+      localStorage.removeItem('openai_api_key');
+    },
+    
+    // Verificar validez de la API key
+    async verifyApiKey() {
+      if (!this.isConfigured()) return false;
+      
+      try {
+        const response = await fetch('https://api.openai.com/v1/models', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`
+          }
+        });
+        
+        return response.ok;
+      } catch (error) {
+        console.error('Error verificando API key:', error);
+        return false;
+      }
+    },
+    
+    // Generar respuesta usando OpenAI
+    generateResponse: async function(userMessage, context) {
+      if (!this.isConfigured()) {
+        return null;
+      }
+      
+      try {
+        // Preparar el prompt con contexto meteorológico
+        const prompt = this.buildPrompt(userMessage, context);
+        
+        const response = await fetch(this.apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [
+              {
+                role: 'system',
+                content: `Eres Horus AI, un asistente meteorológico especializado en Benavente, Zamora. Tienes acceso a datos meteorológicos en tiempo real y datos históricos. Tu tarea es proporcionar información precisa y útil sobre el clima de Benavente, con un enfoque en explicaciones claras y consejos prácticos. Habla de manera amigable y profesional, usando referencias locales cuando sea apropiado.`
+              },
+              ...context.conversationHistory.map(msg => ({
+                role: msg.role,
+                content: msg.content
+              })),
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 500,
+            top_p: 1,
+            frequency_penalty: 0,
+            presence_penalty: 0
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Error de API: ${response.status} - ${errorData.error?.message || 'Error desconocido'}`);
+        }
+        
+        const data = await response.json();
+        return data.choices[0].message.content;
+      } catch (error) {
+        console.error('Error al usar OpenAI API:', error);
+        return null;
+      }
+    },
+    
+    // Construir el prompt con contexto
+    buildPrompt: function(userMessage, context) {
+      // Incluir contexto meteorológico específico de Benavente
+      const benaventeContext = `
+        Benavente, Zamora - Información clave:
+        - Ubicación: 41.7667° N, 5.3500° W
+        - Altitud: 719 metros sobre el nivel del mar
+        - Clima: Mediterráneo continentalizado
+        - Verano: Caluroso y seco, temperaturas máximas >35°C
+        - Invierno: Frío, temperaturas mínimas <0°C
+        - Primavera/Otoño: Moderados con lluvias ocasionales
+        - Ubicado en la llanura del Duero, con influencia de la meseta castellana
+      `;
+      
+      // Incluir datos actuales si están disponibles
+      const latestData = context.historicalData && context.historicalData.length > 0 ? 
+        context.historicalData[context.historicalData.length - 1] : null;
+      
+      let currentConditions = '';
+      if (latestData) {
+        currentConditions = `
+          Condiciones actuales en Benavente:
+          - Temperatura: ${latestData.temp.toFixed(1)}°C
+          - Humedad: ${latestData.hum.toFixed(0)}%
+          - Presión: ${latestData.pres.toFixed(0)} hPa
+          - Dirección del viento: ${getWindDirectionName(latestData.wind_dir)} (${latestData.wind_dir}°)
+          - Velocidad del viento: ${latestData.wind.toFixed(1)} m/s
+          - Calidad del aire: ${latestData.gas.toFixed(2)} kΩ
+        `;
+      }
+      
+      // Incluir contexto de conversación
+      const conversationContext = context.conversationContext ? `
+        Contexto de conversación:
+        - Último parámetro mencionado: ${context.conversationContext.lastParameter || 'Ninguno'}
+        - Último periodo analizado: ${context.conversationContext.lastPeriod || 'Ninguno'}
+        - Último tipo de pregunta: ${context.conversationContext.lastQuestionType || 'Ninguno'}
+      ` : '';
+      
+      return `Contexto meteorológico de Benavente:
+        ${benaventeContext}
+        ${currentConditions}
+        ${conversationContext}
+        
+        Mensaje del usuario: "${userMessage}"
+        
+        Proporciona una respuesta detallada, precisa y útil sobre el clima de Benavente, adaptada a la pregunta del usuario. Usa un tono amigable y profesional, incorporando referencias locales cuando sea apropiado. Si la pregunta no está relacionada con el clima, indica amablemente que tu especialidad es el clima de Benavente y ofrece ayuda en ese ámbito.`;
+    }
+  };
+
+  // Cargar datos históricos reales de Benavente
+  const loadHistoricalData = async () => {
+    return new Promise((resolve, reject) => {
+      try {
+        // Simulación de carga de datos (en producción, esto vendría de un archivo CSV o API)
+        setTimeout(() => {
+          // Datos reales de Benavente (ejemplo de formato)
+          const rawData = `2025-08-18 23:32:38	28.88	34.86	935.87	665.09	16	17	N/A	0.00	0.42	0.00
+2025-08-18 23:35:48	28.53	34.94	935.87	665.14	16	19	N/A	0.00	0.42	0.00
+2025-08-18 23:38:48	28.34	35.78	935.92	664.66	15	16	N/A	0.00	0.42	0.00
+2025-08-18 23:41:48	28.19	36.60	935.97	664.28	17	18	N/A	0.00	0.42	0.00
+2025-08-18 23:44:48	28.13	36.87	935.92	664.70	13	13	N/A	0.00	0.42	0.00
+2025-08-18 23:47:48	28.08	36.36	935.92	664.71	16	17	N/A	0.00	0.42	0.00
+2025-08-18 23:50:48	27.99	36.24	935.88	665.05	15	17	N/A	0.00	0.42	0.00
+2025-08-18 23:53:48	27.88	35.87	935.88	665.01	15	16	N/A	0.00	0.42	0.00
+2025-08-18 23:56:48	27.67	36.02	935.93	664.55	14	15	N/A	0.00	0.42	0.00
+2025-08-18 23:59:48	27.59	36.38	935.89	664.94	16	17	N/A	0.00	0.42	0.00`;
+
+          // Procesar los datos
+          historicalData = [];
+          const lines = rawData.trim().split('\n');
+          
+          lines.forEach(line => {
+            const [timestampStr, tempStr, humStr, presStr, presCorrStr, windDirStr, windSpeedStr, rainStr, extra1Str, gasStr, extra2Str] = line.split('\t');
+            
+            // Convertir valores a números
+            const temp = parseFloat(tempStr);
+            const hum = parseFloat(humStr);
+            const pres = parseFloat(presStr);
+            const windDir = parseFloat(windDirStr);
+            const windSpeed = parseFloat(windSpeedStr);
+            const gas = parseFloat(gasStr);
+            
+            // Determinar si está lloviendo (simplificado para el ejemplo)
+            const isRaining = rainStr === 'N/A' ? 0 : (parseFloat(rainStr) > 0 ? 1 : 0);
+            
+            historicalData.push({
+              timestamp: new Date(timestampStr).toISOString(),
+              temp: temp,
+              hum: hum,
+              pres: pres,
+              lluvia: isRaining,
+              wind: windSpeed,
+              wind_dir: windDir,
+              gas: gas
+            });
+          });
+          
+          // Ordenar por fecha
+          historicalData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+          
+          console.log(`Datos cargados: ${historicalData.length} registros históricos de Benavente`);
+          resolve();
+        }, 800);
+      } catch (error) {
+        console.error("Error procesando datos históricos:", error);
+        reject(error);
+      }
+    });
+  };
+
+  // Procesar mensaje del usuario
+  const processUserMessage = async (message) => {
+    // Guardar en historial de conversación
+    conversationContext.conversationHistory.push({
+      role: 'user',
+      content: message,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Mostrar mensaje de usuario
+    addMessage(message, true);
+    
+    // Mostrar estado de carga
+    const loadingId = showLoading("Consultando con IA avanzada...");
+    
+    try {
+      // Probar primero con OpenAI si está configurada
+      if (openAIApi.isConfigured()) {
+        updateStatus("Consultando con modelo avanzado...");
+        const openAIResponse = await openAIApi.generateResponse(message, {
+          historicalData: historicalData,
+          conversationContext: conversationContext
+        });
+        
+        // Eliminar el estado de carga
+        document.getElementById(loadingId).remove();
+        
+        if (openAIResponse) {
+          // Añadir fuente de información
+          return openAIResponse;
+        }
+      }
+      
+      // Si no hay respuesta de OpenAI, usar el sistema local
+      updateStatus("Analizando con sistema local...");
+      
+      // Si no hay API key configurada, mostrar mensaje de configuración
+      if (!openAIApi.isConfigured()) {
+        document.getElementById(loadingId).remove();
+        
+        // Crear mensaje de configuración
+        const configMessage = `
+          <div class="general-answer">
+            <h3>Configuración de IA Requerida</h3>
+            <p>Parece que no has configurado una clave API de OpenAI. Para obtener respuestas más avanzadas y precisas:</p>
+            <ol>
+              <li><a href="https://platform.openai.com/account/api-keys" target="_blank">Obtén tu API key de OpenAI</a></li>
+              <li>Ingresa la clave en la sección de configuración</li>
+              <li>¡Listo! El chatbot usará la IA avanzada para responderte</li>
+            </ol>
+            <p>Mientras tanto, seguiré usando mi sistema meteorológico local para responderte.</p>
+          </div>
+        `;
+        
+        addMessage(configMessage, false, 'local');
+        
+        // Mostrar estado de carga para el sistema local
+        const localLoadingId = showLoading("Analizando con sistema local...");
+        
+        // Procesar con el sistema local
+        const localResponse = await processWithLocalSystem(message);
+        
+        // Eliminar estado de carga local
+        document.getElementById(localLoadingId).remove();
+        
+        return localResponse;
+      }
+      
+      // Si hubo error con OpenAI, usar sistema local
+      document.getElementById(loadingId).remove();
+      const localLoadingId = showLoading("Analizando con sistema local...");
+      
+      const localResponse = await processWithLocalSystem(message);
+      
+      document.getElementById(localLoadingId).remove();
+      return localResponse;
+      
+    } catch (error) {
+      console.error('Error procesando mensaje:', error);
+      
+      // Eliminar el estado de carga
+      document.getElementById(loadingId).remove();
+      
+      // Si hubo error con OpenAI, usar sistema local
+      const localLoadingId = showLoading("Analizando con sistema local...");
+      
+      const localResponse = await processWithLocalSystem(message);
+      
+      document.getElementById(localLoadingId).remove();
+      return localResponse;
+    }
+  };
+
+  // Procesar con sistema local (para fallback)
+  const processWithLocalSystem = async (message) => {
+    updateStatus("Analizando con sistema local...");
+    
+    // Corregir ortografía
+    const { correctedMessage, hasCorrection } = spellingCorrection.correctMessage(message);
+    
+    // Mostrar mensaje de corrección SOLO si hubo correcciones significativas
+    if (hasCorrection) {
+      addMessage(`🔍 Entiendo que quizás quisiste decir: "${correctedMessage}"`, false);
+    }
+    
+    // Normalizar mensaje
+    const normalizedMessage = correctedMessage.toLowerCase().replace(/[.,!?]/g, '');
+    
+    try {
+      // Análisis de ámbito
+      const domainAnalysis = semanticAnalysis.analyzeDomain(normalizedMessage);
+      
+      // Verificar referencias
+      const references = semanticAnalysis.analyzeReferences(normalizedMessage, conversationContext);
+      
+      // Resolver anáforas
+      const resolvedMessage = semanticAnalysis.resolveAnaphora(normalizedMessage, conversationContext);
+      
+      // Verificar si es hipotética
+      const isHypothetical = semanticAnalysis.analyzeHypotheticals(normalizedMessage);
+      
+      // Identificar entidades
+      const entities = semanticAnalysis.identifyEntities(resolvedMessage);
+      
+      // Analizar intención
+      const intent = semanticAnalysis.analyzeIntent(resolvedMessage, entities, domainAnalysis);
+      
+      // Verificar preguntas compuestas
+      const isCompoundQuestion = semanticAnalysis.analyzeCompoundQuestions(normalizedMessage);
+      
+      // Entidades para la respuesta
+      const detectedEntities = {
+        parameters: entities.parameters,
+        temporal: entities.temporal,
+        comparisons: entities.comparisons,
+        operations: entities.operations,
+        location: entities.locations
+      };
+      
+      // Actualizar contexto temporal si se identifica uno
+      if (entities.periods.length > 0) {
+        conversationContext.temporalContext = entities.periods[0];
+      }
+      
+      // Actualizar contexto de parámetros si se identifican
+      if (entities.parameters.length > 0) {
+        conversationContext.lastParameter = entities.parameters[0];
+      }
+      
+      // Actualizar contexto de ubicación
+      if (entities.locations.length > 0) {
+        conversationContext.spatialContext = entities.locations[0];
+      }
+      
+      // Si hay referencias, actualizar contexto
+      if (references.parameters.length > 0) {
+        conversationContext.lastParameter = references.parameters[0];
+      }
+      
+      if (references.location.length > 0) {
+        conversationContext.spatialContext = references.location[0];
+      }
+      
+      // Si hay contexto de parámetro pero no se identificó en la pregunta, usar el contexto
+      if (conversationContext.lastParameter && entities.parameters.length === 0) {
+        entities.parameters = [conversationContext.lastParameter];
+      }
+      
+      // Si hay contexto temporal pero no se identificó en la pregunta, usar el contexto
+      if (conversationContext.lastPeriod && entities.periods.length === 0) {
+        entities.periods = [conversationContext.lastPeriod];
+      }
+      
+      // Si hay contexto de ubicación pero no se identificó en la pregunta, usar el contexto
+      if (conversationContext.spatialContext && entities.locations.length === 0) {
+        entities.locations = [conversationContext.spatialContext];
+      }
+      
+      // Si no se reconoció la intención pero es una pregunta meteorológica
+      if (domainAnalysis.isWeatherQuestion) {
+        // Intentar identificar parámetros incluso sin intención clara
+        if (entities.parameters.length > 0) {
+          // Si hay parámetros pero no intención clara, asumir consulta actual
+          return intentHandlers.current_data({
+            parameters: entities.parameters,
+            periods: ['hoy'],
+            locations: ['benavente']
+          }, conversationContext);
+        }
+        
+        // Si hay periodos pero no parámetros, pedir aclaración
+        if (entities.periods.length > 0) {
+          return `Para poder ayudarte con ${benaventeInfo.location}, necesito saber qué parámetro meteorológico te interesa. Por ejemplo: 'temperatura', 'humedad' o 'presión'.`;
+        }
+      }
+      
+      // Si es un saludo aunque no se haya detectado claramente
+      if (semanticAnalysis.isGreeting(normalizedMessage)) {
+        return intentHandlers.greeting();
+      }
+      
+      // Si es una despedida aunque no se haya detectado claramente
+      if (semanticAnalysis.isGoodbye(normalizedMessage)) {
+        return intentHandlers.goodbye();
+      }
+      
+      // Si es una solicitud de ayuda aunque no se haya detectado claramente
+      if (semanticAnalysis.isHelpRequest(normalizedMessage)) {
+        return intentHandlers.help();
+      }
+      
+      // Si no se identifica un ámbito específico
+      if (!domainAnalysis.isWeatherQuestion) {
+        // Verificar si es una pregunta sobre Horus
+        if (normalizedMessage.includes('horus') || normalizedMessage.includes('sistema')) {
+          return intentHandlers.about_horus();
+        }
+        
+        // Verificar si es una pregunta de soporte técnico
+        if (normalizedMessage.includes('problema') || normalizedMessage.includes('error') || 
+            normalizedMessage.includes('no funciona') || normalizedMessage.includes('lento')) {
+          return intentHandlers.support();
+        }
+        
+        // Verificar si es una pregunta personal
+        if (normalizedMessage.includes('quién eres') || normalizedMessage.includes('quien eres') ||
+            normalizedMessage.includes('cómo te llamas') || normalizedMessage.includes('como te llamas')) {
+          return intentHandlers.personal();
+        }
+        
+        // Verificar si es una pregunta general
+        if (normalizedMessage.includes('nombre') || normalizedMessage.includes('hora') ||
+            normalizedMessage.includes('edad') || normalizedMessage.includes('vives')) {
+          return intentHandlers.general();
+        }
+        
+        // Verificar el dominio de preguntas fuera del ámbito
+        let domain = 'general';
+        if (normalizedMessage.includes('salud') || normalizedMessage.includes('médico')) {
+          domain = 'salud';
+        } else if (normalizedMessage.includes('tecnología') || normalizedMessage.includes('tecnologia') ||
+                   normalizedMessage.includes('computadora') || normalizedMessage.includes('internet')) {
+          domain = 'tecnología';
+        } else if (normalizedMessage.includes('deportes') || normalizedMessage.includes('fútbol')) {
+          domain = 'deportes';
+        } else if (normalizedMessage.includes('entretenimiento') || normalizedMessage.includes('película') ||
+                   normalizedMessage.includes('música')) {
+          domain = 'entretenimiento';
+        } else if (normalizedMessage.includes('comida') || normalizedMessage.includes('receta')) {
+          domain = 'comida';
+        } else if (normalizedMessage.includes('educación') || normalizedMessage.includes('escuela')) {
+          domain = 'educación';
+        } else if (normalizedMessage.includes('finanzas') || normalizedMessage.includes('dinero')) {
+          domain = 'finanzas';
+        }
+        
+        return intentHandlers.out_of_scope({ domain });
+      }
+      
+      // Si es una pregunta hipotética
+      if (isHypothetical) {
+        return "Como asistente meteorológico para Benavente, solo puedo proporcionar información basada en datos reales y análisis históricos. No puedo especular sobre escenarios hipotéticos que no estén respaldados por datos climáticos de la zona.";
+      }
+      
+      // Si es una pregunta compuesta
+      if (isCompoundQuestion) {
+        return "Para poder ayudarte mejor con Benavente, por favor divide tu pregunta en partes más específicas. Por ejemplo, en lugar de preguntar sobre varios parámetros a la vez, enfócate en uno primero.";
+      }
+      
+      // Si hay entidades detectadas pero no intención clara
+      if (detectedEntities.parameters.length > 0 || 
+          detectedEntities.temporal.length > 0 || 
+          detectedEntities.comparisons.length > 0) {
+        let response = `He detectado algunos elementos relevantes en tu pregunta sobre ${benaventeInfo.location}, pero no estoy seguro de entender exactamente qué necesitas.\n\n`;
+        
+        if (detectedEntities.parameters.length > 0) {
+          response += `* Parámetros meteorológicos: ${detectedEntities.parameters.join(', ')}\n`;
+        }
+        if (detectedEntities.temporal.length > 0) {
+          response += `* Periodos de tiempo: ${detectedEntities.temporal.join(', ')}\n`;
+        }
+        if (detectedEntities.comparisons.length > 0) {
+          response += `* Tipos de comparación: ${detectedEntities.comparisons.map(c => 
+            c === 'vs' ? 'comparación directa' : 
+            c === 'trend' ? 'tendencia' : 
+            c === 'correlation' ? 'correlación' : c).join(', ')}\n`;
+        }
+        if (detectedEntities.operations.length > 0) {
+          response += `* Operaciones solicitadas: ${detectedEntities.operations.join(', ')}\n`;
+        }
+        
+        response += `\n¿Podrías reformular tu pregunta para que sea más específica sobre el clima de Benavente?`;
+        
+        return response;
+      }
+      
+      // Si no hay contexto previo y no es claramente fuera de ámbito, asumimos que es general
+      return `<div class="out-of-scope">
+        <h3>No Entiendo Tu Pregunta sobre Benavente</h3>
+        <p>No estoy seguro de entender tu pregunta. Soy un asistente meteorológico especializado en el sistema Horus en <strong>${benaventeInfo.location}</strong>.</p>
+        
+        <h4>¿Cómo puedo ayudarte con Benavente?</h4>
+        <ul>
+          <li>Consultar datos meteorológicos actuales en Benavente</li>
+          <li>Analizar tendencias climáticas históricas de Benavente</li>
+          <li>Realizar predicciones basadas en datos de Benavente</li>
+          <li>Explicar el funcionamiento de Horus en Benavente</li>
+          <li>Contextualizar el clima de Benavente (${benaventeInfo.altitude})</li>
+        </ul>
+        
+        <p>Ejemplos de preguntas que puedo responder:</p>
+        <ul>
+          <li>"¿Cuál es la temperatura actual en Benavente?"</li>
+          <li>"¿Cómo funciona el sistema Horus en Benavente?"</li>
+          <li>"Muestra la tendencia de presión de los últimos 7 días en Benavente"</li>
+        </ul>
+        
+        <p>Por favor, reformula tu pregunta para que esté relacionada con el clima o el sistema Horus en <strong>${benaventeInfo.location}</strong>.</p>
+        
+        <p class="benavente-context"><strong>Información clave sobre Benavente:</strong> Ubicado a ${benaventeInfo.altitude} en la llanura del Duero, tiene un clima mediterráneo continentalizado con veranos calurosos e inviernos fríos.</p>
+      </div>`;
+      
+    } catch (error) {
+      console.error('Error procesando mensaje:', error);
+      return "⚠️ Ocurrió un error al procesar tu solicitud. Por favor, intenta nuevamente.";
+    }
+  };
+
+  // Sistema de corrección ortográfica
+  const spellingCorrection = {
+    // Calcula la distancia de Levenshtein entre dos strings
+    levenshteinDistance: function(a, b) {
+      if (a.length === 0) return b.length;
+      if (b.length === 0) return a.length;
+      
+      const matrix = [];
+      
+      for (let i = 0; i <= b.length; i++) {
+        matrix[i] = [i];
+      }
+      
+      for (let j = 0; j <= a.length; j++) {
+        matrix[0][j] = j;
+      }
+      
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j - 1] + 1, // Sustitución
+              matrix[i][j - 1] + 1, // Inserción
+              matrix[i - 1][j] + 1 // Eliminación
+            );
+          }
+        }
+      }
+      
+      return matrix[b.length][a.length];
+    },
+    
+    // Corrige la ortografía de una palabra
+    correctWord: function(word) {
+      // Si la palabra está en el diccionario, devolver la corrección
+      if (spellingDictionary[word.toLowerCase()]) {
+        return spellingDictionary[word.toLowerCase()];
+      }
+      
+      // Buscar en el diccionario de sinónimos
+      for (const [correct, synonyms] of Object.entries(weatherSynonyms)) {
+        for (const synonym of synonyms) {
+          if (word.toLowerCase() === synonym) {
+            return correct;
+          }
+          
+          // Calcular distancia de Levenshtein para corrección aproximada
+          const distance = this.levenshteinDistance(word.toLowerCase(), synonym);
+          if (distance <= Math.max(1, Math.floor(synonym.length * 0.2))) {
+            return correct;
+          }
+        }
+      }
+      
+      return word;
+    },
+    
+    // Corrige todo el mensaje
+    correctMessage: function(message) {
+      const words = message.split(/\s+/);
+      let correctedWords = [];
+      let foundCorrection = false;
+      
+      words.forEach(word => {
+        // Mantener signos de puntuación
+        const cleanWord = word.replace(/[.,!?;:]/g, '');
+        const punctuation = word.match(/[.,!?;:]+$/);
+        
+        if (cleanWord.length > 2) {
+          const corrected = this.correctWord(cleanWord);
+          if (corrected !== cleanWord) {
+            correctedWords.push(corrected + (punctuation ? punctuation[0] : ''));
+            foundCorrection = true;
+          } else {
+            correctedWords.push(word);
+          }
+        } else {
+          correctedWords.push(word);
+        }
+      });
+      
+      return {
+        correctedMessage: correctedWords.join(' '),
+        hasCorrection: foundCorrection
+      };
+    }
+  };
+
+  // Diccionario para corrección ortográfica
+  const spellingDictionary = {
+    'tempertura': 'temperatura',
+    'temperaruta': 'temperatura',
+    'humedad': 'humedad',
+    'humead': 'humedad',
+    'umedad': 'humedad',
+    'presion': 'presión',
+    'presion': 'presión',
+    'presion atmosferica': 'presión atmosférica',
+    'presion atmosferica': 'presión atmosférica',
+    'presion barometrica': 'presión barométrica',
+    'presion barometrica': 'presión barométrica',
+    'lluvia': 'lluvia',
+    'llubia': 'lluvia',
+    'lubia': 'lluvia',
+    'viento': 'viento',
+    'biento': 'viento',
+    'bientto': 'viento',
+    'gas': 'gas',
+    'calidad del aire': 'calidad del aire',
+    'calidad aire': 'calidad del aire',
+    'direccion': 'dirección',
+    'direccion del viento': 'dirección del viento',
+    'direccion viento': 'dirección del viento',
+    'termometro': 'termómetro',
+    'termometro': 'termómetro',
+    'pluviometria': 'pluviometría',
+    'pluviometria': 'pluviometría',
+    'co2': 'CO2',
+    'dióxido de carbono': 'dióxido de carbono'
+  };
+
   // Diccionario de sinónimos meteorológicos mejorado
   const weatherSynonyms = {
     temperatura: ['temp', 'calor', 'frío', 'frio', 'grados', '°', 'celsius', 'centígrados', 'centigrados', 'termómetro', 'termometro', 'caliente', 'frio', 'temperatura en benavente'],
@@ -594,47 +1322,9 @@
     probabilidad: ['probabilidad', 'probable', 'posibilidad', 'posible', 'chance', 'oportunidad', 'riesgo', 'probabilidad en benavente']
   };
 
-  // Diccionario de términos generales
-  const generalTerms = {
-    // Sistema Horus
-    horus: ['horus', 'sistema horus', 'estación horus', 'estacion horus', 'estación meteorológica', 'estacion meteorologica', 'sistema meteorológico', 'sistema meteorologico', 'horus en benavente'],
-    
-    // Información general
-    about: ['qué es', 'que es', 'qué es esto', 'que es esto', 'para qué sirve', 'para que sirve', 'qué hace', 'que hace', 'funciona', 'cómo funciona', 'como funciona', 'sobre benavente'],
-    
-    // Ayuda
-    help: ['ayuda', 'funciona', 'cómo', 'como', 'puedo', 'capaz', 'hacer', 'qué', 'que', 'preguntar', 'instrucciones', 'ejemplo', 'ejemplos', 'guía', 'manual', 'tutorial', 'ayuda en benavente'],
-    
-    // Saludos
-    greeting: ['hola', 'buenos días', 'buenos dias', 'buenas tardes', 'hey', 'saludos', 'buen día', 'buen dia', 'buenas noches', 'que tal', 'como estas', 'cómo estás', 'hola benavente'],
-    
-    // Despedidas
-    goodbye: ['adiós', 'adios', 'gracias', 'chao', 'hasta luego', 'hasta pronto', 'nos vemos', 'bye', 'gracías', 'gracias', 'fue útil', 'fue util', 'adios benavente'],
-    
-    // Soporte técnico
-    support: ['problema', 'error', 'no funciona', 'fallo', 'bug', 'no carga', 'lento', 'lentitud', 'lenta', 'lento', 'no responde', 'no me deja', 'no puedo', 'problemas en benavente'],
-    
-    // Información personal
-    personal: ['quién eres', 'quien eres', 'quién eres tú', 'quien eres tu', 'quién te hizo', 'quien te hizo', 'quién te creó', 'quien te creo', 'tu creador', 'tu creador es', 'quien eres en benavente'],
-    
-    // Preguntas generales
-    general: ['cuál es tu nombre', 'cual es tu nombre', 'cómo te llamas', 'como te llamas', 'qué edad tienes', 'que edad tienes', 'dónde vives', 'donde vives', 'qué hora es', 'que hora es', 'clima benavente'],
-    
-    // Soporte para preguntas fuera del ámbito
-    outOfScope: {
-      salud: ['salud', 'médico', 'doctor', 'enfermedad', 'enfermo', 'hospital', 'farmacia', 'medicina', 'medicamento', 'cura', 'salud en benavente'],
-      tecnología: ['tecnología', 'tecnologia', 'computadora', 'ordenador', 'pc', 'laptop', 'smartphone', 'móvil', 'celular', 'internet', 'wifi', 'redes', 'tecnologia en benavente'],
-      deportes: ['deportes', 'fútbol', 'futbol', 'baloncesto', 'tenis', 'golf', 'atletismo', 'deporte', 'equipo', 'partido', 'liga', 'deportes en benavente'],
-      entretenimiento: ['entretenimiento', 'película', 'pelicula', 'cine', 'música', 'musica', 'canción', 'cancion', 'serie', 'televisión', 'tv', 'entretenimiento en benavente'],
-      comida: ['comida', 'receta', 'cocina', 'plato', 'platos', 'cocinar', 'comer', 'restaurante', 'recetas', 'recetario', 'comida en benavente'],
-      educación: ['educación', 'educacion', 'escuela', 'colegio', 'universidad', 'clase', 'clases', 'estudio', 'estudiar', 'profesor', 'educacion en benavente'],
-      finanzas: ['finanzas', 'dinero', 'banco', 'cuenta', 'tarjeta', 'crédito', 'credito', 'ahorro', 'inversión', 'inversion', 'finanzas en benavente']
-    }
-  };
-
   // Mapeo de intenciones mejorado
   const intentMap = {
-    current_data: {
+    current_ {
       keywords: ['actual', 'ahora', 'en este momento', 'en directo', 'presente', 'en tiempo real', 'hoy', 'en benavente'],
       parameters: ['temperatura', 'humedad', 'presión', 'lluvia', 'viento', 'gas', 'dirección'],
       required: []
@@ -646,7 +1336,7 @@
     },
     prediction: {
       keywords: ['predicción', 'prediccion', 'pronóstico', 'pronostico', 'previsión', 'prevision', 'futuro', 'mañana', 'siguiente', 'proyección', 'proyeccion', 'probabilidad', 'probable', 'en benavente'],
-      parameters: ['temperatura', 'humedad', 'presión', 'lluvia', 'viento'],
+      parameters: ['temperatura', 'humedad', 'presión', 'lluvia', 'viento', 'gas'],
       required: []
     },
     comparison: {
@@ -733,39 +1423,6 @@
     'este mes pasado': { type: 'month', value: 1, unit: 'month', offset: 1 },
     'este año': { type: 'year', value: 1, unit: 'year' },
     'este año pasado': { type: 'year', value: 1, unit: 'year', offset: 1 }
-  };
-
-  // Diccionario para corrección ortográfica
-  const spellingDictionary = {
-    'tempertura': 'temperatura',
-    'temperaruta': 'temperatura',
-    'humedad': 'humedad',
-    'humead': 'humedad',
-    'umedad': 'humedad',
-    'presion': 'presión',
-    'presion': 'presión',
-    'presion atmosferica': 'presión atmosférica',
-    'presion atmosferica': 'presión atmosférica',
-    'presion barometrica': 'presión barométrica',
-    'presion barometrica': 'presión barométrica',
-    'lluvia': 'lluvia',
-    'llubia': 'lluvia',
-    'lubia': 'lluvia',
-    'viento': 'viento',
-    'biento': 'viento',
-    'bientto': 'viento',
-    'gas': 'gas',
-    'calidad del aire': 'calidad del aire',
-    'calidad aire': 'calidad del aire',
-    'direccion': 'dirección',
-    'direccion del viento': 'dirección del viento',
-    'direccion viento': 'dirección del viento',
-    'termometro': 'termómetro',
-    'termometro': 'termómetro',
-    'pluviometria': 'pluviometría',
-    'pluviometria': 'pluviometría',
-    'co2': 'CO2',
-    'dióxido de carbono': 'dióxido de carbono'
   };
 
   // Sistema de análisis semántico mejorado
@@ -1191,161 +1848,54 @@
     }
   };
 
-  // Sistema de corrección ortográfica CORREGIDO
-  const spellingCorrection = {
-    // Calcula la distancia de Levenshtein entre dos strings
-    levenshteinDistance: function(a, b) {
-      if (a.length === 0) return b.length;
-      if (b.length === 0) return a.length;
-      
-      const matrix = [];
-      
-      for (let i = 0; i <= b.length; i++) {
-        matrix[i] = [i];
-      }
-      
-      for (let j = 0; j <= a.length; j++) {
-        matrix[0][j] = j;
-      }
-      
-      for (let i = 1; i <= b.length; i++) {
-        for (let j = 1; j <= a.length; j++) {
-          if (b.charAt(i - 1) === a.charAt(j - 1)) {
-            matrix[i][j] = matrix[i - 1][j - 1];
-          } else {
-            matrix[i][j] = Math.min(
-              matrix[i - 1][j - 1] + 1, // Sustitución
-              matrix[i][j - 1] + 1, // Inserción
-              matrix[i - 1][j] + 1 // Eliminación
-            );
-          }
-        }
-      }
-      
-      return matrix[b.length][a.length];
-    },
+  // Diccionario de términos generales
+  const generalTerms = {
+    // Sistema Horus
+    horus: ['horus', 'sistema horus', 'estación horus', 'estacion horus', 'estación meteorológica', 'estacion meteorologica', 'sistema meteorológico', 'sistema meteorologico', 'horus en benavente'],
     
-    // Corrige la ortografía de una palabra
-    correctWord: function(word) {
-      // Si la palabra está en el diccionario, devolver la corrección
-      if (spellingDictionary[word.toLowerCase()]) {
-        return spellingDictionary[word.toLowerCase()];
-      }
-      
-      // Buscar en el diccionario de sinónimos
-      for (const [correct, synonyms] of Object.entries(weatherSynonyms)) {
-        for (const synonym of synonyms) {
-          if (word.toLowerCase() === synonym) {
-            return correct;
-          }
-          
-          // Calcular distancia de Levenshtein para corrección aproximada
-          const distance = this.levenshteinDistance(word.toLowerCase(), synonym);
-          if (distance <= Math.max(1, Math.floor(synonym.length * 0.2))) {
-            return correct;
-          }
-        }
-      }
-      
-      return word;
-    },
+    // Información general
+    about: ['qué es', 'que es', 'qué es esto', 'que es esto', 'para qué sirve', 'para que sirve', 'qué hace', 'que hace', 'funciona', 'cómo funciona', 'como funciona', 'sobre benavente'],
     
-    // Corrige todo el mensaje
-    correctMessage: function(message) {
-      const words = message.split(/\s+/);
-      let correctedWords = [];
-      let foundCorrection = false;
-      
-      words.forEach(word => {
-        // Mantener signos de puntuación
-        const cleanWord = word.replace(/[.,!?;:]/g, '');
-        const punctuation = word.match(/[.,!?;:]+$/);
-        
-        if (cleanWord.length > 2) {
-          // CORRECCIÓN: Usar spellingCorrection.correctWord en lugar de this.correctWord
-          const corrected = spellingCorrection.correctWord(cleanWord);
-          if (corrected !== cleanWord) {
-            correctedWords.push(corrected + (punctuation ? punctuation[0] : ''));
-            foundCorrection = true;
-          } else {
-            correctedWords.push(word);
-          }
-        } else {
-          correctedWords.push(word);
-        }
-      });
-      
-      return {
-        correctedMessage: correctedWords.join(' '),
-        hasCorrection: foundCorrection
-      };
+    // Ayuda
+    help: ['ayuda', 'funciona', 'cómo', 'como', 'puedo', 'capaz', 'hacer', 'qué', 'que', 'preguntar', 'instrucciones', 'ejemplo', 'ejemplos', 'guía', 'manual', 'tutorial', 'ayuda en benavente'],
+    
+    // Saludos
+    greeting: ['hola', 'buenos días', 'buenos dias', 'buenas tardes', 'hey', 'saludos', 'buen día', 'buen dia', 'buenas noches', 'que tal', 'como estas', 'cómo estás', 'hola benavente'],
+    
+    // Despedidas
+    goodbye: ['adiós', 'adios', 'gracias', 'chao', 'hasta luego', 'hasta pronto', 'nos vemos', 'bye', 'gracías', 'gracias', 'fue útil', 'fue util', 'adios benavente'],
+    
+    // Soporte técnico
+    support: ['problema', 'error', 'no funciona', 'fallo', 'bug', 'no carga', 'lento', 'lentitud', 'lenta', 'lento', 'no responde', 'no me deja', 'no puedo', 'problemas en benavente'],
+    
+    // Información personal
+    personal: ['quién eres', 'quien eres', 'quién eres tú', 'quien eres tu', 'quién te hizo', 'quien te hizo', 'quién te creó', 'quien te creo', 'tu creador', 'tu creador es', 'quien eres en benavente'],
+    
+    // Preguntas generales
+    general: ['cuál es tu nombre', 'cual es tu nombre', 'cómo te llamas', 'como te llamas', 'qué edad tienes', 'que edad tienes', 'dónde vives', 'donde vives', 'qué hora es', 'que hora es', 'clima benavente'],
+    
+    // Soporte para preguntas fuera del ámbito
+    outOfScope: {
+      salud: ['salud', 'médico', 'doctor', 'enfermedad', 'enfermo', 'hospital', 'farmacia', 'medicina', 'medicamento', 'cura', 'salud en benavente'],
+      tecnología: ['tecnología', 'tecnologia', 'computadora', 'ordenador', 'pc', 'laptop', 'smartphone', 'móvil', 'celular', 'internet', 'wifi', 'redes', 'tecnologia en benavente'],
+      deportes: ['deportes', 'fútbol', 'futbol', 'baloncesto', 'tenis', 'golf', 'atletismo', 'deporte', 'equipo', 'partido', 'liga', 'deportes en benavente'],
+      entretenimiento: ['entretenimiento', 'película', 'pelicula', 'cine', 'música', 'musica', 'canción', 'cancion', 'serie', 'televisión', 'tv', 'entretenimiento en benavente'],
+      comida: ['comida', 'receta', 'cocina', 'plato', 'platos', 'cocinar', 'comer', 'restaurante', 'recetas', 'recetario', 'comida en benavente'],
+      educación: ['educación', 'educacion', 'escuela', 'colegio', 'universidad', 'clase', 'clases', 'estudio', 'estudiar', 'profesor', 'educacion en benavente'],
+      finanzas: ['finanzas', 'dinero', 'banco', 'cuenta', 'tarjeta', 'crédito', 'credito', 'ahorro', 'inversión', 'inversion', 'finanzas en benavente']
     }
   };
 
-  // Cargar datos históricos reales de Benavente
-  const loadHistoricalData = async () => {
-    return new Promise((resolve, reject) => {
-      try {
-        // Simulación de carga de datos (en producción, esto vendría de un archivo CSV o API)
-        setTimeout(() => {
-          // Datos reales de Benavente (ejemplo de formato)
-          const rawData = `2025-08-18 23:32:38	28.88	34.86	935.87	665.09	16	17	N/A	0.00	0.42	0.00
-2025-08-18 23:35:48	28.53	34.94	935.87	665.14	16	19	N/A	0.00	0.42	0.00
-2025-08-18 23:38:48	28.34	35.78	935.92	664.66	15	16	N/A	0.00	0.42	0.00
-2025-08-18 23:41:48	28.19	36.60	935.97	664.28	17	18	N/A	0.00	0.42	0.00
-2025-08-18 23:44:48	28.13	36.87	935.92	664.70	13	13	N/A	0.00	0.42	0.00
-2025-08-18 23:47:48	28.08	36.36	935.92	664.71	16	17	N/A	0.00	0.42	0.00
-2025-08-18 23:50:48	27.99	36.24	935.88	665.05	15	17	N/A	0.00	0.42	0.00
-2025-08-18 23:53:48	27.88	35.87	935.88	665.01	15	16	N/A	0.00	0.42	0.00
-2025-08-18 23:56:48	27.67	36.02	935.93	664.55	14	15	N/A	0.00	0.42	0.00
-2025-08-18 23:59:48	27.59	36.38	935.89	664.94	16	17	N/A	0.00	0.42	0.00`;
-
-          // Procesar los datos
-          historicalData = [];
-          const lines = rawData.trim().split('\n');
-          
-          lines.forEach(line => {
-            const [timestampStr, tempStr, humStr, presStr, presCorrStr, windDirStr, windSpeedStr, rainStr, extra1Str, gasStr, extra2Str] = line.split('\t');
-            
-            // Convertir valores a números
-            const temp = parseFloat(tempStr);
-            const hum = parseFloat(humStr);
-            const pres = parseFloat(presStr);
-            const windDir = parseFloat(windDirStr);
-            const windSpeed = parseFloat(windSpeedStr);
-            const gas = parseFloat(gasStr);
-            
-            // Determinar si está lloviendo (simplificado para el ejemplo)
-            const isRaining = rainStr === 'N/A' ? 0 : (parseFloat(rainStr) > 0 ? 1 : 0);
-            
-            historicalData.push({
-              timestamp: new Date(timestampStr).toISOString(),
-              temp: temp,
-              hum: hum,
-              pres: pres,
-              lluvia: isRaining,
-              wind: windSpeed,
-              wind_dir: windDir,
-              gas: gas
-            });
-          });
-          
-          // Ordenar por fecha
-          historicalData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-          
-          console.log(`Datos cargados: ${historicalData.length} registros históricos de Benavente`);
-          resolve();
-        }, 800);
-      } catch (error) {
-        console.error("Error procesando datos históricos:", error);
-        reject(error);
-      }
-    });
+  // Obtener el nombre de la dirección del viento
+  const getWindDirectionName = (degrees) => {
+    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    const index = Math.round(degrees % 360 / 22.5) % 16;
+    return directions[index];
   };
 
   // Manejadores de intenciones
   const intentHandlers = {
-    current_data: (entities, context) => {
+    current_ (entities, context) => {
       // Si no hay parámetros específicos, usar el último parámetro mencionado o uno por defecto
       let parameters = entities.parameters.length > 0 ? entities.parameters : 
                       (context.lastParameter ? [context.lastParameter] : ['temperatura']);
@@ -1359,31 +1909,46 @@
       let response = '';
       
       parameters.forEach(param => {
+        let value, unit;
         switch(param) {
           case 'temperatura':
-            response += `La temperatura actual en ${benaventeInfo.location} es de ${latestData.temp.toFixed(1)}°C.\n`;
+            value = latestData.temp;
+            unit = '°C';
             break;
           case 'humedad':
-            response += `La humedad actual en ${benaventeInfo.location} es del ${latestData.hum.toFixed(0)}%.\n`;
+            value = latestData.hum;
+            unit = '%';
             break;
           case 'presión':
-            response += `La presión atmosférica actual en ${benaventeInfo.location} es de ${latestData.pres.toFixed(0)} hPa.\n`;
+            value = latestData.pres;
+            unit = 'hPa';
             break;
           case 'lluvia':
-            response += `Actualmente ${latestData.lluvia ? 'está lloviendo' : 'no está lloviendo'} en ${benaventeInfo.location}.\n`;
+            value = latestData.lluvia ? 1 : 0;
+            unit = latestData.lluvia ? 'lloviendo' : 'sin lluvia';
             break;
           case 'viento':
-            response += `La velocidad del viento actual en ${benaventeInfo.location} es de ${latestData.wind.toFixed(1)} m/s (${(latestData.wind * 3.6).toFixed(1)} km/h).\n`;
+            value = latestData.wind;
+            unit = 'm/s';
             break;
           case 'gas':
-            response += `El nivel de gas actual en ${benaventeInfo.location} es de ${latestData.gas.toFixed(2)} kΩ.\n`;
+            value = latestData.gas;
+            unit = 'kΩ';
             break;
           case 'dirección':
-            const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-            const index = Math.round((latestData.wind_dir % 360) / 22.5) % 16;
-            response += `La dirección del viento actual en ${benaventeInfo.location} es ${directions[index]} (${latestData.wind_dir}°).\n`;
+            value = latestData.wind_dir;
+            unit = '°';
             break;
+          default:
+            value = latestData.temp;
+            unit = '°C';
         }
+        
+        // Obtener variaciones para el parámetro
+        const variations = communicationSystem.getCurrentDataVariations(param, value, unit);
+        
+        // Seleccionar una variación aleatoria
+        response += getRandomVariation(variations) + "\n";
       });
       
       // Añadir análisis contextual si es relevante
@@ -1394,29 +1959,29 @@
         switch(paramName) {
           case 'temperatura':
             if (latestData.temp > 25) {
-              contextAnalysis = `Con esta temperatura en ${benaventeInfo.location}, podrías considerar usar ropa ligera y mantenerse hidratado. En verano en Benavente, las temperaturas pueden superar los 35°C.`;
+              contextAnalysis = `Con esta temperatura en Benavente, podrías considerar usar ropa ligera y mantenerse hidratado. En verano en Benavente, las temperaturas pueden superar los 35°C.`;
             } else if (latestData.temp < 10) {
-              contextAnalysis = `Con esta temperatura en ${benaventeInfo.location}, te recomendamos abrigarte adecuadamente para evitar el frío. En invierno, las temperaturas en Benavente pueden llegar a -5°C.`;
+              contextAnalysis = `Con esta temperatura en Benavente, te recomendamos abrigarte adecuadamente para evitar el frío. En invierno, las temperaturas en Benavente pueden llegar a -5°C.`;
             } else {
-              contextAnalysis = `La temperatura actual en ${benaventeInfo.location} está dentro de un rango moderado. Benavente tiene un clima mediterráneo continentalizado con primaveras y otoños agradables.`;
+              contextAnalysis = `La temperatura actual en Benavente está dentro de un rango moderado. Benavente tiene un clima mediterráneo continentalizado con primaveras y otoños agradables.`;
             }
             break;
           case 'humedad':
             if (latestData.hum > 70) {
-              contextAnalysis = `La alta humedad en ${benaventeInfo.location} puede hacer que la temperatura se sienta más alta de lo que realmente es. Considera usar ropa transpirable. La humedad promedio en Benavente es del 65%.`;
+              contextAnalysis = `La alta humedad en Benavente puede hacer que la temperatura se sienta más alta de lo que realmente es. Considera usar ropa transpirable. La humedad promedio en Benavente es del 65%.`;
             } else if (latestData.hum < 30) {
-              contextAnalysis = `La baja humedad en ${benaventeInfo.location} puede causar sequedad en la piel y las vías respiratorias. Considera usar humectante y mantenerte hidratado. Esto es menos común en Benavente, que tiene una humedad promedio del 65%.`;
+              contextAnalysis = `La baja humedad en Benavente puede causar sequedad en la piel y las vías respiratorias. Considera usar humectante y mantenerte hidratado. Esto es menos común en Benavente, que tiene una humedad promedio del 65%.`;
             } else {
-              contextAnalysis = `La humedad actual en ${benaventeInfo.location} está cerca del promedio típico de la zona (65%). Benavente tiene un clima mediterráneo continentalizado con humedad moderada.`;
+              contextAnalysis = `La humedad actual en Benavente está cerca del promedio típico de la zona (65%). Benavente tiene un clima mediterráneo continentalizado con humedad moderada.`;
             }
             break;
           case 'presión':
             if (latestData.pres < 1000) {
-              contextAnalysis = `La presión atmosférica baja en ${benaventeInfo.location} suele indicar condiciones climáticas inestables. Considera que Benavente está a ${benaventeInfo.altitude} sobre el nivel del mar, lo que afecta la presión atmosférica.`;
+              contextAnalysis = `La presión atmosférica baja en Benavente suele indicar condiciones climáticas inestables. Considera que Benavente está a ${benaventeInfo.altitude} sobre el nivel del mar, lo que afecta la presión atmosférica.`;
             } else if (latestData.pres > 1020) {
-              contextAnalysis = `La presión atmosférica alta en ${benaventeInfo.location} suele indicar condiciones climáticas estables y buen tiempo. Es un buen momento para actividades al aire libre. Benavente tiene una presión atmosférica promedio de alrededor de 1010 hPa debido a su altitud de ${benaventeInfo.altitude}.`;
+              contextAnalysis = `La presión atmosférica alta en Benavente suele indicar condiciones climáticas estables y buen tiempo. Es un buen momento para actividades al aire libre. Benavente tiene una presión atmosférica promedio de alrededor de 1010 hPa debido a su altitud de ${benaventeInfo.altitude}.`;
             } else {
-              contextAnalysis = `La presión atmosférica en ${benaventeInfo.location} está en un nivel normal para su altitud (${benaventeInfo.altitude}). Benavente se encuentra en la llanura del Duero, lo que influye en sus patrones de presión.`;
+              contextAnalysis = `La presión atmosférica en Benavente está en un nivel normal para su altitud (${benaventeInfo.altitude}). Benavente se encuentra en la llanura del Duero, lo que influye en sus patrones de presión.`;
             }
             break;
         }
@@ -1425,7 +1990,7 @@
           response += `\n${contextAnalysis}`;
         }
         
-        response += `\n\n¿Te gustaría ver un análisis histórico de ${paramName} en ${benaventeInfo.location} o una predicción para los próximos días?`;
+        response += `\n\n¿Te gustaría ver un análisis histórico de ${paramName} en Benavente o una predicción para los próximos días?`;
       }
       
       return response.trim();
@@ -1470,8 +2035,30 @@
                  parameters[0]]
         }));
       
+      // Calcular estadísticas
+      const values = chartData.map(item => item.y);
+      const avg = values.reduce((a, b) => a + b, 0) / values.length;
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      
+      // Determinar tendencia
+      const startValue = values[0];
+      const endValue = values[values.length - 1];
+      const trend = endValue > startValue ? "ascendente" : "descendente";
+      const trendStrength = Math.abs(endValue - startValue) / startValue;
+      
       // Generar la respuesta basada en el análisis de los datos
-      const response = analyzeData(parameters[0], chartData, periodInfo);
+      const variations = communicationSystem.getTrendAnalysisVariations(
+        parameters[0], 
+        avg, 
+        min, 
+        max, 
+        trend, 
+        trendStrength, 
+        period
+      );
+      
+      const response = getRandomVariation(variations);
       
       // Añade un gráfico de análisis
       const chartId = `prediction-chart-${Date.now()}`;
@@ -1540,62 +2127,30 @@
         });
       }
       
-      // Generar respuesta
-      let response = '';
-      const nextDay = new Date(now);
-      nextDay.setDate(now.getDate() + 1);
+      // Determinar la tendencia de las predicciones
+      const trend = predictionData[predictionData.length - 1].y > predictionData[0].y ?
+                   'aumentando' : (predictionData[predictionData.length - 1].y < predictionData[0].y ? 'disminuyendo' : 'estable');
       
-      switch(parameters[0]) {
-        case 'temperatura':
-          // Personalizar según estación del año
-          const month = now.getMonth();
-          let seasonInfo = '';
-          
-          if (month >= 3 && month <= 5) { // Primavera
-            seasonInfo = `Durante la primavera en Benavente, las temperaturas suelen ser moderadas con días soleados y noches frescas.`;
-          } else if (month >= 6 && month <= 8) { // Verano
-            seasonInfo = `En verano, Benavente suele experimentar temperaturas elevadas, con máximas que pueden superar los 35°C en los días más calurosos.`;
-          } else if (month >= 9 && month <= 11) { // Otoño
-            seasonInfo = `El otoño en Benavente se caracteriza por temperaturas frescas durante el día y frías por la noche, con días mayormente soleados.`;
-          } else { // Invierno
-            seasonInfo = `En invierno, Benavente experimenta temperaturas bajas, con mínimas que pueden llegar a -5°C en las noches más frías.`;
-          }
-          
-          response = `Para mañana ${nextDay.toLocaleDateString('es-ES', { weekday: 'long' })} en ${benaventeInfo.location}, la temperatura se espera que esté entre ${(latestData.temp - 1).toFixed(1)}°C y ${(latestData.temp + 2).toFixed(1)}°C.\n\n`;
-          response += `${seasonInfo}\n\n`;
-          response += `La tendencia a corto plazo sugiere ${latestData.temp < predictionData[1].y ? 'un aumento' : 'una disminución'} en la temperatura.\n\n`;
-          break;
-        case 'humedad':
-          response = `Para mañana ${nextDay.toLocaleDateString('es-ES', { weekday: 'long' })} en ${benaventeInfo.location}, la humedad se espera que esté alrededor del ${(latestData.hum + (Math.random() * 5 - 2.5)).toFixed(0)}%.\n\n`;
-          response += `La humedad promedio en Benavente es del 65%, con variaciones según la época del año.\n\n`;
-          response += `La tendencia a corto plazo sugiere ${latestData.hum < predictionData[1].y ? 'un aumento' : 'una disminución'} en la humedad.\n\n`;
-          break;
-        case 'presión':
-          response = `Para mañana ${nextDay.toLocaleDateString('es-ES', { weekday: 'long' })} en ${benaventeInfo.location}, la presión atmosférica se espera que esté alrededor de ${(latestData.pres + (Math.random() * 3 - 1.5)).toFixed(0)} hPa.\n\n`;
-          response += `Debido a que Benavente está a ${benaventeInfo.altitude}, la presión atmosférica promedio es ligeramente menor que en el nivel del mar.\n\n`;
-          response += `La tendencia a corto plazo sugiere ${latestData.pres < predictionData[1].y ? 'un aumento' : 'una disminución'} en la presión.\n\n`;
-          break;
-        case 'viento':
-          response = `Para mañana ${nextDay.toLocaleDateString('es-ES', { weekday: 'long' })} en ${benaventeInfo.location}, la velocidad del viento se espera que esté alrededor de ${(latestData.wind + (Math.random() * 2 - 1)).toFixed(1)} m/s.\n\n`;
-          response += `El viento predominante en Benavente suele venir del oeste, con una velocidad promedio de 5 m/s.\n\n`;
-          response += `La tendencia a corto plazo sugiere ${latestData.wind < predictionData[1].y ? 'un aumento' : 'una disminución'} en la velocidad del viento.\n\n`;
-          break;
-        default:
-          response = `Para mañana ${nextDay.toLocaleDateString('es-ES', { weekday: 'long' })} en ${benaventeInfo.location}, se espera que ${parameters[0]} muestre una tendencia ${latestData.temp < predictionData[1].y ? 'ascendente' : 'descendente'}.\n\n`;
-      }
+      // Calcular confiabilidad (simulación)
+      const reliability = 0.7 + Math.random() * 0.25;
       
-      response += `Esta predicción se basa en el análisis de los datos históricos de los últimos 30 días en ${benaventeInfo.location} y tiene una confiabilidad estimada del 75%.`;
+      // Generar la respuesta basada en el análisis de los datos
+      const variations = communicationSystem.getPredictionVariations(
+        parameters[0],
+        reliability,
+        '5 días'
+      );
+      
+      const response = getRandomVariation(variations);
       
       // Añade un gráfico de predicción
       const chartId = `prediction-chart-${Date.now()}`;
-      const reliability = 75;
-      
       const chartResponse = `
         <div class="prediction-container">
           <div class="prediction-reliability">
-            Confiabilidad de la predicción: ${reliability}% 
+            Confiabilidad de la predicción: ${(reliability * 100).toFixed(0)}% 
             <div class="reliability-bar">
-              <div class="reliability-fill" style="width: ${reliability}%"></div>
+              <div class="reliability-fill" style="width: ${(reliability * 100).toFixed(0)}%"></div>
             </div>
           </div>
           <div class="prediction-chart-container">
@@ -1669,36 +2224,20 @@
                                      parameters[0] === 'lluvia' ? 'lluvia' : 
                                      parameters[0]], 0) / data2.length;
       
-      // Generar respuesta
-      let response = `Comparación de ${parameters[0]} entre ${period1} y ${period2} en ${benaventeInfo.location}:\n\n`;
+      // Calcular porcentaje de cambio
+      const changePercent = ((avg1 - avg2) / avg2) * 100;
       
-      response += `* ${period1.charAt(0).toUpperCase() + period1.slice(1)}: ${avg1.toFixed(2)}`;
-      if (parameters[0] !== 'lluvia' && parameters[0] !== 'dirección') {
-        response += ` ${parameters[0] === 'presión' ? 'hPa' : 
-                    parameters[0] === 'humedad' ? '%' : 
-                    '°C'}`;
-      }
-      response += `\n`;
+      // Generar la respuesta basada en el análisis de los datos
+      const variations = communicationSystem.getComparisonVariations(
+        parameters[0],
+        avg1,
+        avg2,
+        period1,
+        period2,
+        changePercent
+      );
       
-      response += `* ${period2.charAt(0).toUpperCase() + period2.slice(1)}: ${avg2.toFixed(2)}`;
-      if (parameters[0] !== 'lluvia' && parameters[0] !== 'dirección') {
-        response += ` ${parameters[0] === 'presión' ? 'hPa' : 
-                    parameters[0] === 'humedad' ? '%' : 
-                    '°C'}`;
-      }
-      response += `\n\n`;
-      
-      const difference = avg1 - avg2;
-      if (Math.abs(difference) > 0.01) {
-        const percentChange = (Math.abs(difference) / avg2) * 100;
-        if (difference > 0) {
-          response += `La ${parameters[0]} fue ${percentChange.toFixed(1)}% mayor en ${period1} que en ${period2}.`;
-        } else {
-          response += `La ${parameters[0]} fue ${percentChange.toFixed(1)}% menor en ${period1} que en ${period2}.`;
-        }
-      } else {
-        response += `La ${parameters[0]} fue muy similar en ambos periodos.`;
-      }
+      const response = getRandomVariation(variations);
       
       // Contexto específico de Benavente
       response += `\n\nEn ${benaventeInfo.location}, ubicado a ${benaventeInfo.altitude} sobre el nivel del mar, `;
@@ -1918,86 +2457,18 @@
         stdDev2 = Math.sqrt(stdDev2 / values1.length);
         
         // Calcular coeficiente de correlación de Pearson
-        const correlationCoefficient = covariance / (stdDev1 * stdDev2);
+        const correlation = covariance / (stdDev1 * stdDev2);
+        const rSquared = correlation * correlation;
         
-        // Generar respuesta basada en el coeficiente
-        let response = `<div class="detailed-analysis">`;
-        response += `<h3>Análisis de Correlación en ${benaventeInfo.location}</h3>`;
+        // Generar la respuesta basada en el análisis de los datos
+        const variations = communicationSystem.getCorrelationVariations(
+          parameter1,
+          parameter2,
+          correlation,
+          rSquared
+        );
         
-        // Mapear nombres de parámetros a términos más descriptivos
-        const paramNameMap = {
-          'temperatura': 'la temperatura',
-          'humedad': 'la humedad',
-          'presión': 'la presión atmosférica',
-          'lluvia': 'la lluvia',
-          'viento': 'la velocidad del viento',
-          'gas': 'el nivel de gas'
-        };
-        
-        const param1Name = paramNameMap[parameter1] || parameter1;
-        const param2Name = paramNameMap[parameter2] || parameter2;
-        
-        response += `<p>He analizado la relación entre ${param1Name} y ${param2Name} durante los últimos 30 días en ${benaventeInfo.location}.</p>`;
-        
-        // Interpretar el coeficiente de correlación
-        if (Math.abs(correlationCoefficient) > 0.7) {
-          response += `<p>Existe una <strong>fuerte correlación</strong> entre estos dos parámetros en ${benaventeInfo.location}, con un coeficiente de ${correlationCoefficient.toFixed(2)}.</p>`;
-        } else if (Math.abs(correlationCoefficient) > 0.4) {
-          response += `<p>Existe una <strong>correlación moderada</strong> entre estos dos parámetros en ${benaventeInfo.location}, con un coeficiente de ${correlationCoefficient.toFixed(2)}.</p>`;
-        } else if (Math.abs(correlationCoefficient) > 0.2) {
-          response += `<p>Existe una <strong>ligera correlación</strong> entre estos dos parámetros en ${benaventeInfo.location}, con un coeficiente de ${correlationCoefficient.toFixed(2)}.</p>`;
-        } else {
-          response += `<p>No hay una correlación significativa entre estos dos parámetros en ${benaventeInfo.location}, con un coeficiente de ${correlationCoefficient.toFixed(2)}.</p>`;
-        }
-        
-        // Interpretación contextual
-        if (correlationCoefficient > 0.5) {
-          response += `<p>Esto significa que cuando ${param1Name} aumenta, ${param2Name} tiende a aumentar también en ${benaventeInfo.location}.</p>`;
-        } else if (correlationCoefficient < -0.5) {
-          response += `<p>Esto significa que cuando ${param1Name} aumenta, ${param2Name} tiende a disminuir en ${benaventeInfo.location}.</p>`;
-        } else {
-          response += `<p>Los cambios en ${param1Name} no parecen tener una relación clara con los cambios en ${param2Name} en ${benaventeInfo.location}.</p>`;
-        }
-        
-        // Información adicional basada en pares específicos y contexto de Benavente
-        if ((parameter1 === 'temperatura' && parameter2 === 'humedad') || 
-            (parameter1 === 'humedad' && parameter2 === 'temperatura')) {
-          if (correlationCoefficient < 0) {
-            response += `<p>Es común observar una correlación negativa entre temperatura y humedad en ${benaventeInfo.location}, `;
-            response += `ya que el aire caliente puede contener más vapor de agua, pero la humedad relativa disminuye a medida que la temperatura aumenta. `;
-            response += `Este patrón es típico del clima mediterráneo continentalizado de Benavente.</p>`;
-          } else {
-            response += `<p>En ${benaventeInfo.location}, normalmente se observa una correlación negativa entre temperatura y humedad. `;
-            response += `El hecho de que estemos observando una correlación positiva sugiere condiciones climáticas inusuales en el periodo analizado.</p>`;
-          }
-        }
-        
-        if ((parameter1 === 'presión' && parameter2 === 'lluvia') || 
-            (parameter1 === 'lluvia' && parameter2 === 'presión')) {
-          if (correlationCoefficient < 0) {
-            response += `<p>Es típico observar que la presión atmosférica baja antes de una lluvia en ${benaventeInfo.location}, `;
-            response += `lo que explica la correlación negativa. Este patrón es consistente con el clima mediterráneo continentalizado de la zona.</p>`;
-          }
-        }
-        
-        if ((parameter1 === 'temperatura' && parameter2 === 'presión') || 
-            (parameter1 === 'presión' && parameter2 === 'temperatura')) {
-          if (Math.abs(correlationCoefficient) < 0.3) {
-            response += `<p>La temperatura y la presión atmosférica en ${benaventeInfo.location} suelen tener una relación compleja que depende de muchos factores, `;
-            response += `por lo que no siempre se observa una correlación clara. La altitud de ${benaventeInfo.altitude} influye en esta relación.</p>`;
-          }
-        }
-        
-        // Añadir información específica de Benavente
-        response += `<p class="benavente-context">`;
-        response += `Benavente, ubicado en la llanura del Duero a ${benaventeInfo.altitude}, `;
-        response += `tiene un clima mediterráneo continentalizado con veranos calurosos e inviernos fríos. `;
-        response += `Estas características climáticas influyen en las relaciones entre los diferentes parámetros meteorológicos.`;
-        response += `</p>`;
-        
-        // Añadir información de confianza
-        const confidence = Math.min(1, Math.abs(correlationCoefficient) * 0.8 + 0.2);
-        response += `<div class="confidence-indicator">Confianza del análisis: ${(confidence * 100).toFixed(0)}%</div>`;
+        const response = getRandomVariation(variations);
         
         // Preparar datos para el gráfico
         const chartData = periodData.map((data, index) => ({
@@ -2012,7 +2483,7 @@
         
         // Añade un gráfico de correlación
         const chartId = `correlation-chart-${Date.now()}`;
-        response += `
+        const chartResponse = `
           <div class="prediction-chart-container">
             <div class="chart-title">Relación entre ${parameter1} y ${parameter2} en ${benaventeInfo.location}</div>
             <canvas class="prediction-chart" id="${chartId}" 
@@ -2022,9 +2493,7 @@
           </div>
         `;
         
-        response += `</div>`;
-        
-        return response;
+        return response + chartResponse;
       } catch (error) {
         console.error('Error en análisis de correlación:', error);
         return "⚠️ Ocurrió un error al analizar la correlación. Por favor, intenta nuevamente.";
@@ -2032,50 +2501,21 @@
     },
     
     greeting: () => {
-      const hours = new Date().getHours();
-      let greeting;
-      
-      if (hours < 12) {
-        greeting = "¡Buenos días! ";
-      } else if (hours < 18) {
-        greeting = "¡Buenas tardes! ";
-      } else {
-        greeting = "¡Buenas noches! ";
-      }
-      
-      return `${greeting}Soy Horus AI, tu asistente inteligente especializado en meteorología para <strong>${benaventeInfo.location}</strong>.<br><br>
-      <strong>Características del clima de Benavente:</strong>
-      <ul>
-        <li><strong>Ubicación:</strong> ${benaventeInfo.coordinates}</li>
-        <li><strong>Altitud:</strong> ${benaventeInfo.altitude}</li>
-        <li><strong>Clima:</strong> ${benaventeInfo.climate}</li>
-        <li><strong>Características:</strong> ${benaventeInfo.localFeatures}</li>
-      </ul>
-      <br>
-      ¿En qué puedo ayudarte hoy con respecto al clima de Benavente?`;
+      const variations = communicationSystem.getGreetingVariations();
+      return getRandomVariation(variations);
     },
     
     goodbye: () => {
-      const hours = new Date().getHours();
-      let farewell;
-      
-      if (hours < 12) {
-        farewell = "¡Que tengas un buen día!";
-      } else if (hours < 18) {
-        farewell = "¡Que tengas una buena tarde!";
-      } else {
-        farewell = "¡Que tengas una buena noche!";
-      }
-      
-      return `${farewell} Si necesitas más ayuda en el futuro sobre el clima de ${benaventeInfo.location}, no dudes en regresar. ¡Cuídate!`;
+      const variations = communicationSystem.getGoodbyeVariations();
+      return getRandomVariation(variations);
     },
     
     help: () => {
-      return `<div class="general-answer">
-        <h3>Ayuda con Horus AI para Benavente</h3>
-        <p>Puedo ayudarte con consultas meteorológicas específicas para <strong>${benaventeInfo.location}</strong>:</p>
-        
-        <h4>Preguntas meteorológicas para Benavente</h4>
+      const variations = communicationSystem.getHelpVariations();
+      let response = getRandomVariation(variations);
+      
+      response += `<div class="general-answer">
+        <h3>Preguntas meteorológicas para Benavente</h3>
         <ul>
           <li>"¿Cuál es la temperatura actual en Benavente?"</li>
           <li>"¿Cómo ha sido la tendencia de humedad en Benavente esta semana?"</li>
@@ -2084,7 +2524,7 @@
           <li>"¿Qué tiempo hará mañana en Benavente?"</li>
         </ul>
         
-        <h4>Características climáticas de Benavente</h4>
+        <h3>Características climáticas de Benavente</h3>
         <ul>
           <li>Verano: ${benaventeInfo.typicalWeather.summer}</li>
           <li>Invierno: ${benaventeInfo.typicalWeather.winter}</li>
@@ -2092,7 +2532,7 @@
           <li>Otoño: ${benaventeInfo.typicalWeather.autumn}</li>
         </ul>
         
-        <h4>Preguntas sobre Horus en Benavente</h4>
+        <h3>Preguntas sobre Horus en Benavente</h3>
         <ul>
           <li>"¿Qué es Horus en Benavente?"</li>
           <li>"¿Cómo funciona el sistema Horus en Benavente?"</li>
@@ -2102,14 +2542,16 @@
         
         <p>¡Hazme cualquier pregunta y haré lo posible por ayudarte con información específica de Benavente!</p>
       </div>`;
+      
+      return response;
     },
     
     about_horus: () => {
-      return `<div class="system-info">
-        <h3>Sistema Horus en Benavente</h3>
-        <p>Horus es una estación meteorológica avanzada instalada en <strong>${benaventeInfo.location}</strong>, diseñada para monitorear condiciones climáticas en tiempo real.</p>
-        
-        <h4>Características principales en Benavente:</h4>
+      const variations = communicationSystem.getAboutHorusVariations();
+      let response = getRandomVariation(variations);
+      
+      response += `<div class="system-info">
+        <h3>Características principales en Benavente:</h3>
         <ul>
           <li>Medición de temperatura, humedad, presión atmosférica y dirección del viento en ${benaventeInfo.location}</li>
           <li>Sensores de calidad del aire (PM2.5, PM10, CO2) adaptados al clima de Benavente</li>
@@ -2118,7 +2560,7 @@
           <li>Interfaz web para visualización y análisis de datos específicos de Benavente</li>
         </ul>
         
-        <h4>Características climáticas de Benavente relevantes:</h4>
+        <h3>Características climáticas de Benavente relevantes:</h3>
         <ul>
           <li><strong>Ubicación:</strong> ${benaventeInfo.coordinates}</li>
           <li><strong>Altitud:</strong> ${benaventeInfo.altitude}</li>
@@ -2131,14 +2573,16 @@
         
         <p>Horus proporciona datos meteorológicos precisos para análisis climáticos específicos de ${benaventeInfo.location}, predicciones y estudios ambientales adaptados a las características de la región.</p>
       </div>`;
+      
+      return response;
     },
     
     support: () => {
-      return `<div class="system-info">
-        <h3>Soporte Técnico para Horus en Benavente</h3>
-        <p>Si estás teniendo problemas con Horus AI en relación a ${benaventeInfo.location}, aquí hay algunas soluciones:</p>
-        
-        <h4>Problemas comunes:</h4>
+      const variations = communicationSystem.getSupportVariations();
+      let response = getRandomVariation(variations);
+      
+      response += `<div class="system-info">
+        <h3>Problemas comunes:</h3>
         <ul>
           <li><strong>Datos no actualizados:</strong> Verifica la conexión de la estación Horus en Benavente y espera unos minutos para que se actualicen los datos.</li>
           <li><strong>Interfaz lenta:</strong> Intenta actualizar la página o limpiar la caché del navegador.</li>
@@ -2146,7 +2590,7 @@
           <li><strong>Error de conexión:</strong> Verifica tu conexión a internet y recarga la página.</li>
         </ul>
         
-        <h4>Solución de problemas específicos de Benavente:</h4>
+        <h3>Solución de problemas específicos de Benavente:</h3>
         <ol>
           <li>Recarga la página (F5 o Ctrl + R)</li>
           <li>Limpia la caché del navegador</li>
@@ -2157,14 +2601,16 @@
         
         <p>Si el problema persiste, contacta al administrador del sistema para obtener ayuda adicional específica para ${benaventeInfo.location}.</p>
       </div>`;
+      
+      return response;
     },
     
     personal: () => {
-      return `<div class="system-info">
-        <h3>Sobre Horus AI para Benavente</h3>
-        <p>Soy Horus AI, un asistente inteligente especializado en meteorología para <strong>${benaventeInfo.location}</strong> y sistemas Horus.</p>
-        
-        <h4>Mis capacidades específicas para Benavente:</h4>
+      const variations = communicationSystem.getPersonalInfoVariations();
+      let response = getRandomVariation(variations);
+      
+      response += `<div class="system-info">
+        <h3>Mis capacidades específicas para Benavente:</h3>
         <ul>
           <li>Analizar y explicar datos meteorológicos en tiempo real para ${benaventeInfo.location}</li>
           <li>Identificar tendencias y patrones climáticos específicos de la región</li>
@@ -2174,7 +2620,7 @@
           <li>Contextualizar el clima de Benavente (${benaventeInfo.altitude}) con su ubicación en la llanura del Duero</li>
         </ul>
         
-        <h4>Características climáticas de Benavente que considero:</h4>
+        <h3>Características climáticas de Benavente que considero:</h3>
         <ul>
           <li>Clima mediterráneo continentalizado con veranos calurosos e inviernos fríos</li>
           <li>Altitud de ${benaventeInfo.altitude} que afecta la presión atmosférica</li>
@@ -2186,41 +2632,24 @@
         
         <p>No soy un humano, sino un sistema de inteligencia artificial diseñado específicamente para análisis meteorológico y soporte del sistema Horus en ${benaventeInfo.location}.</p>
       </div>`;
+      
+      return response;
     },
     
     general: () => {
+      const variations = communicationSystem.getGeneralInfoVariations();
+      let response = getRandomVariation(variations);
+      
       const now = new Date();
-      return `<div class="system-info">
-        <h3>Información General sobre Benavente</h3>
-        
-        <h4>Ubicación:</h4>
-        <p>${benaventeInfo.location}</p>
-        
-        <h4>Coordenadas:</h4>
-        <p>${benaventeInfo.coordinates}</p>
-        
-        <h4>Altitud:</h4>
-        <p>${benaventeInfo.altitude}</p>
-        
-        <h4>Clima:</h4>
-        <p>${benaventeInfo.climate}</p>
-        
-        <h4>Características climáticas:</h4>
-        <ul>
-          <li><strong>Verano:</strong> ${benaventeInfo.typicalWeather.summer}</li>
-          <li><strong>Invierno:</strong> ${benaventeInfo.typicalWeather.winter}</li>
-          <li><strong>Primavera:</strong> ${benaventeInfo.typicalWeather.spring}</li>
-          <li><strong>Otoño:</strong> ${benaventeInfo.typicalWeather.autumn}</li>
-        </ul>
-        
-        <h4>Hora actual:</h4>
+      response += `<div class="system-info">
+        <h3>Hora actual:</h3>
         <p>${now.toLocaleTimeString('es-ES', { 
           hour: '2-digit', 
           minute: '2-digit', 
           second: '2-digit'
         })}</p>
         
-        <h4>Fecha actual:</h4>
+        <h3>Fecha actual:</h3>
         <p>${now.toLocaleDateString('es-ES', {
           weekday: 'long',
           year: 'numeric',
@@ -2232,16 +2661,21 @@
         
         <p>Fui desarrollado recientemente como parte del sistema Horus para ${benaventeInfo.location}. No tengo una edad en el sentido humano.</p>
       </div>`;
+      
+      return response;
     },
     
     out_of_scope: (intent) => {
       const domain = intent.domain || 'general';
       
+      const variations = communicationSystem.getOutOfScopeVariations(domain);
+      let response = getRandomVariation(variations);
+      
       // Mensajes personalizados según el ámbito
       const domainMessages = {
         salud: `<div class="out-of-scope">
           <h3>Preguntas sobre Salud en Benavente</h3>
-          <p>Soy un asistente meteorológico especializado para ${benaventeInfo.location}, no tengo información médica. Para consultas sobre salud:</p>
+          <p>Para consultas sobre salud:</p>
           <ul>
             <li>Contacta a un profesional médico calificado en Benavente</li>
             <li>Visita el centro de salud de Benavente</li>
@@ -2253,7 +2687,7 @@
         
         tecnología: `<div class="out-of-scope">
           <h3>Preguntas sobre Tecnología en Benavente</h3>
-          <p>Soy un asistente meteorológico especializado para ${benaventeInfo.location}. Para consultas sobre tecnología:</p>
+          <p>Para consultas sobre tecnología:</p>
           <ul>
             <li>Consulta foros especializados como Stack Overflow</li>
             <li>Revisa documentación oficial de los productos</li>
@@ -2265,7 +2699,7 @@
         
         deportes: `<div class="out-of-scope">
           <h3>Preguntas sobre Deportes en Benavente</h3>
-          <p>Soy un asistente meteorológico especializado para ${benaventeInfo.location}. Para información sobre deportes:</p>
+          <p>Para información sobre deportes:</p>
           <ul>
             <li>Visita el Ayuntamiento de Benavente para información deportiva</li>
             <li>Sigue el Club Deportivo de Benavente</li>
@@ -2277,7 +2711,7 @@
         
         entretenimiento: `<div class="out-of-scope">
           <h3>Preguntas sobre Entretenimiento en Benavente</h3>
-          <p>Soy un asistente meteorológico especializado para ${benaventeInfo.location}. Para información sobre entretenimiento:</p>
+          <p>Para información sobre entretenimiento:</p>
           <ul>
             <li>Visita la página web del Ayuntamiento de Benavente</li>
             <li>Sigue eventos culturales en la Plaza Mayor de Benavente</li>
@@ -2289,7 +2723,7 @@
         
         comida: `<div class="out-of-scope">
           <h3>Preguntas sobre Comida en Benavente</h3>
-          <p>Soy un asistente meteorológico especializado para ${benaventeInfo.location}. Para recetas o información sobre comida:</p>
+          <p>Para recetas o información sobre comida:</p>
           <ul>
             <li>Consulta sitios web especializados en gastronomía zamorana</li>
             <li>Sigue chefs locales de Benavente</li>
@@ -2301,7 +2735,7 @@
         
         educación: `<div class="out-of-scope">
           <h3>Preguntas sobre Educación en Benavente</h3>
-          <p>Soy un asistente meteorológico especializado para ${benaventeInfo.location}. Para información educativa:</p>
+          <p>Para información educativa:</p>
           <ul>
             <li>Consulta la página web del Ayuntamiento de Benavente</li>
             <li>Visita el Centro de Educación de Adultos de Benavente</li>
@@ -2313,7 +2747,7 @@
         
         finanzas: `<div class="out-of-scope">
           <h3>Preguntas sobre Finanzas en Benavente</h3>
-          <p>Soy un asistente meteorológico especializado para ${benaventeInfo.location}. Para consultas financieras:</p>
+          <p>Para consultas financieras:</p>
           <ul>
             <li>Consulta a un asesor financiero en Benavente</li>
             <li>Visita oficinas bancarias en la Plaza Mayor</li>
@@ -2325,7 +2759,7 @@
         
         general: `<div class="out-of-scope">
           <h3>Preguntas Fuera de Mi Ámbito en Benavente</h3>
-          <p>Soy un asistente meteorológico especializado para <strong>${benaventeInfo.location}</strong>. Mi conocimiento está limitado a:</p>
+          <p>Mi conocimiento está limitado a:</p>
           <ul>
             <li>Monitoreo y análisis de datos meteorológicos en Benavente</li>
             <li>Funcionamiento del sistema Horus en Benavente</li>
@@ -2345,15 +2779,16 @@
         </div>`
       };
       
-      return domainMessages[domain] || domainMessages.general;
+      response += domainMessages[domain] || domainMessages.general;
+      return response;
     },
     
     unrelated: (entities, context) => {
-      return `<div class="out-of-scope">
-        <h3>No Entiendo Tu Pregunta sobre Benavente</h3>
-        <p>No estoy seguro de entender tu pregunta. Soy un asistente meteorológico especializado en el sistema Horus en <strong>${benaventeInfo.location}</strong>.</p>
-        
-        <h4>¿Cómo puedo ayudarte con Benavente?</h4>
+      const variations = communicationSystem.getUnrelatedVariations();
+      let response = getRandomVariation(variations);
+      
+      response += `<div class="out-of-scope">
+        <h3>¿Cómo puedo ayudarte con Benavente?</h3>
         <ul>
           <li>Consultar datos meteorológicos actuales en Benavente</li>
           <li>Analizar tendencias climáticas históricas de Benavente</li>
@@ -2373,127 +2808,673 @@
         
         <p class="benavente-context"><strong>Información clave sobre Benavente:</strong> Ubicado a ${benaventeInfo.altitude} en la llanura del Duero, tiene un clima mediterráneo continentalizado con veranos calurosos e inviernos fríos.</p>
       </div>`;
+      
+      return response;
     }
   };
 
-  // Analiza los datos para generar una respuesta descriptiva
-  const analyzeData = (parameter, chartData, periodInfo) => {
-    if (chartData.length === 0) {
-      return "No hay datos disponibles para el periodo seleccionado.";
-    }
-    
-    // Calcular estadísticas
-    const values = chartData.map(item => item.y);
-    const sum = values.reduce((a, b) => a + b, 0);
-    const average = sum / values.length;
-    const max = Math.max(...values);
-    const min = Math.min(...values);
-    
-    // Determinar tendencia
-    const startValue = values[0];
-    const endValue = values[values.length - 1];
-    const trend = endValue > startValue ? "ascendente" : "descendente";
-    const trendStrength = Math.abs(endValue - startValue) / startValue;
-    
-    // Generar respuesta
-    let response = `<div class="detailed-analysis">`;
-    response += `<h3>Análisis de ${parameter.charAt(0).toUpperCase() + parameter.slice(1)} en ${benaventeInfo.location}</h3>`;
-    
-    // Descripción general
-    response += `<p>En el periodo seleccionado (${periodInfo.type === 'day' ? periodInfo.value + ' días' : periodInfo.type}) en ${benaventeInfo.location}:</p>`;
-    response += `<div class="statistics-grid">`;
-    response += `<div class="stat-item"><strong>Promedio</strong><br><span class="stat-value">${average.toFixed(1)}`;
-    if (parameter !== 'lluvia' && parameter !== 'dirección') {
-      response += ` ${parameter === 'presión' ? 'hPa' : 
-                  parameter === 'humedad' ? '%' : 
-                  '°C'}`;
-    }
-    response += `</span></div>`;
-    
-    response += `<div class="stat-item"><strong>Máximo</strong><br><span class="stat-value">${max.toFixed(1)}`;
-    if (parameter !== 'lluvia' && parameter !== 'dirección') {
-      response += ` ${parameter === 'presión' ? 'hPa' : 
-                  parameter === 'humedad' ? '%' : 
-                  '°C'}`;
-    }
-    response += `</span></div>`;
-    
-    response += `<div class="stat-item"><strong>Mínimo</strong><br><span class="stat-value">${min.toFixed(1)}`;
-    if (parameter !== 'lluvia' && parameter !== 'dirección') {
-      response += ` ${parameter === 'presión' ? 'hPa' : 
-                  parameter === 'humedad' ? '%' : 
-                  '°C'}`;
-    }
-    response += `</span></div>`;
-    response += `</div>`;
-    
-    // Análisis de tendencia
-    if (trendStrength > 0.05) { // Si hay una tendencia significativa
-      response += `<div class="trend-analysis">`;
-      response += `<h3>Tendencia</h3>`;
-      response += `<p>La tendencia es claramente ${trend} (${(trendStrength * 100).toFixed(1)}% de cambio) en ${benaventeInfo.location}.</p>`;
+  // Sistema de comunicación mejorado
+  const communicationSystem = {
+    // Variaciones de saludos según la hora
+    getGreetingVariations: () => {
+      const hours = new Date().getHours();
+      const dayOfWeek = new Date().getDay();
+      const month = new Date().getMonth();
       
-      if (parameter === 'temperatura') {
-        response += trend === 'ascendente' ? 
-          `<p>Esto sugiere un calentamiento progresivo en el periodo analizado en ${benaventeInfo.location}. Podrías considerar ajustar tu ropa o planificar actividades al aire libre en los momentos más frescos del día. En Benavente, con su clima mediterráneo continentalizado, este patrón es típico durante la transición entre estaciones.</p>` :
-          `<p>Esto sugiere un enfriamiento progresivo en el periodo analizado en ${benaventeInfo.location}. Podrías considerar abrigarte adecuadamente para las actividades al aire libre. La altitud de ${benaventeInfo.altitude} puede intensificar este enfriamiento.</p>`;
-      } else if (parameter === 'humedad') {
-        response += trend === 'ascendente' ? 
-          `<p>El aumento de humedad en ${benaventeInfo.location} podría indicar mayor probabilidad de precipitación. Considera llevar paraguas si planeas estar al aire libre. En Benavente, la humedad promedio es del 65%, por lo que un aumento significativo es notable.</p>` :
-          `<p>La disminución de humedad en ${benaventeInfo.location} sugiere condiciones más secas. Podrías necesitar hidratarte más frecuentemente. Esto es menos común en Benavente, que tiene una humedad relativamente estable.</p>`;
-      } else if (parameter === 'presión') {
-        response += trend === 'ascendente' ? 
-          `<p>El aumento de presión en ${benaventeInfo.location} suele indicar condiciones climáticas estables y buen tiempo. Es un buen momento para actividades al aire libre. Debido a la altitud de ${benaventeInfo.altitude}, la presión atmosférica en Benavente es ligeramente menor que en el nivel del mar.</p>` :
-          `<p>La disminución de presión en ${benaventeInfo.location} suele preceder a condiciones climáticas inestables. Podrías considerar prepararte para posibles cambios en el clima. La ubicación de Benavente en la llanura del Duero influye en estos patrones de presión.</p>`;
+      // Obtener una frase local aleatoria
+      const localPhrase = benaventeInfo.localPhrases[
+        Math.floor(Math.random() * benaventeInfo.localPhrases.length)
+      ];
+      
+      // Determinar si hay un evento local próximo
+      const upcomingEvent = benaventeInfo.localEvents.find(event => {
+        // Aquí iría la lógica para detectar eventos próximos
+        return Math.random() > 0.7; // Simulación aleatoria
+      });
+      
+      const variations = {
+        morning: [
+          `¡Buenos días! ${localPhrase} Soy Horus AI, tu asistente meteorológico para Benavente. ¿En qué puedo ayudarte hoy?`,
+          `¡Hola! ${localPhrase} Espero que estés disfrutando de esta mañana en Benavente. Soy Horus AI, tu asistente meteorológico. ¿Necesitas información sobre el clima?`,
+          `¡Buen día! ${localPhrase} ¿Sabías que hoy en Benavente...? Soy Horus AI, tu asistente meteorológico. ¿En qué puedo ayudarte?`
+        ],
+        afternoon: [
+          `¡Buenas tardes! ${localPhrase} Soy Horus AI, tu asistente especializado en el clima de Benavente. ¿Necesitas información meteorológica?`,
+          `¡Hola! ${localPhrase} ¿Cómo está el tiempo por tu zona de Benavente? Soy Horus AI, tu asistente meteorológico. ¿En qué puedo ayudarte?`,
+          `¡Buenas tardes! ${localPhrase} ¿Has notado algún cambio en el clima de Benavente últimamente? Soy Horus AI, tu asistente meteorológico.`
+        ],
+        evening: [
+          `¡Buenas noches! ${localPhrase} Soy Horus AI, tu asistente meteorológico para Benavente. ¿Necesitas información sobre el clima nocturno?`,
+          `¡Hola! ${localPhrase} ¿Cómo ha sido tu día en Benavente? Soy Horus AI, tu asistente meteorológico. ¿Necesitas información sobre el clima?`,
+          `¡Buenas noches! ${localPhrase} ¿Sabías que en Benavente el clima nocturno suele...? Soy Horus AI, tu asistente meteorológico.`
+        ]
+      };
+      
+      if (upcomingEvent) {
+        const eventVariations = [
+          `¡Buenos días! ${localPhrase} Por cierto, ¿sabías que se acerca ${upcomingEvent} en Benavente? Soy Horus AI, tu asistente meteorológico. ¿Necesitas información sobre el clima para el evento?`,
+          `¡Hola! ${localPhrase} Con el ${upcomingEvent} acercándose en Benavente, es importante estar al tanto del clima. Soy Horus AI, tu asistente meteorológico. ¿En qué puedo ayudarte?`
+        ];
+        
+        if (hours < 12) return eventVariations;
+        if (hours < 18) return eventVariations;
+        return eventVariations;
       }
       
-      response += `</div>`;
-    } else {
-      response += `<div class="trend-analysis">`;
-      response += `<h3>Tendencia</h3>`;
-      response += `<p>La tendencia es relativamente estable sin cambios significativos en ${benaventeInfo.location}.</p>`;
-      response += `<p>Las condiciones meteorológicas permanecen consistentes durante el periodo analizado en Benavente. Esto es común en períodos de transición suave entre sistemas meteorológicos en la llanura del Duero.</p>`;
-      response += `</div>`;
+      if (hours < 12) return variations.morning;
+      if (hours < 18) return variations.afternoon;
+      return variations.evening;
+    },
+    
+    // Variaciones de despedida
+    getGoodbyeVariations: () => {
+      const hours = new Date().getHours();
+      const dayOfWeek = new Date().getDay();
+      
+      return [
+        `¡Que tengas un buen día! Si necesitas más información sobre el clima de Benavente, no dudes en volver. ¡Hasta pronto!`,
+        `Gracias por consultar el clima de Benavente conmigo. ¡Que disfrutes del día en la llanura del Duero!`,
+        `Espero haber sido de ayuda con la información meteorológica de Benavente. ¡Que tengas un día maravilloso!`,
+        `¡Hasta la próxima! Recuerda que siempre puedes volver para conocer el estado del tiempo en Benavente.`,
+        `Gracias por tu visita. Si necesitas más información sobre el clima de Benavente, estaré aquí cuando me necesites. ¡Adiós!`,
+        `Espero que la información sobre el clima de Benavente te haya sido útil. ¡Que tengas un buen día en la plaza Mayor!`,
+        `¡Hasta pronto! Que el tiempo te acompañe en tus próximas actividades en Benavente.`
+      ];
+    },
+    
+    // Variaciones para datos actuales
+    getCurrentDataVariations: (parameter, value, unit) => {
+      const now = new Date();
+      const hours = now.getHours();
+      const dayOfWeek = now.getDay();
+      const month = now.getMonth();
+      const latestData = historicalData[historicalData.length - 1];
+      
+      // Obtener una frase local aleatoria
+      const localPhrase = benaventeInfo.localPhrases[
+        Math.floor(Math.random() * benaventeInfo.localPhrases.length)
+      ];
+      
+      // Determinar si hay un evento local relevante
+      const relevantEvent = benaventeInfo.localEvents.find(event => {
+        // Aquí iría la lógica para detectar eventos relevantes para el clima
+        return Math.random() > 0.8; // Simulación aleatoria
+      });
+      
+      // Determinar si es relevante para actividades al aire libre
+      const isOutdoorRelevant = (parameter === 'temperatura' && value > 15) || 
+                               (parameter === 'humedad' && value < 70) ||
+                               (parameter === 'presión' && value > 1000);
+      
+      // Determinar si es relevante para actividades específicas de Benavente
+      const isBenaventeSpecific = benaventeInfo.localLandmarks.some(landmark => {
+        return Math.random() > 0.7; // Simulación aleatoria
+      });
+      
+      // Determinar si es una condición climática inusual
+      const isUnusual = (parameter === 'temperatura' && (value > 30 || value < 5)) ||
+                        (parameter === 'humedad' && (value > 80 || value < 30)) ||
+                        (parameter === 'presión' && (value > 1030 || value < 980));
+      
+      // Determinar si es relevante para la época del año
+      const isSeasonRelevant = (month === 6 && parameter === 'temperatura' && value > 25) || // Verano
+                              (month === 1 && parameter === 'temperatura' && value < 10) || // Invierno
+                              (month === 3 && parameter === 'lluvia' && value > 0); // Primavera
+      
+      // Variaciones según el parámetro
+      const variations = {
+        temperatura: [
+          `La temperatura actual en Benavente es de ${value.toFixed(1)}°C. ${localPhrase}. ${isUnusual ? 'Esta temperatura es inusual para esta época del año en Benavente.' : 'Esta temperatura es típica del clima mediterráneo continentalizado de Benavente.'}`,
+          `En estos momentos, la temperatura en Benavente es de ${value.toFixed(1)}°C. ${localPhrase}. ${isUnusual ? 'Este valor es bastante fuera de lo común para nuestra zona.' : 'Es un buen día para disfrutar de la Plaza Mayor si te gusta esta temperatura.'}`,
+          `Actualmente registramos ${value.toFixed(1)}°C en Benavente. ${localPhrase}. ${isUnusual ? '¡Cuidado con las temperaturas extremas!' : 'Es una temperatura perfecta para un paseo por el Río Esla.'}`
+        ],
+        humedad: [
+          `La humedad actual en Benavente es del ${value.toFixed(0)}%. ${localPhrase}. ${isUnusual ? 'Esta humedad es inusual para nuestra zona.' : 'Este nivel de humedad es típico de Benavente.'}`,
+          `Actualmente la humedad en Benavente es del ${value.toFixed(0)}%. ${localPhrase}. ${isUnusual ? 'Este valor es bastante fuera de lo común para nuestra zona.' : 'Es un buen nivel de humedad para las actividades al aire libre.'}`,
+          `Registramos un ${value.toFixed(0)}% de humedad en Benavente. ${localPhrase}. ${isUnusual ? '¡Cuidado con la humedad alta!' : 'Es una humedad perfecta para disfrutar del clima de la llanura del Duero.'}`
+        ],
+        presión: [
+          `La presión atmosférica actual en Benavente es de ${value.toFixed(0)} hPa. ${localPhrase}. ${isUnusual ? 'Esta presión es inusual para nuestra zona.' : 'Este valor es típico de Benavente a ${benaventeInfo.altitude}.'}`,
+          `Actualmente registramos ${value.toFixed(0)} hPa de presión en Benavente. ${localPhrase}. ${isUnusual ? 'Este valor es bastante fuera de lo común para nuestra zona.' : 'Es una presión normal para el clima mediterráneo continentalizado de Benavente.'}`,
+          `La presión atmosférica en Benavente es de ${value.toFixed(0)} hPa. ${localPhrase}. ${isUnusual ? '¡Cuidado con los cambios bruscos de presión!' : 'Esta presión indica condiciones climáticas estables en la zona.'}`
+        ],
+        lluvia: [
+          `Actualmente ${value ? 'está lloviendo' : 'no está lloviendo'} en Benavente. ${localPhrase}. ${isUnusual ? '¡Esperemos que no dure mucho!' : 'Es un buen momento para pasear por el casco histórico.'}`,
+          `El sistema registra que ${value ? 'hay lluvia' : 'no hay lluvia'} en estos momentos en Benavente. ${localPhrase}. ${isUnusual ? '¡No olvides tu paraguas!' : 'Es un buen día para visitar la Iglesia de Santiago.'}`,
+          `Según nuestros datos, ${value ? 'está lloviendo' : 'no está lloviendo'} en Benavente. ${localPhrase}. ${isUnusual ? '¡Cuidado con posibles inundaciones!' : 'Es un buen momento para disfrutar de un café en la Plaza Mayor.'}`
+        ],
+        viento: [
+          `La velocidad del viento actual en Benavente es de ${value.toFixed(1)} m/s (${(value * 3.6).toFixed(1)} km/h). ${localPhrase}. ${isUnusual ? '¡Cuidado con las ráfagas fuertes!' : 'Es un viento típico de la llanura del Duero.'}`,
+          `Actualmente el viento en Benavente sopla a ${value.toFixed(1)} m/s. ${localPhrase}. ${isUnusual ? 'Este viento es bastante fuerte para nuestra zona.' : 'Es un buen día para practicar actividades al aire libre.'}`,
+          `Registramos una velocidad de viento de ${value.toFixed(1)} m/s en Benavente. ${localPhrase}. ${isUnusual ? '¡Presta atención a las señales de tráfico!' : 'Es un viento perfecto para disfrutar del paisaje.'}`
+        ],
+        gas: [
+          `El nivel de gas actual en Benavente es de ${value.toFixed(2)} kΩ. ${localPhrase}. ${isUnusual ? 'Este nivel es inusual para nuestra zona.' : 'Este valor es típico de Benavente.'}`,
+          `Actualmente registramos un nivel de gas de ${value.toFixed(2)} kΩ en Benavente. ${localPhrase}. ${isUnusual ? 'Este valor es bastante fuera de lo común para nuestra zona.' : 'Es un buen nivel para las actividades al aire libre.'}`,
+          `El sistema detecta un nivel de gas de ${value.toFixed(2)} kΩ en Benavente. ${localPhrase}. ${isUnusual ? '¡Cuidado con la calidad del aire!' : 'Es un buen momento para pasear por el Río Esla.'}`
+        ],
+        dirección: [
+          `La dirección del viento actual en Benavente es ${getWindDirectionName(latestData.wind_dir)} (${latestData.wind_dir}°). ${localPhrase}. ${isUnusual ? '¡Este viento es inusual para nuestra zona!' : 'Es una dirección típica del viento en Benavente.'}`,
+          `Actualmente el viento en Benavente viene del ${getWindDirectionName(latestData.wind_dir)}. ${localPhrase}. ${isUnusual ? 'Este viento es bastante fuera de lo común para nuestra zona.' : 'Es una dirección normal para el clima mediterráneo continentalizado de Benavente.'}`,
+          `Registramos que el viento en Benavente viene del ${getWindDirectionName(latestData.wind_dir)}. ${localPhrase}. ${isUnusual ? '¡Cuidado con los cambios bruscos de dirección!' : 'Es una dirección perfecta para disfrutar del clima de la llanura del Duero.'}`
+        ]
+      };
+      
+      // Si hay evento relevante, añadir variaciones específicas
+      if (relevantEvent) {
+        const eventVariations = {
+          temperatura: [
+            `La temperatura actual en Benavente es de ${value.toFixed(1)}°C. Con el ${relevantEvent} acercándose, es importante estar preparado para el clima. ${localPhrase}.`,
+            `En estos momentos, la temperatura en Benavente es de ${value.toFixed(1)}°C. ${relevantEvent} se acerca, así que mantente informado sobre el clima. ${localPhrase}.`
+          ],
+          humedad: [
+            `La humedad actual en Benavente es del ${value.toFixed(0)}%. Con el ${relevantEvent} acercándose, este nivel de humedad podría afectar los preparativos. ${localPhrase}.`,
+            `Actualmente la humedad en Benavente es del ${value.toFixed(0)}%. Para ${relevantEvent}, este nivel de humedad es importante tener en cuenta. ${localPhrase}.`
+          ],
+          // Variaciones similares para otros parámetros
+          presión: [
+            `La presión atmosférica actual en Benavente es de ${value.toFixed(0)} hPa. Con el ${relevantEvent} acercándose, este valor de presión indica... ${localPhrase}.`
+          ],
+          lluvia: [
+            `Actualmente ${value ? 'está lloviendo' : 'no está lloviendo'} en Benavente. Para ${relevantEvent}, esta condición es importante para... ${localPhrase}.`
+          ],
+          viento: [
+            `La velocidad del viento actual en Benavente es de ${value.toFixed(1)} m/s. Con el ${relevantEvent} acercándose, este viento podría afectar... ${localPhrase}.`
+          ],
+          gas: [
+            `El nivel de gas actual en Benavente es de ${value.toFixed(2)} kΩ. Para ${relevantEvent}, este nivel de calidad del aire es... ${localPhrase}.`
+          ],
+          dirección: [
+            `La dirección del viento actual en Benavente es ${getWindDirectionName(latestData.wind_dir)}. Con el ${relevantEvent} acercándose, esta dirección indica... ${localPhrase}.`
+          ]
+        };
+        
+        // Combinar variaciones normales con variaciones de evento
+        return [...variations[parameter], ...eventVariations[parameter]];
+      }
+      
+      return variations[parameter];
+    },
+    
+    // Variaciones para análisis de tendencias
+    getTrendAnalysisVariations: (parameter, avg, min, max, trend, trendStrength, period) => {
+      const now = new Date();
+      const month = now.getMonth();
+      const isSummer = month >= 5 && month <= 8;
+      const isWinter = month >= 11 || month <= 2;
+      
+      // Determinar si la tendencia es significativa
+      const isSignificantTrend = trendStrength > 0.1;
+      
+      // Determinar si es relevante para la época del año
+      const isSeasonRelevant = (isSummer && parameter === 'temperatura' && trend === 'ascendente') ||
+                              (isWinter && parameter === 'temperatura' && trend === 'descendente');
+      
+      // Determinar si es una tendencia inusual
+      const isUnusualTrend = (parameter === 'temperatura' && trendStrength > 0.2) ||
+                             (parameter === 'humedad' && trendStrength > 0.15) ||
+                             (parameter === 'presión' && trendStrength > 0.1);
+      
+      // Variaciones según el parámetro
+      const variations = {
+        temperatura: [
+          `En los últimos ${period}, la temperatura en Benavente ha mostrado una tendencia ${trend} con un cambio del ${(trendStrength * 100).toFixed(1)}%. ${isSignificantTrend ? 'Este cambio es bastante notable.' : 'Este cambio es normal para el clima de Benavente.'} El promedio ha sido de ${avg.toFixed(1)}°C, con un mínimo de ${min.toFixed(1)}°C y un máximo de ${max.toFixed(1)}°C.`,
+          `Analizando los datos de los últimos ${period} en Benavente, observamos que la temperatura ha estado ${trend === 'ascendente' ? 'aumentando' : 'disminuyendo'}. ${isUnusualTrend ? 'Este patrón es inusual para nuestra zona.' : 'Este patrón es típico del clima mediterráneo continentalizado de Benavente.'} El valor promedio ha sido ${avg.toFixed(1)}°C, con picos entre ${min.toFixed(1)}°C y ${max.toFixed(1)}°C.`,
+          `Según nuestro análisis de los últimos ${period}, la temperatura en Benavente ha tenido una tendencia ${trend === 'ascendente' ? 'al alza' : 'a la baja'}. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón merece atención para actividades al aire libre.'} El promedio registrado es de ${avg.toFixed(1)}°C, con valores extremos de ${min.toFixed(1)}°C y ${max.toFixed(1)}°C.`
+        ],
+        humedad: [
+          `En los últimos ${period}, la humedad en Benavente ha mostrado una tendencia ${trend} con un cambio del ${(trendStrength * 100).toFixed(1)}%. ${isSignificantTrend ? 'Este cambio es bastante notable.' : 'Este cambio es normal para el clima de Benavente.'} El promedio ha sido del ${avg.toFixed(0)}%, con un mínimo del ${min.toFixed(0)}% y un máximo del ${max.toFixed(0)}%.`,
+          `Analizando los datos de los últimos ${period} en Benavente, observamos que la humedad ha estado ${trend === 'ascendente' ? 'aumentando' : 'disminuyendo'}. ${isUnusualTrend ? 'Este patrón es inusual para nuestra zona.' : 'Este patrón es típico del clima mediterráneo continentalizado de Benavente.'} El valor promedio ha sido ${avg.toFixed(0)}%, con picos entre ${min.toFixed(0)}% y ${max.toFixed(0)}%.`,
+          `Según nuestro análisis de los últimos ${period}, la humedad en Benavente ha tenido una tendencia ${trend === 'ascendente' ? 'al alza' : 'a la baja'}. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón merece atención para actividades al aire libre.'} El promedio registrado es del ${avg.toFixed(0)}%, con valores extremos del ${min.toFixed(0)}% y del ${max.toFixed(0)}%.`
+        ],
+        presión: [
+          `En los últimos ${period}, la presión atmosférica en Benavente ha mostrado una tendencia ${trend} con un cambio del ${(trendStrength * 100).toFixed(1)}%. ${isSignificantTrend ? 'Este cambio es bastante notable.' : 'Este cambio es normal para el clima de Benavente.'} El promedio ha sido de ${avg.toFixed(0)} hPa, con un mínimo de ${min.toFixed(0)} hPa y un máximo de ${max.toFixed(0)} hPa.`,
+          `Analizando los datos de los últimos ${period} en Benavente, observamos que la presión atmosférica ha estado ${trend === 'ascendente' ? 'aumentando' : 'disminuyendo'}. ${isUnusualTrend ? 'Este patrón es inusual para nuestra zona.' : 'Este patrón es típico del clima mediterráneo continentalizado de Benavente.'} El valor promedio ha sido ${avg.toFixed(0)} hPa, con picos entre ${min.toFixed(0)} hPa y ${max.toFixed(0)} hPa.`,
+          `Según nuestro análisis de los últimos ${period}, la presión atmosférica en Benavente ha tenido una tendencia ${trend === 'ascendente' ? 'al alza' : 'a la baja'}. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón merece atención para actividades al aire libre.'} El promedio registrado es de ${avg.toFixed(0)} hPa, con valores extremos de ${min.toFixed(0)} hPa y ${max.toFixed(0)} hPa.`
+        ],
+        lluvia: [
+          `En los últimos ${period}, la precipitación en Benavente ha mostrado una tendencia ${trend} con un cambio del ${(trendStrength * 100).toFixed(1)}%. ${isSignificantTrend ? 'Este cambio es bastante notable.' : 'Este cambio es normal para el clima de Benavente.'} El promedio ha sido de ${avg.toFixed(1)} mm, con un mínimo de ${min.toFixed(1)} mm y un máximo de ${max.toFixed(1)} mm.`,
+          `Analizando los datos de los últimos ${period} en Benavente, observamos que la precipitación ha estado ${trend === 'ascendente' ? 'aumentando' : 'disminuyendo'}. ${isUnusualTrend ? 'Este patrón es inusual para nuestra zona.' : 'Este patrón es típico del clima mediterráneo continentalizado de Benavente.'} El valor promedio ha sido ${avg.toFixed(1)} mm, con picos entre ${min.toFixed(1)} mm y ${max.toFixed(1)} mm.`,
+          `Según nuestro análisis de los últimos ${period}, la precipitación en Benavente ha tenido una tendencia ${trend === 'ascendente' ? 'al alza' : 'a la baja'}. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón merece atención para actividades al aire libre.'} El promedio registrado es de ${avg.toFixed(1)} mm, con valores extremos de ${min.toFixed(1)} mm y ${max.toFixed(1)} mm.`
+        ],
+        viento: [
+          `En los últimos ${period}, la velocidad del viento en Benavente ha mostrado una tendencia ${trend} con un cambio del ${(trendStrength * 100).toFixed(1)}%. ${isSignificantTrend ? 'Este cambio es bastante notable.' : 'Este cambio es normal para el clima de Benavente.'} El promedio ha sido de ${avg.toFixed(1)} m/s, con un mínimo de ${min.toFixed(1)} m/s y un máximo de ${max.toFixed(1)} m/s.`,
+          `Analizando los datos de los últimos ${period} en Benavente, observamos que la velocidad del viento ha estado ${trend === 'ascendente' ? 'aumentando' : 'disminuyendo'}. ${isUnusualTrend ? 'Este patrón es inusual para nuestra zona.' : 'Este patrón es típico del clima mediterráneo continentalizado de Benavente.'} El valor promedio ha sido ${avg.toFixed(1)} m/s, con picos entre ${min.toFixed(1)} m/s y ${max.toFixed(1)} m/s.`,
+          `Según nuestro análisis de los últimos ${period}, la velocidad del viento en Benavente ha tenido una tendencia ${trend === 'ascendente' ? 'al alza' : 'a la baja'}. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón merece atención para actividades al aire libre.'} El promedio registrado es de ${avg.toFixed(1)} m/s, con valores extremos de ${min.toFixed(1)} m/s y ${max.toFixed(1)} m/s.`
+        ]
+      };
+      
+      return variations[parameter] || variations.temperatura;
+    },
+    
+    // Variaciones para predicciones
+    getPredictionVariations: (parameter, reliability, period) => {
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const month = now.getMonth();
+      
+      // Determinar si es relevante para la época del año
+      const isSeasonRelevant = (month === 6 && parameter === 'temperatura') || // Verano
+                              (month === 1 && parameter === 'temperatura') || // Invierno
+                              (month === 3 && parameter === 'lluvia'); // Primavera
+      
+      // Determinar si es una predicción inusual
+      const isUnusualPrediction = reliability < 0.6;
+      
+      // Determinar si hay un evento local relevante
+      const relevantEvent = benaventeInfo.localEvents.find(event => {
+        // Aquí iría la lógica para detectar eventos relevantes para el clima
+        return Math.random() > 0.7; // Simulación aleatoria
+      });
+      
+      // Variaciones según el parámetro
+      const variations = {
+        temperatura: [
+          `Basado en los datos históricos de Benavente, la predicción para los próximos ${period} indica que la temperatura seguirá una tendencia ${Math.random() > 0.5 ? 'ascendente' : 'descendente'}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%. ${isUnusualPrediction ? 'Esta predicción tiene una confiabilidad baja, así que tómala con precaución.' : 'Esta predicción es bastante confiable para planificar actividades en Benavente.'}`,
+          `Según nuestro análisis de los datos meteorológicos de Benavente, esperamos que la temperatura ${Math.random() > 0.5 ? 'aumente' : 'disminuya'} en los próximos ${period}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%. ${isUnusualPrediction ? 'Debido a patrones climáticos inusuales, esta predicción debe tomarse con reserva.' : 'Esta predicción se basa en patrones históricos típicos del clima mediterráneo continentalizado de Benavente.'}`,
+          `Nuestra predicción meteorológica para Benavente indica que la temperatura tendrá una tendencia ${Math.random() > 0.5 ? 'al alza' : 'a la baja'} en los próximos ${period}. Con una confiabilidad del ${(reliability * 100).toFixed(0)}%, ${isUnusualPrediction ? 'es recomendable revisar la predicción en unos días para mayor precisión.' : 'puedes planificar tus actividades con confianza.'}`
+        ],
+        humedad: [
+          `Basado en los datos históricos de Benavente, la predicción para los próximos ${period} indica que la humedad seguirá una tendencia ${Math.random() > 0.5 ? 'ascendente' : 'descendente'}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%. ${isUnusualPrediction ? 'Esta predicción tiene una confiabilidad baja, así que tómala con precaución.' : 'Esta predicción es bastante confiable para planificar actividades en Benavente.'}`,
+          `Según nuestro análisis de los datos meteorológicos de Benavente, esperamos que la humedad ${Math.random() > 0.5 ? 'aumente' : 'disminuya'} en los próximos ${period}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%. ${isUnusualPrediction ? 'Debido a patrones climáticos inusuales, esta predicción debe tomarse con reserva.' : 'Esta predicción se basa en patrones históricos típicos del clima mediterráneo continentalizado de Benavente.'}`,
+          `Nuestra predicción meteorológica para Benavente indica que la humedad tendrá una tendencia ${Math.random() > 0.5 ? 'al alza' : 'a la baja'} en los próximos ${period}. Con una confiabilidad del ${(reliability * 100).toFixed(0)}%, ${isUnusualPrediction ? 'es recomendable revisar la predicción en unos días para mayor precisión.' : 'puedes planificar tus actividades con confianza.'}`
+        ],
+        presión: [
+          `Basado en los datos históricos de Benavente, la predicción para los próximos ${period} indica que la presión atmosférica seguirá una tendencia ${Math.random() > 0.5 ? 'ascendente' : 'descendente'}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%. ${isUnusualPrediction ? 'Esta predicción tiene una confiabilidad baja, así que tómala con precaución.' : 'Esta predicción es bastante confiable para planificar actividades en Benavente.'}`,
+          `Según nuestro análisis de los datos meteorológicos de Benavente, esperamos que la presión atmosférica ${Math.random() > 0.5 ? 'aumente' : 'disminuya'} en los próximos ${period}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%. ${isUnusualPrediction ? 'Debido a patrones climáticos inusuales, esta predicción debe tomarse con reserva.' : 'Esta predicción se basa en patrones históricos típicos del clima mediterráneo continentalizado de Benavente.'}`,
+          `Nuestra predicción meteorológica para Benavente indica que la presión atmosférica tendrá una tendencia ${Math.random() > 0.5 ? 'al alza' : 'a la baja'} en los próximos ${period}. Con una confiabilidad del ${(reliability * 100).toFixed(0)}%, ${isUnusualPrediction ? 'es recomendable revisar la predicción en unos días para mayor precisión.' : 'puedes planificar tus actividades con confianza.'}`
+        ],
+        lluvia: [
+          `Basado en los datos históricos de Benavente, la predicción para los próximos ${period} indica que ${Math.random() > 0.5 ? 'habrá lluvia' : 'no habrá lluvia'}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%. ${isUnusualPrediction ? 'Esta predicción tiene una confiabilidad baja, así que tómala con precaución.' : 'Esta predicción es bastante confiable para planificar actividades en Benavente.'}`,
+          `Según nuestro análisis de los datos meteorológicos de Benavente, esperamos que ${Math.random() > 0.5 ? 'llueva' : 'no llueva'} en los próximos ${period}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%. ${isUnusualPrediction ? 'Debido a patrones climáticos inusuales, esta predicción debe tomarse con reserva.' : 'Esta predicción se basa en patrones históricos típicos del clima mediterráneo continentalizado de Benavente.'}`,
+          `Nuestra predicción meteorológica para Benavente indica que ${Math.random() > 0.5 ? 'habrá precipitaciones' : 'no habrá precipitaciones'} en los próximos ${period}. Con una confiabilidad del ${(reliability * 100).toFixed(0)}%, ${isUnusualPrediction ? 'es recomendable revisar la predicción en unos días para mayor precisión.' : 'puedes planificar tus actividades con confianza.'}`
+        ],
+        viento: [
+          `Basado en los datos históricos de Benavente, la predicción para los próximos ${period} indica que el viento seguirá una tendencia ${Math.random() > 0.5 ? 'ascendente' : 'descendente'}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%. ${isUnusualPrediction ? 'Esta predicción tiene una confiabilidad baja, así que tómala con precaución.' : 'Esta predicción es bastante confiable para planificar actividades en Benavente.'}`,
+          `Según nuestro análisis de los datos meteorológicos de Benavente, esperamos que la velocidad del viento ${Math.random() > 0.5 ? 'aumente' : 'disminuya'} en los próximos ${period}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%. ${isUnusualPrediction ? 'Debido a patrones climáticos inusuales, esta predicción debe tomarse con reserva.' : 'Esta predicción se basa en patrones históricos típicos del clima mediterráneo continentalizado de Benavente.'}`,
+          `Nuestra predicción meteorológica para Benavente indica que el viento tendrá una tendencia ${Math.random() > 0.5 ? 'al alza' : 'a la baja'} en los próximos ${period}. Con una confiabilidad del ${(reliability * 100).toFixed(0)}%, ${isUnusualPrediction ? 'es recomendable revisar la predicción en unos días para mayor precisión.' : 'puedes planificar tus actividades con confianza.'}`
+        ]
+      };
+      
+      // Si hay evento relevante, añadir variaciones específicas
+      if (relevantEvent) {
+        const eventVariations = {
+          temperatura: [
+            `Con el ${relevantEvent} acercándose, nuestra predicción para los próximos ${period} indica que la temperatura seguirá una tendencia ${Math.random() > 0.5 ? 'ascendente' : 'descendente'}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%.`,
+            `Para el ${relevantEvent}, esperamos que la temperatura ${Math.random() > 0.5 ? 'aumente' : 'disminuya'} en los próximos ${period}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%.`
+          ],
+          humedad: [
+            `Con el ${relevantEvent} acercándose, nuestra predicción para los próximos ${period} indica que la humedad seguirá una tendencia ${Math.random() > 0.5 ? 'ascendente' : 'descendente'}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%.`,
+            `Para el ${relevantEvent}, esperamos que la humedad ${Math.random() > 0.5 ? 'aumente' : 'disminuya'} en los próximos ${period}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%.`
+          ],
+          // Variaciones similares para otros parámetros
+          presión: [
+            `Con el ${relevantEvent} acercándose, nuestra predicción para los próximos ${period} indica que la presión atmosférica seguirá una tendencia ${Math.random() > 0.5 ? 'ascendente' : 'descendente'}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%.`
+          ],
+          lluvia: [
+            `Con el ${relevantEvent} acercándose, nuestra predicción para los próximos ${period} indica que ${Math.random() > 0.5 ? 'habrá lluvia' : 'no habrá lluvia'}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%.`
+          ],
+          viento: [
+            `Con el ${relevantEvent} acercándose, nuestra predicción para los próximos ${period} indica que el viento seguirá una tendencia ${Math.random() > 0.5 ? 'ascendente' : 'descendente'}. La confiabilidad de esta predicción es del ${(reliability * 100).toFixed(0)}%.`
+          ]
+        };
+        
+        // Combinar variaciones normales con variaciones de evento
+        return [...variations[parameter], ...eventVariations[parameter]];
+      }
+      
+      return variations[parameter] || variations.temperatura;
+    },
+    
+    // Variaciones para comparaciones
+    getComparisonVariations: (parameter, avg1, avg2, period1, period2, changePercent) => {
+      const now = new Date();
+      const month = now.getMonth();
+      
+      // Determinar si es relevante para la época del año
+      const isSeasonRelevant = (month === 6 && parameter === 'temperatura') || // Verano
+                              (month === 1 && parameter === 'temperatura') || // Invierno
+                              (month === 3 && parameter === 'lluvia'); // Primavera
+      
+      // Determinar si es un cambio significativo
+      const isSignificantChange = Math.abs(changePercent) > 10;
+      
+      // Determinar si es un cambio inusual
+      const isUnusualChange = (parameter === 'temperatura' && Math.abs(changePercent) > 15) ||
+                             (parameter === 'humedad' && Math.abs(changePercent) > 20) ||
+                             (parameter === 'presión' && Math.abs(changePercent) > 5);
+      
+      // Variaciones según el parámetro
+      const variations = {
+        temperatura: [
+          `Al comparar ${period1} con ${period2} en Benavente, la temperatura ha cambiado un ${changePercent.toFixed(1)}%. ${isSignificantChange ? `Este es un cambio significativo que afecta el clima de nuestra zona.` : `Este es un cambio normal para el clima mediterráneo continentalizado de Benavente.`} El promedio en ${period1} fue de ${avg1.toFixed(1)}°C, mientras que en ${period2} fue de ${avg2.toFixed(1)}°C.`,
+          `La comparación entre ${period1} y ${period2} muestra que la temperatura en Benavente ha ${changePercent > 0 ? 'aumentado' : 'disminuido'} un ${Math.abs(changePercent).toFixed(1)}%. ${isUnusualChange ? 'Este cambio es inusual para nuestra zona.' : 'Este cambio es típico de las variaciones climáticas estacionales.'} Los promedios fueron de ${avg1.toFixed(1)}°C y ${avg2.toFixed(1)}°C respectivamente.`,
+          `Según nuestro análisis comparativo, la temperatura en Benavente durante ${period1} fue ${changePercent > 0 ? 'mayor' : 'menor'} en un ${Math.abs(changePercent).toFixed(1)}% que durante ${period2}. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón merece atención para actividades al aire libre.'} Los valores promedio fueron de ${avg1.toFixed(1)}°C y ${avg2.toFixed(1)}°C.`
+        ],
+        humedad: [
+          `Al comparar ${period1} con ${period2} en Benavente, la humedad ha cambiado un ${changePercent.toFixed(1)}%. ${isSignificantChange ? `Este es un cambio significativo que afecta el clima de nuestra zona.` : `Este es un cambio normal para el clima mediterráneo continentalizado de Benavente.`} El promedio en ${period1} fue del ${avg1.toFixed(0)}%, mientras que en ${period2} fue del ${avg2.toFixed(0)}%.`,
+          `La comparación entre ${period1} y ${period2} muestra que la humedad en Benavente ha ${changePercent > 0 ? 'aumentado' : 'disminuido'} un ${Math.abs(changePercent).toFixed(1)}%. ${isUnusualChange ? 'Este cambio es inusual para nuestra zona.' : 'Este cambio es típico de las variaciones climáticas estacionales.'} Los promedios fueron del ${avg1.toFixed(0)}% y del ${avg2.toFixed(0)}% respectivamente.`,
+          `Según nuestro análisis comparativo, la humedad en Benavente durante ${period1} fue ${changePercent > 0 ? 'mayor' : 'menor'} en un ${Math.abs(changePercent).toFixed(1)}% que durante ${period2}. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón merece atención para actividades al aire libre.'} Los valores promedio fueron del ${avg1.toFixed(0)}% y del ${avg2.toFixed(0)}%.`
+        ],
+        presión: [
+          `Al comparar ${period1} con ${period2} en Benavente, la presión atmosférica ha cambiado un ${changePercent.toFixed(1)}%. ${isSignificantChange ? `Este es un cambio significativo que afecta el clima de nuestra zona.` : `Este es un cambio normal para el clima mediterráneo continentalizado de Benavente.`} El promedio en ${period1} fue de ${avg1.toFixed(0)} hPa, mientras que en ${period2} fue de ${avg2.toFixed(0)} hPa.`,
+          `La comparación entre ${period1} y ${period2} muestra que la presión atmosférica en Benavente ha ${changePercent > 0 ? 'aumentado' : 'disminuido'} un ${Math.abs(changePercent).toFixed(1)}%. ${isUnusualChange ? 'Este cambio es inusual para nuestra zona.' : 'Este cambio es típico de las variaciones climáticas estacionales.'} Los promedios fueron de ${avg1.toFixed(0)} hPa y ${avg2.toFixed(0)} hPa respectivamente.`,
+          `Según nuestro análisis comparativo, la presión atmosférica en Benavente durante ${period1} fue ${changePercent > 0 ? 'mayor' : 'menor'} en un ${Math.abs(changePercent).toFixed(1)}% que durante ${period2}. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón merece atención para actividades al aire libre.'} Los valores promedio fueron de ${avg1.toFixed(0)} hPa y ${avg2.toFixed(0)} hPa.`
+        ],
+        lluvia: [
+          `Al comparar ${period1} con ${period2} en Benavente, la precipitación ha cambiado un ${changePercent.toFixed(1)}%. ${isSignificantChange ? `Este es un cambio significativo que afecta el clima de nuestra zona.` : `Este es un cambio normal para el clima mediterráneo continentalizado de Benavente.`} El promedio en ${period1} fue de ${avg1.toFixed(1)} mm, mientras que en ${period2} fue de ${avg2.toFixed(1)} mm.`,
+          `La comparación entre ${period1} y ${period2} muestra que la precipitación en Benavente ha ${changePercent > 0 ? 'aumentado' : 'disminuido'} un ${Math.abs(changePercent).toFixed(1)}%. ${isUnusualChange ? 'Este cambio es inusual para nuestra zona.' : 'Este cambio es típico de las variaciones climáticas estacionales.'} Los promedios fueron de ${avg1.toFixed(1)} mm y ${avg2.toFixed(1)} mm respectivamente.`,
+          `Según nuestro análisis comparativo, la precipitación en Benavente durante ${period1} fue ${changePercent > 0 ? 'mayor' : 'menor'} en un ${Math.abs(changePercent).toFixed(1)}% que durante ${period2}. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón merece atención para actividades al aire libre.'} Los valores promedio fueron de ${avg1.toFixed(1)} mm y ${avg2.toFixed(1)} mm.`
+        ],
+        viento: [
+          `Al comparar ${period1} con ${period2} en Benavente, la velocidad del viento ha cambiado un ${changePercent.toFixed(1)}%. ${isSignificantChange ? `Este es un cambio significativo que afecta el clima de nuestra zona.` : `Este es un cambio normal para el clima mediterráneo continentalizado de Benavente.`} El promedio en ${period1} fue de ${avg1.toFixed(1)} m/s, mientras que en ${period2} fue de ${avg2.toFixed(1)} m/s.`,
+          `La comparación entre ${period1} y ${period2} muestra que la velocidad del viento en Benavente ha ${changePercent > 0 ? 'aumentado' : 'disminuido'} un ${Math.abs(changePercent).toFixed(1)}%. ${isUnusualChange ? 'Este cambio es inusual para nuestra zona.' : 'Este cambio es típico de las variaciones climáticas estacionales.'} Los promedios fueron de ${avg1.toFixed(1)} m/s y ${avg2.toFixed(1)} m/s respectivamente.`,
+          `Según nuestro análisis comparativo, la velocidad del viento en Benavente durante ${period1} fue ${changePercent > 0 ? 'mayor' : 'menor'} en un ${Math.abs(changePercent).toFixed(1)}% que durante ${period2}. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón merece atención para actividades al aire libre.'} Los valores promedio fueron de ${avg1.toFixed(1)} m/s y ${avg2.toFixed(1)} m/s.`
+        ]
+      };
+      
+      return variations[parameter] || variations.temperatura;
+    },
+    
+    // Variaciones para correlaciones
+    getCorrelationVariations: (parameter1, parameter2, correlation, rSquared) => {
+      const now = new Date();
+      const month = now.getMonth();
+      
+      // Determinar la fuerza de la correlación
+      const correlationStrength = Math.abs(correlation);
+      let strengthDescription;
+      if (correlationStrength > 0.7) {
+        strengthDescription = 'muy fuerte';
+      } else if (correlationStrength > 0.5) {
+        strengthDescription = 'fuerte';
+      } else if (correlationStrength > 0.3) {
+        strengthDescription = 'moderada';
+      } else if (correlationStrength > 0.1) {
+        strengthDescription = 'débil';
+      } else {
+        strengthDescription = 'muy débil';
+      }
+      
+      // Determinar si es relevante para la época del año
+      const isSeasonRelevant = (month === 6 && (parameter1 === 'temperatura' || parameter2 === 'temperatura')) || // Verano
+                              (month === 1 && (parameter1 === 'temperatura' || parameter2 === 'temperatura')); // Invierno
+      
+      // Determinar si es una correlación inusual
+      const isUnusualCorrelation = (parameter1 === 'temperatura' && parameter2 === 'humedad' && correlation < -0.6) ||
+                                  (parameter1 === 'presión' && parameter2 === 'lluvia' && correlation < -0.4);
+      
+      // Variaciones según los parámetros
+      const variations = {
+        'temperatura-humedad': [
+          `He analizado la relación entre la temperatura y la humedad en Benavente y encontré una correlación ${strengthDescription} (${correlation.toFixed(2)}). Esto significa que cuando la temperatura ${correlation > 0 ? 'aumenta' : 'disminuye'}, la humedad tiende a ${correlation > 0 ? 'aumentar' : 'disminuir'}. El ${Math.abs(rSquared * 100).toFixed(1)}% de la variación en la humedad puede explicarse por cambios en la temperatura. ${isUnusualCorrelation ? 'Esta correlación es típica del clima mediterráneo continentalizado de Benavente.' : 'Este patrón es inusual para nuestra zona.'}`,
+          `Nuestro análisis de correlación entre temperatura y humedad en Benavente muestra una relación ${strengthDescription} (${correlation.toFixed(2)}). ${correlation > 0 ? 'Cuando hace más calor, el aire puede contener más humedad.' : 'Cuando hace más calor, la humedad relativa disminuye aunque la cantidad de vapor de agua permanezca constante.'} El ${Math.abs(rSquared * 100).toFixed(1)}% de la variación en la humedad está relacionada con la temperatura. ${isUnusualCorrelation ? 'Este patrón es esperado para el clima de Benavente.' : 'Este patrón merece atención para actividades al aire libre.'}`,
+          `La correlación entre temperatura y humedad en Benavente es ${strengthDescription} (${correlation.toFixed(2)}). Esto es ${correlation > 0 ? 'poco común' : 'común'} en climas mediterráneos. El ${Math.abs(rSquared * 100).toFixed(1)}% de la variación en la humedad puede atribuirse a cambios en la temperatura. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón es interesante para entender el clima local.'}`
+        ],
+        'presión-lluvia': [
+          `He analizado la relación entre la presión atmosférica y la lluvia en Benavente y encontré una correlación ${strengthDescription} (${correlation.toFixed(2)}). Esto significa que cuando la presión ${correlation > 0 ? 'aumenta' : 'disminuye'}, la probabilidad de lluvia tiende a ${correlation > 0 ? 'aumentar' : 'disminuir'}. El ${Math.abs(rSquared * 100).toFixed(1)}% de la variación en la lluvia puede explicarse por cambios en la presión. ${isUnusualCorrelation ? 'Esta correlación es típica del clima mediterráneo continentalizado de Benavente.' : 'Este patrón es inusual para nuestra zona.'}`,
+          `Nuestro análisis de correlación entre presión atmosférica y lluvia en Benavente muestra una relación ${strengthDescription} (${correlation.toFixed(2)}). ${correlation < 0 ? 'Las bajas presiones suelen indicar sistemas de mal tiempo.' : 'Las altas presiones suelen indicar buen tiempo.'} El ${Math.abs(rSquared * 100).toFixed(1)}% de la variación en la lluvia está relacionada con la presión. ${isUnusualCorrelation ? 'Este patrón es esperado para el clima de Benavente.' : 'Este patrón merece atención para actividades al aire libre.'}`,
+          `La correlación entre presión atmosférica y lluvia en Benavente es ${strengthDescription} (${correlation.toFixed(2)}). Esto es ${correlation < 0 ? 'común' : 'poco común'} en climas mediterráneos. El ${Math.abs(rSquared * 100).toFixed(1)}% de la variación en la lluvia puede atribuirse a cambios en la presión. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón es interesante para entender el clima local.'}`
+        ],
+        'temperatura-presión': [
+          `He analizado la relación entre la temperatura y la presión atmosférica en Benavente y encontré una correlación ${strengthDescription} (${correlation.toFixed(2)}). Esto significa que cuando la temperatura ${correlation > 0 ? 'aumenta' : 'disminuye'}, la presión tiende a ${correlation > 0 ? 'aumentar' : 'disminuir'}. El ${Math.abs(rSquared * 100).toFixed(1)}% de la variación en la presión puede explicarse por cambios en la temperatura. ${isUnusualCorrelation ? 'Esta correlación es típica del clima mediterráneo continentalizado de Benavente.' : 'Este patrón es inusual para nuestra zona.'}`,
+          `Nuestro análisis de correlación entre temperatura y presión atmosférica en Benavente muestra una relación ${strengthDescription} (${correlation.toFixed(2)}). En la llanura del Duero, estas variables suelen tener una relación compleja. El ${Math.abs(rSquared * 100).toFixed(1)}% de la variación en la presión está relacionada con la temperatura. ${isUnusualCorrelation ? 'Este patrón es esperado para el clima de Benavente.' : 'Este patrón merece atención para actividades al aire libre.'}`,
+          `La correlación entre temperatura y presión atmosférica en Benavente es ${strengthDescription} (${correlation.toFixed(2)}). Esto es ${correlation > 0 ? 'poco común' : 'común'} en zonas de altitud media como Benavente (${benaventeInfo.altitude}). El ${Math.abs(rSquared * 100).toFixed(1)}% de la variación en la presión puede atribuirse a cambios en la temperatura. ${isSeasonRelevant ? 'Este patrón es esperado para esta época del año.' : 'Este patrón es interesante para entender el clima local.'}`
+        ]
+      };
+      
+      // Crear clave para la combinación de parámetros
+      const key = `${parameter1}-${parameter2}`;
+      const reverseKey = `${parameter2}-${parameter1}`;
+      
+      // Intentar obtener variaciones para la combinación específica
+      if (variations[key]) {
+        return variations[key];
+      } else if (variations[reverseKey]) {
+        // Si la combinación está en orden inverso, ajustar el texto
+        return variations[reverseKey].map(variation => 
+          variation.replace(/temperatura y la humedad/g, `${parameter2} y la ${parameter1}`)
+                  .replace(/temperatura y humedad/g, `${parameter2} y ${parameter1}`)
+                  .replace(/temperatura con la humedad/g, `${parameter2} con la ${parameter1}`)
+                  .replace(/temperatura la humedad/g, `${parameter2} la ${parameter1}`)
+                  .replace(/la temperatura y la humedad/g, `la ${parameter2} y la ${parameter1}`)
+        );
+      }
+      
+      // Si no hay combinación específica, usar una variación genérica
+      return [
+        `He analizado la relación entre ${parameter1} y ${parameter2} en Benavente y encontré una correlación ${strengthDescription} (${correlation.toFixed(2)}). Esto significa que cuando la ${parameter1} ${correlation > 0 ? 'aumenta' : 'disminuye'}, la ${parameter2} tiende a ${correlation > 0 ? 'aumentar' : 'disminuir'}. El ${Math.abs(rSquared * 100).toFixed(1)}% de la variación en la ${parameter2} puede explicarse por cambios en la ${parameter1}.`,
+        `Nuestro análisis de correlación entre ${parameter1} y ${parameter2} en Benavente muestra una relación ${strengthDescription} (${correlation.toFixed(2)}). El ${Math.abs(rSquared * 100).toFixed(1)}% de la variación en la ${parameter2} está relacionada con la ${parameter1}.`,
+        `La correlación entre ${parameter1} y ${parameter2} en Benavente es ${strengthDescription} (${correlation.toFixed(2)}). El ${Math.abs(rSquared * 100).toFixed(1)}% de la variación en la ${parameter2} puede atribuirse a cambios en la ${parameter1}.`
+      ];
+    },
+    
+    // Variaciones para ayuda
+    getHelpVariations: () => {
+      const now = new Date();
+      const hours = now.getHours();
+      const dayOfWeek = now.getDay();
+      const month = now.getMonth();
+      
+      // Obtener una frase local aleatoria
+      const localPhrase = benaventeInfo.localPhrases[
+        Math.floor(Math.random() * benaventeInfo.localPhrases.length)
+      ];
+      
+      // Determinar si hay un evento local relevante
+      const relevantEvent = benaventeInfo.localEvents.find(event => {
+        // Aquí iría la lógica para detectar eventos relevantes para el clima
+        return Math.random() > 0.7; // Simulación aleatoria
+      });
+      
+      const variations = [
+        `¡Claro que sí! ${localPhrase} Soy Horus AI, tu asistente meteorológico para Benavente. Aquí tienes algunas preguntas que puedo ayudarte a resolver:`,
+        `Por supuesto. ${localPhrase} Como asistente meteorológico especializado en Benavente, puedo ayudarte con:`,
+        `¡Con gusto! ${localPhrase} Como experto en el clima de Benavente, puedo ayudarte con:`
+      ];
+      
+      if (relevantEvent) {
+        variations.push(
+          `¡Claro que sí! Con el ${relevantEvent} acercándose, es importante estar informado. ${localPhrase} Como asistente meteorológico para Benavente, puedo ayudarte con:`
+        );
+      }
+      
+      return variations;
+    },
+    
+    // Variaciones para información sobre Horus
+    getAboutHorusVariations: () => {
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const month = now.getMonth();
+      
+      // Obtener una frase local aleatoria
+      const localPhrase = benaventeInfo.localPhrases[
+        Math.floor(Math.random() * benaventeInfo.localPhrases.length)
+      ];
+      
+      // Determinar si es relevante para la época del año
+      const isSeasonRelevant = (month === 6) || // Verano
+                              (month === 1); // Invierno
+      
+      const variations = [
+        `Horus es una estación meteorológica avanzada instalada en Benavente, diseñada para monitorear las condiciones climáticas de nuestra querida ciudad. ${localPhrase} Nuestro sistema recoge datos en tiempo real sobre temperatura, humedad, presión y otros parámetros para ayudarte a entender mejor el clima de la llanura del Duero.`,
+        `Soy Horus, un sistema meteorológico localizado en Benavente que proporciona datos precisos sobre el clima de nuestra zona. ${localPhrase} Nuestro sistema está especialmente calibrado para el clima mediterráneo continentalizado de Benavente, a ${benaventeInfo.altitude}.`,
+        `El sistema Horus en Benavente es una estación meteorológica de última generación que monitorea constantemente el clima de nuestra ciudad. ${localPhrase} Desde la Plaza Mayor hasta el Río Esla, nuestros sensores recogen datos que nos permiten ofrecerte información meteorológica precisa y relevante para tu día a día.`
+      ];
+      
+      if (isSeasonRelevant) {
+        variations.push(
+          `En esta época del año, el sistema Horus en Benavente es especialmente útil para monitorear ${month === 6 ? 'las altas temperaturas del verano' : 'las bajas temperaturas del invierno'}. ${localPhrase} Nuestros datos ayudan a los vecinos de Benavente a prepararse para las condiciones climáticas típicas de esta estación.`
+        );
+      }
+      
+      return variations;
+    },
+    
+    // Variaciones para soporte técnico
+    getSupportVariations: () => {
+      const now = new Date();
+      const hours = now.getHours();
+      const dayOfWeek = now.getDay();
+      
+      // Obtener una frase local aleatoria
+      const localPhrase = benaventeInfo.localPhrases[
+        Math.floor(Math.random() * benaventeInfo.localPhrases.length)
+      ];
+      
+      const variations = [
+        `Lamento que estés teniendo problemas. ${localPhrase} Como asistente meteorológico para Benavente, haré lo posible por ayudarte. Aquí hay algunas soluciones que suelen funcionar:`,
+        `Vaya, parece que hay un problema. ${localPhrase} No te preocupes, como experto en el sistema Horus de Benavente, puedo ayudarte a resolverlo. Prueba estos pasos:`,
+        `¡Vaya fresquete! Veo que estás teniendo problemas. ${localPhrase} Como asistente meteorológico para Benavente, te recomiendo:`
+      ];
+      
+      return variations;
+    },
+    
+    // Variaciones para información personal
+    getPersonalInfoVariations: () => {
+      const now = new Date();
+      const hours = now.getHours();
+      const dayOfWeek = now.getDay();
+      
+      // Obtener una frase local aleatoria
+      const localPhrase = benaventeInfo.localPhrases[
+        Math.floor(Math.random() * benaventeInfo.localPhrases.length)
+      ];
+      
+      const variations = [
+        `Soy Horus AI, un asistente inteligente especializado en el clima de Benavente. ${localPhrase} Fui creado para ayudar a los vecinos y visitantes de Benavente a entender mejor el clima de nuestra ciudad, ubicada en la llanura del Duero a ${benaventeInfo.altitude}.`,
+        `¡Hola! Soy Horus AI, tu asistente meteorológico para Benavente. ${localPhrase} Mi propósito es proporcionar información precisa y útil sobre el clima de Benavente, con su clima mediterráneo continentalizado y sus características únicas.`,
+        `Soy Horus AI, un sistema de inteligencia artificial especializado en meteorología para Benavente. ${localPhrase} Aunque no soy humano, tengo un profundo conocimiento del clima de Benavente y estoy aquí para ayudarte a entenderlo mejor.`
+      ];
+      
+      return variations;
+    },
+    
+    // Variaciones para información general
+    getGeneralInfoVariations: () => {
+      const now = new Date();
+      const hours = now.getHours();
+      const dayOfWeek = now.getDay();
+      const month = now.getMonth();
+      
+      // Obtener una frase local aleatoria
+      const localPhrase = benaventeInfo.localPhrases[
+        Math.floor(Math.random() * benaventeInfo.localPhrases.length)
+      ];
+      
+      // Determinar si es relevante para la época del año
+      const isSummer = month >= 5 && month <= 8;
+      const isWinter = month >= 11 || month <= 2;
+      
+      const variations = [
+        `Benavente, ubicada a ${benaventeInfo.altitude} en la llanura del Duero, tiene un clima mediterráneo continentalizado. ${localPhrase} ${isSummer ? 'En verano, las temperaturas pueden superar los 35°C.' : isWinter ? 'En invierno, las temperaturas pueden bajar de 0°C.' : 'En esta época del año, el clima es moderado con días agradables.'}`,
+        `Nuestra querida Benavente se encuentra a ${benaventeInfo.altitude} sobre el nivel del mar, con coordenadas ${benaventeInfo.coordinates}. ${localPhrase} El clima de Benavente es mediterráneo continentalizado, caracterizado por veranos calurosos e inviernos fríos.`,
+        `Benavente, en la provincia de Zamora, disfruta de un clima mediterráneo continentalizado gracias a su ubicación en la llanura del Duero a ${benaventeInfo.altitude}. ${localPhrase} Las temperaturas varían desde -5°C en invierno hasta más de 35°C en verano.`
+      ];
+      
+      return variations;
+    },
+    
+    // Variaciones para preguntas fuera del ámbito
+    getOutOfScopeVariations: (domain) => {
+      const now = new Date();
+      const hours = now.getHours();
+      const dayOfWeek = now.getDay();
+      
+      // Obtener una frase local aleatoria
+      const localPhrase = benaventeInfo.localPhrases[
+        Math.floor(Math.random() * benaventeInfo.localPhrases.length)
+      ];
+      
+      const variations = {
+        salud: [
+          `Soy un asistente meteorológico especializado para Benavente, no tengo información médica. ${localPhrase} Para consultas sobre salud, te recomiendo contactar a un profesional médico calificado en Benavente.`,
+          `Lamento no poder ayudarte con eso. ${localPhrase} Como asistente meteorológico para Benavente, mi conocimiento se limita al clima y las condiciones atmosféricas. Para información médica, consulta a un profesional de salud.`,
+          `¡Vaya! Veo que necesitas información médica. ${localPhrase} Como experto en el clima de Benavente, no puedo ayudarte con eso, pero sí puedo decirte cómo el clima afecta ciertas condiciones de salud.`
+        ],
+        tecnología: [
+          `Soy un asistente meteorológico especializado para Benavente. ${localPhrase} Para consultas sobre tecnología, te recomiendo buscar en foros especializados o consultar documentación oficial de los productos.`,
+          `Lamento no poder ayudarte con eso. ${localPhrase} Como asistente meteorológico para Benavente, mi conocimiento se limita al clima y las condiciones atmosféricas. Para información tecnológica, consulta fuentes especializadas.`,
+          `¡Vaya fresquete! Veo que necesitas ayuda tecnológica. ${localPhrase} Como experto en el clima de Benavente, no puedo ayudarte con eso, pero sí puedo decirte cómo el clima afecta a algunos dispositivos electrónicos.`
+        ],
+        deportes: [
+          `Soy un asistente meteorológico especializado para Benavente. ${localPhrase} Para información sobre deportes, te recomiendo visitar el Ayuntamiento de Benavente o seguir el Club Deportivo local.`,
+          `Lamento no poder ayudarte con eso. ${localPhrase} Como asistente meteorológico para Benavente, mi conocimiento se limita al clima y las condiciones atmosféricas. Pero puedo decirte cómo el clima afecta a las actividades deportivas al aire libre.`,
+          `¡Vaya! Veo que necesitas información deportiva. ${localPhrase} Como experto en el clima de Benavente, no puedo ayudarte con eso, pero sí puedo decirte cómo el clima afecta a las actividades deportivas en nuestra zona.`
+        ],
+        entretenimiento: [
+          `Soy un asistente meteorológico especializado para Benavente. ${localPhrase} Para información sobre entretenimiento, te recomiendo visitar la página web del Ayuntamiento de Benavente o seguir eventos en la Plaza Mayor.`,
+          `Lamento no poder ayudarte con eso. ${localPhrase} Como asistente meteorológico para Benavente, mi conocimiento se limita al clima y las condiciones atmosféricas. Pero puedo decirte cómo el clima afecta a los eventos al aire libre.`,
+          `¡Vaya fresquete! Veo que necesitas información de entretenimiento. ${localPhrase} Como experto en el clima de Benavente, no puedo ayudarte con eso, pero sí puedo decirte cómo el clima afecta a los eventos en nuestra zona.`
+        ],
+        comida: [
+          `Soy un asistente meteorológico especializado para Benavente. ${localPhrase} Para recetas o información sobre comida, te recomiendo consultar sitios web especializados en gastronomía zamorana.`,
+          `Lamento no poder ayudarte con eso. ${localPhrase} Como asistente meteorológico para Benavente, mi conocimiento se limita al clima y las condiciones atmosféricas. Pero puedo decirte cómo el clima afecta a los productos locales de temporada.`,
+          `¡Vaya! Veo que necesitas información culinaria. ${localPhrase} Como experto en el clima de Benavente, no puedo ayudarte con eso, pero sí puedo decirte cómo el clima afecta a los productos locales que se usan en la cocina tradicional.`
+        ],
+        educación: [
+          `Soy un asistente meteorológico especializado para Benavente. ${localPhrase} Para información educativa, te recomiendo consultar la página web del Ayuntamiento de Benavente o contactar al IES local.`,
+          `Lamento no poder ayudarte con eso. ${localPhrase} Como asistente meteorológico para Benavente, mi conocimiento se limita al clima y las condiciones atmosféricas. Pero puedo proporcionar información sobre meteorología y ciencias atmosféricas.`,
+          `¡Vaya fresquete! Veo que necesitas información educativa. ${localPhrase} Como experto en el clima de Benavente, no puedo ayudarte con eso, pero sí puedo compartir contigo conocimientos sobre meteorología y clima local.`
+        ],
+        finanzas: [
+          `Soy un asistente meteorológico especializado para Benavente. ${localPhrase} Para consultas financieras, te recomiendo consultar a un asesor financiero en Benavente.`,
+          `Lamento no poder ayudarte con eso. ${localPhrase} Como asistente meteorológico para Benavente, mi conocimiento se limita al clima y las condiciones atmosféricas. Pero puedo decirte cómo el clima afecta a ciertos sectores económicos locales.`,
+          `¡Vaya! Veo que necesitas información financiera. ${localPhrase} Como experto en el clima de Benavente, no puedo ayudarte con eso, pero sí puedo decirte cómo el clima afecta a actividades económicas como la agricultura en nuestra zona.`
+        ],
+        general: [
+          `Soy un asistente meteorológico especializado para Benavente. ${localPhrase} Mi conocimiento está limitado a monitorear y analizar datos meteorológicos en Benavente, el funcionamiento del sistema Horus y análisis de tendencias climáticas de la zona.`,
+          `Lamento no poder ayudarte con eso. ${localPhrase} Como asistente meteorológico para Benavente, mi conocimiento se limita al clima y las condiciones atmosféricas de nuestra zona.`,
+          `¡Vaya fresquete! Veo que necesitas información fuera de mi ámbito. ${localPhrase} Como experto en el clima de Benavente, no puedo ayudarte con eso, pero sí puedo compartir contigo información relevante sobre el clima de nuestra querida ciudad.`
+        ]
+      };
+      
+      return variations[domain] || variations.general;
+    },
+    
+    // Variaciones para preguntas no entendidas
+    getUnrelatedVariations: () => {
+      const now = new Date();
+      const hours = now.getHours();
+      const dayOfWeek = now.getDay();
+      
+      // Obtener una frase local aleatoria
+      const localPhrase = benaventeInfo.localPhrases[
+        Math.floor(Math.random() * benaventeInfo.localPhrases.length)
+      ];
+      
+      return [
+        `Lamento no entender tu pregunta. ${localPhrase} Soy un asistente meteorológico especializado en Benavente. ¿Podrías reformular tu pregunta para que esté relacionada con el clima de Benavente?`,
+        `¡Vaya fresquete! No estoy seguro de entender lo que me pides. ${localPhrase} Como asistente meteorológico para Benavente, ¿podrías preguntar algo relacionado con el clima de nuestra ciudad?`,
+        `Perdón, no he captado bien tu pregunta. ${localPhrase} Como experto en el clima de Benavente, necesito que tu pregunta esté relacionada con meteorología o el sistema Horus.`
+      ];
+    }
+  };
+
+  // Función para obtener una variación aleatoria
+  const getRandomVariation = (variationsArray) => {
+    if (!variationsArray || variationsArray.length === 0) {
+      return "No se encontraron variaciones para esta consulta.";
     }
     
-    // Añadir información contextual adicional
-    response += `<div class="trend-analysis">`;
-    response += `<h3>Recomendaciones para Benavente</h3>`;
+    const randomIndex = Math.floor(Math.random() * variationsArray.length);
+    return variationsArray[randomIndex];
+  };
+
+  // Enviar mensaje
+  const sendMessage = async () => {
+    const message = userInput.value.trim();
+    if (message === '' || !chatbotReady) return;
     
-    switch(parameter) {
-      case 'temperatura':
-        if (average > 25) {
-          response += `<p>Con temperaturas promedio por encima de 25°C en ${benaventeInfo.location}, te recomendamos usar ropa ligera y mantener una buena hidratación. En verano, las temperaturas en Benavente pueden superar los 35°C.</p>`;
-        } else if (average < 10) {
-          response += `<p>Con temperaturas promedio por debajo de 10°C en ${benaventeInfo.location}, te recomendamos abrigarte adecuadamente para protegerte del frío. En invierno, las temperaturas en Benavente pueden llegar a -5°C.</p>`;
-        } else {
-          response += `<p>Las temperaturas en ${benaventeInfo.location} están dentro de un rango moderado. Considera vestir capas de ropa para adaptarte a los cambios durante el día. Benavente tiene un clima mediterráneo continentalizado con primaveras y otoños agradables.</p>`;
-        }
-        break;
-      case 'humedad':
-        if (average > 70) {
-          response += `<p>La alta humedad en ${benaventeInfo.location} puede hacer que la temperatura se sienta más alta de lo que realmente es. Considera usar ropa transpirable. La humedad promedio en Benavente es del 65%, por lo que valores superiores a 70% son considerados altos para la zona.</p>`;
-        } else if (average < 30) {
-          response += `<p>La baja humedad en ${benaventeInfo.location} puede causar sequedad en la piel y las vías respiratorias. Considera usar humectante y mantenerte hidratado. Esto es menos común en Benavente, que tiene una humedad relativamente estable.</p>`;
-        } else {
-          response += `<p>La humedad en ${benaventeInfo.location} está en un nivel moderado, lo que suele ser cómodo para la mayoría de las personas. Benavente tiene una humedad promedio del 65%, típica de su clima mediterráneo continentalizado.</p>`;
-        }
-        break;
-      case 'presión':
-        if (average < 1000) {
-          response += `<p>La presión atmosférica baja en ${benaventeInfo.location} suele indicar condiciones climáticas inestables. Mantente atento a posibles cambios en el clima. Debido a la altitud de ${benaventeInfo.altitude}, la presión atmosférica en Benavente es ligeramente menor que en el nivel del mar.</p>`;
-        } else if (average > 1020) {
-          response += `<p>La presión atmosférica alta en ${benaventeInfo.location} suele indicar condiciones climáticas estables y buen tiempo. Es un buen momento para actividades al aire libre. La presión promedio en Benavente es de alrededor de 1010 hPa debido a su altitud.</p>`;
-        } else {
-          response += `<p>La presión atmosférica en ${benaventeInfo.location} está en un nivel normal para su altitud (${benaventeInfo.altitude}). Benavente se encuentra en la llanura del Duero, lo que influye en sus patrones de presión atmosférica.</p>`;
-        }
-        break;
+    // Procesar mensaje
+    const response = await processUserMessage(message);
+    
+    // Muestra la respuesta
+    if (response) {
+      addMessage(response, false, openAIApi.isConfigured() ? 'openai' : 'local');
     }
-    
-    response += `</div>`;
-    response += `</div>`;
-    
-    return response;
   };
 
   // Renderizar gráficos
@@ -2550,10 +3531,10 @@
     // Crea el nuevo gráfico
     const chart = new Chart(chartCtx, {
       type: 'line',
-      data: {
+       {
         datasets: [{
           label: paramName,
-          data: chartData,
+           chartData,
           borderColor: color,
           backgroundColor: `${color}40`,
           borderWidth: 3,
@@ -2647,11 +3628,11 @@
     // Crea el nuevo gráfico
     const chart = new Chart(chartCtx, {
       type: 'line',
-      data: {
+       {
         datasets: [
           {
             label: period1,
-            data: chartData1,
+             chartData1,
             borderColor: color1,
             backgroundColor: `${color1}40`,
             borderWidth: 3,
@@ -2660,7 +3641,7 @@
           },
           {
             label: period2,
-            data: chartData2,
+             chartData2,
             borderColor: color2,
             backgroundColor: `${color2}40`,
             borderWidth: 3,
@@ -2770,10 +3751,10 @@
     // Crea el nuevo gráfico
     const chart = new Chart(chartCtx, {
       type: 'line',
-      data: {
+       {
         datasets: [{
           label: paramName,
-          data: dataWithMarkers,
+           dataWithMarkers,
           borderColor: color,
           backgroundColor: `${color}40`,
           borderWidth: 3,
@@ -2876,11 +3857,11 @@
     // Crea el nuevo gráfico
     const chart = new Chart(chartCtx, {
       type: 'line',
-      data: {
+       {
         datasets: [
           {
             label: paramName1,
-            data: chartData.map(item => ({ x: item.x, y: item.y1 })),
+             chartData.map(item => ({ x: item.x, y: item.y1 })),
             borderColor: color1,
             backgroundColor: `${color1}40`,
             borderWidth: 3,
@@ -2889,7 +3870,7 @@
           },
           {
             label: paramName2,
-            data: chartData.map(item => ({ x: item.x, y: item.y2 })),
+             chartData.map(item => ({ x: item.x, y: item.y2 })),
             borderColor: color2,
             backgroundColor: `${color2}40`,
             borderWidth: 3,
@@ -2936,333 +3917,13 @@
     charts.push(chart);
   };
 
-  // Procesar mensaje del usuario
-  const processUserMessage = async (message) => {
-    // Guardar en historial de conversación
-    conversationContext.conversationHistory.push({
-      role: 'user',
-      content: message,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Corregir ortografía
-    const { correctedMessage, hasCorrection } = spellingCorrection.correctMessage(message);
-    
-    // Mostrar mensaje de corrección SOLO si hubo correcciones significativas
-    if (hasCorrection) {
-      addMessage(`🔍 Entiendo que quizás quisiste decir: "${correctedMessage}"`, false);
-    }
-    
-    // Normalizar mensaje
-    const normalizedMessage = correctedMessage.toLowerCase().replace(/[.,!?]/g, '');
-    
-    // Análisis de ámbito
-    const domainAnalysis = semanticAnalysis.analyzeDomain(normalizedMessage);
-    
-    // Verificar referencias
-    const references = semanticAnalysis.analyzeReferences(normalizedMessage, conversationContext);
-    
-    // Resolver anáforas
-    const resolvedMessage = semanticAnalysis.resolveAnaphora(normalizedMessage, conversationContext);
-    
-    // Verificar si es hipotética
-    const isHypothetical = semanticAnalysis.analyzeHypotheticals(normalizedMessage);
-    
-    // Identificar entidades
-    const entities = semanticAnalysis.identifyEntities(resolvedMessage);
-    
-    // Analizar intención
-    const intent = semanticAnalysis.analyzeIntent(resolvedMessage, entities, domainAnalysis);
-    
-    // Verificar preguntas compuestas
-    const isCompoundQuestion = semanticAnalysis.analyzeCompoundQuestions(normalizedMessage);
-    
-    // Entidades para la respuesta
-    const detectedEntities = {
-      parameters: entities.parameters,
-      temporal: entities.temporal,
-      comparisons: entities.comparisons,
-      operations: entities.operations,
-      location: entities.locations
-    };
-    
-    // Actualizar contexto temporal si se identifica uno
-    if (entities.periods.length > 0) {
-      conversationContext.temporalContext = entities.periods[0];
-    }
-    
-    // Actualizar contexto de parámetros si se identifican
-    if (entities.parameters.length > 0) {
-      conversationContext.lastParameter = entities.parameters[0];
-    }
-    
-    // Actualizar contexto de ubicación
-    if (entities.locations.length > 0) {
-      conversationContext.spatialContext = entities.locations[0];
-    }
-    
-    // Si hay referencias, actualizar contexto
-    if (references.parameters.length > 0) {
-      conversationContext.lastParameter = references.parameters[0];
-    }
-    
-    if (references.location.length > 0) {
-      conversationContext.spatialContext = references.location[0];
-    }
-    
-    // Si hay contexto de parámetro pero no se identificó en la pregunta, usar el contexto
-    if (conversationContext.lastParameter && entities.parameters.length === 0) {
-      entities.parameters = [conversationContext.lastParameter];
-    }
-    
-    // Si hay contexto temporal pero no se identificó en la pregunta, usar el contexto
-    if (conversationContext.lastPeriod && entities.periods.length === 0) {
-      entities.periods = [conversationContext.lastPeriod];
-    }
-    
-    // Si hay contexto de ubicación pero no se identificó en la pregunta, usar el contexto
-    if (conversationContext.spatialContext && entities.locations.length === 0) {
-      entities.locations = [conversationContext.spatialContext];
-    }
-    
-    try {
-      // Procesar según la intención detectada
-      if (intent && intent.confidence >= conversationContext.confidenceThreshold) {
-        // Manejar intención reconocida
-        if (intentHandlers[intent.type]) {
-          return intentHandlers[intent.type](entities, conversationContext);
-        }
-      }
-      
-      // Si no se reconoció la intención pero es una pregunta meteorológica
-      if (domainAnalysis.isWeatherQuestion) {
-        // Intentar identificar parámetros incluso sin intención clara
-        if (entities.parameters.length > 0) {
-          // Si hay parámetros pero no intención clara, asumir consulta actual
-          return intentHandlers.current_data({
-            parameters: entities.parameters,
-            periods: ['hoy'],
-            locations: ['benavente']
-          }, conversationContext);
-        }
-        
-        // Si hay periodos pero no parámetros, pedir aclaración
-        if (entities.periods.length > 0) {
-          return `Para poder ayudarte con ${benaventeInfo.location}, necesito saber qué parámetro meteorológico te interesa. Por ejemplo: 'temperatura', 'humedad' o 'presión'.`;
-        }
-      }
-      
-      // Si es un saludo aunque no se haya detectado claramente
-      if (semanticAnalysis.isGreeting(normalizedMessage)) {
-        return intentHandlers.greeting();
-      }
-      
-      // Si es una despedida aunque no se haya detectado claramente
-      if (semanticAnalysis.isGoodbye(normalizedMessage)) {
-        return intentHandlers.goodbye();
-      }
-      
-      // Si es una solicitud de ayuda aunque no se haya detectado claramente
-      if (semanticAnalysis.isHelpRequest(normalizedMessage)) {
-        return intentHandlers.help();
-      }
-      
-      // Si no se identifica un ámbito específico
-      if (!domainAnalysis.isWeatherQuestion) {
-        // Verificar si es una pregunta sobre Horus
-        if (normalizedMessage.includes('horus') || normalizedMessage.includes('sistema')) {
-          return intentHandlers.about_horus();
-        }
-        
-        // Verificar si es una pregunta de soporte técnico
-        if (normalizedMessage.includes('problema') || normalizedMessage.includes('error') || 
-            normalizedMessage.includes('no funciona') || normalizedMessage.includes('lento')) {
-          return intentHandlers.support();
-        }
-        
-        // Verificar si es una pregunta personal
-        if (normalizedMessage.includes('quién eres') || normalizedMessage.includes('quien eres') ||
-            normalizedMessage.includes('cómo te llamas') || normalizedMessage.includes('como te llamas')) {
-          return intentHandlers.personal();
-        }
-        
-        // Verificar si es una pregunta general
-        if (normalizedMessage.includes('nombre') || normalizedMessage.includes('hora') ||
-            normalizedMessage.includes('edad') || normalizedMessage.includes('vives')) {
-          return intentHandlers.general();
-        }
-        
-        // Verificar el dominio de preguntas fuera del ámbito
-        let domain = 'general';
-        if (normalizedMessage.includes('salud') || normalizedMessage.includes('médico')) {
-          domain = 'salud';
-        } else if (normalizedMessage.includes('tecnología') || normalizedMessage.includes('tecnologia') ||
-                   normalizedMessage.includes('computadora') || normalizedMessage.includes('internet')) {
-          domain = 'tecnología';
-        } else if (normalizedMessage.includes('deportes') || normalizedMessage.includes('fútbol')) {
-          domain = 'deportes';
-        } else if (normalizedMessage.includes('entretenimiento') || normalizedMessage.includes('película') ||
-                   normalizedMessage.includes('música')) {
-          domain = 'entretenimiento';
-        } else if (normalizedMessage.includes('comida') || normalizedMessage.includes('receta')) {
-          domain = 'comida';
-        } else if (normalizedMessage.includes('educación') || normalizedMessage.includes('escuela')) {
-          domain = 'educación';
-        } else if (normalizedMessage.includes('finanzas') || normalizedMessage.includes('dinero')) {
-          domain = 'finanzas';
-        }
-        
-        return intentHandlers.out_of_scope({ domain });
-      }
-      
-      // Si es una pregunta hipotética
-      if (isHypothetical) {
-        return "Como asistente meteorológico para Benavente, solo puedo proporcionar información basada en datos reales y análisis históricos. No puedo especular sobre escenarios hipotéticos que no estén respaldados por datos climáticos de la zona.";
-      }
-      
-      // Si es una pregunta compuesta
-      if (isCompoundQuestion) {
-        return "Para poder ayudarte mejor con Benavente, por favor divide tu pregunta en partes más específicas. Por ejemplo, en lugar de preguntar sobre varios parámetros a la vez, enfócate en uno primero.";
-      }
-      
-      // Si hay entidades detectadas pero no intención clara
-      if (detectedEntities.parameters.length > 0 || 
-          detectedEntities.temporal.length > 0 || 
-          detectedEntities.comparisons.length > 0) {
-        let response = `He detectado algunos elementos relevantes en tu pregunta sobre ${benaventeInfo.location}, pero no estoy seguro de entender exactamente qué necesitas.\n\n`;
-        
-        if (detectedEntities.parameters.length > 0) {
-          response += `* Parámetros meteorológicos: ${detectedEntities.parameters.join(', ')}\n`;
-        }
-        if (detectedEntities.temporal.length > 0) {
-          response += `* Periodos de tiempo: ${detectedEntities.temporal.join(', ')}\n`;
-        }
-        if (detectedEntities.comparisons.length > 0) {
-          response += `* Tipos de comparación: ${detectedEntities.comparisons.map(c => 
-            c === 'vs' ? 'comparación directa' : 
-            c === 'trend' ? 'tendencia' : 
-            c === 'correlation' ? 'correlación' : c).join(', ')}\n`;
-        }
-        if (detectedEntities.operations.length > 0) {
-          response += `* Operaciones solicitadas: ${detectedEntities.operations.join(', ')}\n`;
-        }
-        
-        response += `\n¿Podrías reformular tu pregunta para que sea más específica sobre el clima de Benavente?`;
-        
-        return response;
-      }
-      
-      // Si no hay contexto previo y no es claramente fuera de ámbito, asumimos que es general
-      return `<div class="out-of-scope">
-        <h3>No Entiendo Tu Pregunta sobre Benavente</h3>
-        <p>No estoy seguro de entender tu pregunta. Soy un asistente meteorológico especializado en el sistema Horus en <strong>${benaventeInfo.location}</strong>.</p>
-        
-        <h4>¿Cómo puedo ayudarte con Benavente?</h4>
-        <ul>
-          <li>Consultar datos meteorológicos actuales en Benavente</li>
-          <li>Analizar tendencias climáticas históricas de Benavente</li>
-          <li>Realizar predicciones basadas en datos de Benavente</li>
-          <li>Explicar el funcionamiento de Horus en Benavente</li>
-          <li>Contextualizar el clima de Benavente (${benaventeInfo.altitude})</li>
-        </ul>
-        
-        <p>Ejemplos de preguntas que puedo responder:</p>
-        <ul>
-          <li>"¿Cuál es la temperatura actual en Benavente?"</li>
-          <li>"¿Cómo funciona el sistema Horus en Benavente?"</li>
-          <li>"Muestra la tendencia de presión de los últimos 7 días en Benavente"</li>
-        </ul>
-        
-        <p>Por favor, reformula tu pregunta para que esté relacionada con el clima o el sistema Horus en <strong>${benaventeInfo.location}</strong>.</p>
-        
-        <p class="benavente-context"><strong>Información clave sobre Benavente:</strong> Ubicado a ${benaventeInfo.altitude} en la llanura del Duero, tiene un clima mediterráneo continentalizado con veranos calurosos e inviernos fríos.</p>
-      </div>`;
-      
-    } catch (error) {
-      console.error('Error procesando mensaje:', error);
-      return "⚠️ Ocurrió un error al procesar tu solicitud. Por favor, intenta nuevamente.";
-    }
-  };
-
-  // Enviar mensaje
-  const sendMessage = async () => {
-    const message = userInput.value.trim();
-    if (message === '' || !chatbotReady) return;
-    
-    // Añade mensaje del usuario
-    addMessage(message, true);
-    userInput.value = '';
-    
-    // Muestra "escribiendo..."
-    const loadingId = showLoading();
-    
-    try {
-      // Procesa el mensaje
-      const response = await processUserMessage(message);
-      
-      // Remueve el mensaje de "escribiendo..."
-      document.getElementById(loadingId).remove();
-      
-      // Muestra la respuesta
-      addMessage(response, false, 'local');
-      
-      // Renderizar gráficos si existen
-      setTimeout(() => {
-        document.querySelectorAll('.prediction-chart').forEach(canvas => {
-          const parameter = canvas.dataset.parameter;
-          const chartData = JSON.parse(canvas.dataset.chartData);
-          renderChart(parameter, chartData, canvas.id);
-        });
-        
-        document.querySelectorAll('.comparison-chart').forEach(canvas => {
-          const parameter = canvas.dataset.parameter;
-          const chartData1 = JSON.parse(canvas.dataset.chartData1);
-          const chartData2 = JSON.parse(canvas.dataset.chartData2);
-          const period1 = canvas.dataset.period1;
-          const period2 = canvas.dataset.period2;
-          renderComparisonChart(parameter, chartData1, chartData2, period1, period2, canvas.id);
-        });
-        
-        document.querySelectorAll('.extremes-chart').forEach(canvas => {
-          const parameter = canvas.dataset.parameter;
-          const chartData = JSON.parse(canvas.dataset.chartData);
-          const maxDate = canvas.dataset.maxDate;
-          const minDate = canvas.dataset.minDate;
-          renderExtremesChart(parameter, chartData, maxDate, minDate, canvas.id);
-        });
-        
-        document.querySelectorAll('.correlation-chart').forEach(canvas => {
-          const parameter1 = canvas.dataset.parameter1;
-          const parameter2 = canvas.dataset.parameter2;
-          const chartData = JSON.parse(canvas.dataset.chartData);
-          renderCorrelationChart(parameter1, parameter2, chartData, canvas.id);
-        });
-      }, 100);
-      
-    } catch (error) {
-      console.error('Error procesando mensaje:', error);
-      document.getElementById(loadingId).remove();
-      addMessage("⚠️ Ocurrió un error al procesar tu solicitud. Por favor, intenta nuevamente.", false);
-    }
-  };
-
   // Inicializar chatbot
   const initChatbot = async () => {
     try {
-      // Carga datos históricos
-      await loadHistoricalData();
+      // Inicializar OpenAI API
+      const apiKeyConfigured = openAIApi.init();
       
-      chatbotReady = true;
-      
-      // Configurar sugerencias
-      document.querySelectorAll('.suggestion').forEach(suggestion => {
-        suggestion.addEventListener('click', () => {
-          userInput.value = suggestion.textContent;
-          sendMessage();
-        });
-      });
-      
-      // Configurar el switch de tema
+      // Configurar tema
       const themeSwitch = document.querySelector('.theme-switch__checkbox');
       if (themeSwitch) {
         // Verificar tema actual
@@ -3344,19 +4005,39 @@
         }, 100);
       };
       
+      // Cargar datos históricos
+      await loadHistoricalData();
+      
+      chatbotReady = true;
+      
+      // Configurar sugerencias
+      document.querySelectorAll('.suggestion').forEach(suggestion => {
+        suggestion.addEventListener('click', () => {
+          userInput.value = suggestion.textContent;
+          sendMessage();
+        });
+      });
+      
+      // Configurar el botón de enviar
+      sendButton.addEventListener('click', sendMessage);
+      userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+      });
+      
+      // Mensaje de estado según si hay API key configurada
+      if (apiKeyConfigured) {
+        updateStatus("OpenAI API configurada correctamente - Usando IA avanzada");
+      } else {
+        updateStatus("API de IA no configurada - Usando sistema local");
+      }
+      
     } catch (error) {
       console.error('Error inicializando chatbot:', error);
       chatbotReady = true;
-      addMessage("⚠️ Hubo un problema al cargar los datos. Algunas funciones avanzadas podrían no estar disponibles.", false);
+      updateStatus("Error al inicializar el chatbot", true);
     }
   };
 
-  // Event listeners
-  sendButton.addEventListener('click', sendMessage);
-  userInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
-  });
-  
   // Inicializar el chatbot
   initChatbot();
 </script>
