@@ -1324,7 +1324,7 @@
 
   // Mapeo de intenciones mejorado
   const intentMap = {
-    current_ {
+    current_data: {
       keywords: ['actual', 'ahora', 'en este momento', 'en directo', 'presente', 'en tiempo real', 'hoy', 'en benavente'],
       parameters: ['temperatura', 'humedad', 'presión', 'lluvia', 'viento', 'gas', 'dirección'],
       required: []
@@ -1895,7 +1895,7 @@
 
   // Manejadores de intenciones
   const intentHandlers = {
-    current_ (entities, context) => {
+    current_data: (entities, context) => {
       // Si no hay parámetros específicos, usar el último parámetro mencionado o uno por defecto
       let parameters = entities.parameters.length > 0 ? entities.parameters : 
                       (context.lastParameter ? [context.lastParameter] : ['temperatura']);
@@ -3477,7 +3477,7 @@
     }
   };
 
-  // Renderizar gráficos
+  // Renderizar gráficos - CORREGIDO
   const renderChart = (parameter, chartData, chartId) => {
     const chartCtx = document.getElementById(chartId)?.getContext('2d');
     if (!chartCtx) return;
@@ -3528,13 +3528,13 @@
         unit = '';
     }
     
-    // Crea el nuevo gráfico
+    // Crea el nuevo gráfico - CORREGIDO: estructura correcta de data
     const chart = new Chart(chartCtx, {
       type: 'line',
-       {
+      data: {
         datasets: [{
           label: paramName,
-           chartData,
+          data: chartData,
           borderColor: color,
           backgroundColor: `${color}40`,
           borderWidth: 3,
@@ -3580,7 +3580,7 @@
     charts.push(chart);
   };
   
-  // Renderizar gráficos de comparación
+  // Renderizar gráficos de comparación - CORREGIDO
   const renderComparisonChart = (parameter, chartData1, chartData2, period1, period2, chartId) => {
     const chartCtx = document.getElementById(chartId)?.getContext('2d');
     if (!chartCtx) return;
@@ -3625,14 +3625,14 @@
         unit = '';
     }
     
-    // Crea el nuevo gráfico
+    // Crea el nuevo gráfico - CORREGIDO: estructura correcta de data
     const chart = new Chart(chartCtx, {
       type: 'line',
-       {
+      data: {
         datasets: [
           {
             label: period1,
-             chartData1,
+            data: chartData1,
             borderColor: color1,
             backgroundColor: `${color1}40`,
             borderWidth: 3,
@@ -3641,7 +3641,7 @@
           },
           {
             label: period2,
-             chartData2,
+            data: chartData2,
             borderColor: color2,
             backgroundColor: `${color2}40`,
             borderWidth: 3,
@@ -3688,7 +3688,7 @@
     charts.push(chart);
   };
 
-  // Renderizar gráficos de extremos
+  // Renderizar gráficos de extremos - CORREGIDO
   const renderExtremesChart = (parameter, chartData, maxDate, minDate, chartId) => {
     const chartCtx = document.getElementById(chartId)?.getContext('2d');
     if (!chartCtx) return;
@@ -3748,13 +3748,13 @@
                             color
     }));
     
-    // Crea el nuevo gráfico
+    // Crea el nuevo gráfico - CORREGIDO: estructura correcta de data
     const chart = new Chart(chartCtx, {
       type: 'line',
-       {
+      data: {
         datasets: [{
           label: paramName,
-           dataWithMarkers,
+          data: dataWithMarkers,
           borderColor: color,
           backgroundColor: `${color}40`,
           borderWidth: 3,
@@ -3809,7 +3809,7 @@
     charts.push(chart);
   };
 
-  // Renderizar gráficos de correlación
+  // Renderizar gráficos de correlación - CORREGIDO
   const renderCorrelationChart = (parameter1, parameter2, chartData, chartId) => {
     const chartCtx = document.getElementById(chartId)?.getContext('2d');
     if (!chartCtx) return;
@@ -3854,14 +3854,14 @@
     color2 = info2.color;
     unit2 = info2.unit;
     
-    // Crea el nuevo gráfico
+    // Crea el nuevo gráfico - CORREGIDO: estructura correcta de data
     const chart = new Chart(chartCtx, {
       type: 'line',
-       {
+      data: {
         datasets: [
           {
             label: paramName1,
-             chartData.map(item => ({ x: item.x, y: item.y1 })),
+            data: chartData.map(item => ({ x: item.x, y: item.y1 })),
             borderColor: color1,
             backgroundColor: `${color1}40`,
             borderWidth: 3,
@@ -3870,7 +3870,7 @@
           },
           {
             label: paramName2,
-             chartData.map(item => ({ x: item.x, y: item.y2 })),
+            data: chartData.map(item => ({ x: item.x, y: item.y2 })),
             borderColor: color2,
             backgroundColor: `${color2}40`,
             borderWidth: 3,
