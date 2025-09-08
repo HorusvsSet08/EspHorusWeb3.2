@@ -1240,13 +1240,6 @@
                             const minDate = canvas.dataset.minDate;
                             renderExtremesChart(parameter, chartData, maxDate, minDate, canvas.id);
                         });
-                        
-                        document.querySelectorAll('.correlation-chart').forEach(canvas => {
-                            const parameter1 = canvas.dataset.parameter1;
-                            const parameter2 = canvas.dataset.parameter2;
-                            const chartData = JSON.parse(canvas.dataset.chartData);
-                            renderCorrelationChart(parameter1, parameter2, chartData, canvas.id);
-                        });
                     }, 100);
                 };
                 
@@ -3243,7 +3236,7 @@
                     
                     deportes: `<div class="out-of-scope">
                         <h3>Preguntas sobre Deportes en Benavente</h3>
-                        <p>Para información sobre deportes:</p>
+                        <p>Para información deportiva:</p>
                         <ul>
                             <li>Visita el Ayuntamiento de Benavente para información deportiva</li>
                             <li>Sigue el Club Deportivo de Benavente</li>
@@ -4061,7 +4054,7 @@
             // Crea el nuevo gráfico
             const chart = new Chart(chartCtx, {
                 type: 'line',
-                data: {
+                 {
                     datasets: [{
                         label: paramName,
                          chartData,
@@ -4171,7 +4164,7 @@
                         },
                         {
                             label: period2,
-                            data: chartData2,
+                             chartData2,
                             borderColor: color2,
                             backgroundColor: `${color2}40`,
                             borderWidth: 3,
