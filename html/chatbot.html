@@ -260,6 +260,20 @@
         font-size: 14px;
       }
     }
+    
+    /* Notificación de API */
+    .api-notification {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 1000;
+      display: none;
+    }
   </style>
 </head>
 <body class="light-mode chatbot-page">
@@ -277,9 +291,6 @@
         </a>
         <a href="chatbot.html" class="nav-btn active">
           <span class="nav-icon">🤖</span> Chatbot
-        </a>
-        <a href="vr.html" class="nav-btn">
-          <span class="nav-icon">🕶️</span> VR
         </a>
       </div>
 
@@ -359,7 +370,7 @@
 
     <footer>
       <p>Chatbot de Horus Station - Interfaz de asistente virtual para datos meteorológicos</p>
-      <p class="disclaimer">Este chatbot proporciona información basada en datos de la estación meteorológica Horus</p>
+      <p class="disclaimer">Este chatbot utiliza la API de OpenAI para proporcionar información contextualizada</p>
     </footer>
   </div>
 
@@ -373,6 +384,14 @@
       const userInput = document.getElementById('user-input');
       const sendButton = document.getElementById('send-button');
       const suggestions = document.querySelectorAll('.suggestion');
+      
+      // Variable para almacenar el historial de conversación
+      let conversationHistory = [
+        {
+          "role": "system",
+          "content": "Eres Horus Assistant, un asistente virtual especializado en meteorología y datos ambientales. Proporcionas información precisa y útil sobre la estación meteorológica Horus, sus sensores y los datos que recopila. Tus respuestas deben ser claras, profesionales y basadas en los datos disponibles. Si no conoces información específica, indícalo honestamente. Hablas en español."
+        }
+      ];
       
       // Función para añadir un mensaje al chat
       function addMessage(text, isUser = false) {
@@ -392,6 +411,19 @@
         
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Añadir al historial de conversación
+        if (isUser) {
+          conversationHistory.push({
+            "role": "user",
+            "content": text
+          });
+        } else {
+          conversationHistory.push({
+            "role": "assistant",
+            "content": text
+          });
+        }
         
         return messageDiv;
       }
@@ -421,8 +453,80 @@
         }
       }
       
-      // Función para procesar el mensaje del usuario
-      function processUserMessage(message) {
+      // Función para mostrar notificación de error
+      function showErrorNotification(message) {
+        let notification = document.getElementById('api-notification');
+        if (!notification) {
+          notification = document.createElement('div');
+          notification.id = 'api-notification';
+          notification.className = 'api-notification';
+          document.body.appendChild(notification);
+        }
+        
+        notification.textContent = message;
+        notification.style.display = 'block';
+        
+        // Ocultar después de 5 segundos
+        setTimeout(() => {
+          notification.style.display = 'none';
+        }, 5000);
+      }
+      
+      // Función para procesar el mensaje del usuario con OpenAI
+      async function processUserMessageWithOpenAI(message) {
+        // Añadir el mensaje del usuario
+        addMessage(message, true);
+        
+        // Limpiar el input
+        userInput.value = '';
+        
+        // Mostrar indicador de escritura
+        const typingIndicator = showTypingIndicator();
+        
+        try {
+          // Enviar la solicitud a OpenAI
+          const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer TU_API_KEY_DE_OPENAI_AQUI'
+            },
+            body: JSON.stringify({
+              model: 'gpt-3.5-turbo',
+              messages: conversationHistory,
+              temperature: 0.7,
+              max_tokens: 300
+            })
+          });
+          
+          const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error?.message || 'Error en la API de OpenAI');
+          }
+          
+          // Eliminar el indicador de escritura
+          removeTypingIndicator();
+          
+          // Añadir la respuesta del bot
+          addMessage(data.choices[0].message.content);
+          
+        } catch (error) {
+          console.error("Error al conectar con OpenAI:", error);
+          
+          // Eliminar el indicador de escritura
+          removeTypingIndicator();
+          
+          // Mostrar mensaje de error en el chat
+          addMessage("Lo siento, hubo un problema al conectar con el servicio de inteligencia artificial. Por favor, intenta nuevamente más tarde.");
+          
+          // Mostrar notificación de error
+          showErrorNotification("Error: " + error.message);
+        }
+      }
+      
+      // Función para procesar el mensaje del usuario (versión de respaldo)
+      function processUserMessageFallback(message) {
         // Añadir el mensaje del usuario
         addMessage(message, true);
         
@@ -442,7 +546,7 @@
         }, 1000 + Math.random() * 1000); // Tiempo de respuesta aleatorio entre 1-2 segundos
       }
       
-      // Función para generar una respuesta basada en el mensaje
+      // Función para generar una respuesta basada en el mensaje (versión de respaldo)
       function generateResponse(message) {
         // Palabras clave para diferentes tipos de preguntas
         const keywords = {
@@ -546,7 +650,7 @@
       sendButton.addEventListener('click', () => {
         const message = userInput.value.trim();
         if (message) {
-          processUserMessage(message);
+          processUserMessageWithOpenAI(message);
         }
       });
       
@@ -555,7 +659,7 @@
         if (e.key === 'Enter') {
           const message = userInput.value.trim();
           if (message) {
-            processUserMessage(message);
+            processUserMessageWithOpenAI(message);
           }
         }
       });
@@ -564,13 +668,23 @@
       suggestions.forEach(suggestion => {
         suggestion.addEventListener('click', () => {
           const message = suggestion.textContent;
-          processUserMessage(message);
+          processUserMessageWithOpenAI(message);
         });
       });
       
       // Enfocar el input al cargar
       userInput.focus();
+      
+      // Mensaje inicial sobre la API
+      setTimeout(() => {
+        showErrorNotification("Nota: Para usar la API de OpenAI, debes agregar tu clave API en el código");
+      }, 1000);
     });
   </script>
+  
+  <!-- Notificación de API -->
+  <div id="api-notification" class="api-notification">
+    Nota: Configura tu API key de OpenAI en el código
+  </div>
 </body>
 </html>
