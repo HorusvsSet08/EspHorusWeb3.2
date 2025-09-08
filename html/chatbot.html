@@ -47,6 +47,21 @@
       box-shadow: 0 0 6px rgba(76, 175, 80, 0.5);
     }
     
+    .chat-header .settings-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 18px;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+    }
+    
+    .chat-header .settings-btn:hover {
+      opacity: 1;
+    }
+    
     .chat-messages {
       flex: 1;
       overflow-y: auto;
@@ -261,18 +276,191 @@
       }
     }
     
-    /* Notificación de API */
-    .api-notification {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 10px 15px;
-      border-radius: 8px;
-      font-size: 14px;
-      z-index: 1000;
+    /* Estilos para el modal de configuración */
+    .settings-modal {
       display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .settings-content {
+      background: var(--card-bg);
+      width: 90%;
+      max-width: 500px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .settings-header {
+      padding: 20px;
+      background: rgba(0, 30, 60, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .settings-header h3 {
+      color: var(--text);
+      margin: 0;
+      font-size: 18px;
+    }
+    
+    .settings-close {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 24px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+    }
+    
+    .settings-close:hover {
+      opacity: 1;
+    }
+    
+    .settings-body {
+      padding: 20px;
+    }
+    
+    .settings-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .form-group label {
+      color: var(--text);
+      font-weight: 500;
+    }
+    
+    .form-group input {
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-size: 16px;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-glow);
+    }
+    
+    .api-status {
+      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-top: 5px;
+    }
+    
+    .api-status.success {
+      background: rgba(76, 175, 80, 0.15);
+      color: #4CAF50;
+    }
+    
+    .api-status.error {
+      background: rgba(244, 67, 54, 0.15);
+      color: #F44336;
+    }
+    
+    .settings-footer {
+      padding: 15px 20px;
+      background: rgba(0, 30, 60, 0.3);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    
+    .settings-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .cancel-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
+    
+    .save-btn {
+      background: var(--primary);
+      color: #000;
+    }
+    
+    .info-icon {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #4CAF50;
+      color: white;
+      text-align: center;
+      line-height: 16px;
+      font-size: 12px;
+      margin-left: 5px;
+      cursor: help;
+    }
+    
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      width: 250px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -125px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    .tooltip .tooltip-text::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+    }
+    
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
     }
   </style>
 </head>
@@ -331,6 +519,7 @@
         <div class="chat-header">
           <div class="status-indicator"></div>
           <h2><span>🤖</span> Horus Assistant</h2>
+          <button class="settings-btn" id="settings-btn">⚙️</button>
         </div>
         
         <div class="chat-messages" id="chat-messages">
@@ -373,6 +562,41 @@
       <p class="disclaimer">Este chatbot utiliza la API de OpenAI para proporcionar información contextualizada</p>
     </footer>
   </div>
+  
+  <!-- Modal de configuración -->
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-content">
+      <div class="settings-header">
+        <h3>Configuración de API</h3>
+        <button class="settings-close" id="settings-close">&times;</button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-form">
+          <div class="form-group">
+            <label for="api-key">API Key de OpenAI</label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="password" id="api-key" placeholder="sk-...">
+              <span class="info-icon tooltip">i
+                <span class="tooltip-text">Tu API key de OpenAI. <br>Nunca se enviará a ningún servidor externo.</span>
+              </span>
+            </div>
+            <div class="api-status" id="api-status" style="display: none;"></div>
+          </div>
+          <div class="form-group">
+            <label for="model-select">Modelo de IA</label>
+            <select id="model-select" class="form-control">
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo (recomendado)</option>
+              <option value="gpt-4">GPT-4</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="settings-footer">
+        <button class="settings-btn cancel-btn" id="cancel-btn">Cancelar</button>
+        <button class="settings-btn save-btn" id="save-btn">Guardar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- CARGA main.js AL FINAL: es CRÍTICO -->
   <script src="../js/main.js"></script>
@@ -384,6 +608,26 @@
       const userInput = document.getElementById('user-input');
       const sendButton = document.getElementById('send-button');
       const suggestions = document.querySelectorAll('.suggestion');
+      const settingsBtn = document.getElementById('settings-btn');
+      const settingsModal = document.getElementById('settings-modal');
+      const settingsClose = document.getElementById('settings-close');
+      const cancelBtn = document.getElementById('cancel-btn');
+      const saveBtn = document.getElementById('save-btn');
+      const apiKeyInput = document.getElementById('api-key');
+      const apiStatus = document.getElementById('api-status');
+      const modelSelect = document.getElementById('model-select');
+      
+      // Cargar configuración guardada
+      const savedApiKey = localStorage.getItem('horus_openai_api_key');
+      const savedModel = localStorage.getItem('horus_openai_model') || 'gpt-3.5-turbo';
+      
+      if (savedApiKey) {
+        apiStatus.textContent = "API key guardada correctamente";
+        apiStatus.className = "api-status success";
+        apiStatus.style.display = "block";
+      }
+      
+      modelSelect.value = savedModel;
       
       // Variable para almacenar el historial de conversación
       let conversationHistory = [
@@ -392,6 +636,49 @@
           "content": "Eres Horus Assistant, un asistente virtual especializado en meteorología y datos ambientales. Proporcionas información precisa y útil sobre la estación meteorológica Horus, sus sensores y los datos que recopila. Tus respuestas deben ser claras, profesionales y basadas en los datos disponibles. Si no conoces información específica, indícalo honestamente. Hablas en español."
         }
       ];
+      
+      // Mostrar/ocultar el modal de configuración
+      function toggleSettingsModal(show) {
+        settingsModal.style.display = show ? 'flex' : 'none';
+        
+        if (show && savedApiKey) {
+          apiKeyInput.value = "•••••••••••••••••••••••••••••••••••••••••••";
+        } else if (show) {
+          apiKeyInput.value = '';
+        }
+      }
+      
+      // Verificar la validez de la API key
+      async function validateApiKey(apiKey) {
+        apiStatus.textContent = "Verificando API key...";
+        apiStatus.className = "api-status";
+        apiStatus.style.display = "block";
+        
+        try {
+          const response = await fetch('https://api.openai.com/v1/models', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`
+            }
+          });
+          
+          if (response.ok) {
+            apiStatus.textContent = "API key válida";
+            apiStatus.className = "api-status success";
+            return true;
+          } else {
+            const errorData = await response.json();
+            const errorMessage = errorData.error?.message || 'API key inválida';
+            apiStatus.textContent = errorMessage;
+            apiStatus.className = "api-status error";
+            return false;
+          }
+        } catch (error) {
+          apiStatus.textContent = "Error de conexión: " + error.message;
+          apiStatus.className = "api-status error";
+          return false;
+        }
+      }
       
       // Función para añadir un mensaje al chat
       function addMessage(text, isUser = false) {
@@ -474,6 +761,15 @@
       
       // Función para procesar el mensaje del usuario con OpenAI
       async function processUserMessageWithOpenAI(message) {
+        // Verificar si tenemos una API key guardada
+        const apiKey = localStorage.getItem('horus_openai_api_key');
+        const model = localStorage.getItem('horus_openai_model') || 'gpt-3.5-turbo';
+        
+        if (!apiKey) {
+          addMessage("Para utilizar la función de inteligencia artificial, necesitas configurar tu API key de OpenAI. Haz clic en el botón de ajustes (⚙️) en la esquina superior derecha para configurarla.");
+          return;
+        }
+        
         // Añadir el mensaje del usuario
         addMessage(message, true);
         
@@ -489,10 +785,10 @@
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer TU_API_KEY_DE_OPENAI_AQUI'
+              'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-              model: 'gpt-3.5-turbo',
+              model: model,
               messages: conversationHistory,
               temperature: 0.7,
               max_tokens: 300
@@ -518,133 +814,61 @@
           removeTypingIndicator();
           
           // Mostrar mensaje de error en el chat
-          addMessage("Lo siento, hubo un problema al conectar con el servicio de inteligencia artificial. Por favor, intenta nuevamente más tarde.");
+          addMessage("Lo siento, hubo un problema al conectar con el servicio de inteligencia artificial. Por favor, verifica tu configuración de API.");
           
           // Mostrar notificación de error
           showErrorNotification("Error: " + error.message);
         }
       }
       
-      // Función para procesar el mensaje del usuario (versión de respaldo)
-      function processUserMessageFallback(message) {
-        // Añadir el mensaje del usuario
-        addMessage(message, true);
-        
-        // Limpiar el input
-        userInput.value = '';
-        
-        // Mostrar indicador de escritura
-        const typingIndicator = showTypingIndicator();
-        
-        // Simular tiempo de respuesta
-        setTimeout(() => {
-          removeTypingIndicator();
-          
-          // Procesar el mensaje y generar respuesta
-          const response = generateResponse(message.toLowerCase());
-          addMessage(response);
-        }, 1000 + Math.random() * 1000); // Tiempo de respuesta aleatorio entre 1-2 segundos
-      }
+      // Eventos para el modal de configuración
+      settingsBtn.addEventListener('click', () => {
+        toggleSettingsModal(true);
+      });
       
-      // Función para generar una respuesta basada en el mensaje (versión de respaldo)
-      function generateResponse(message) {
-        // Palabras clave para diferentes tipos de preguntas
-        const keywords = {
-          saludo: ['hola', 'hi', 'hey', 'buenos días', 'buenas tardes', 'buenas noches'],
-          temperatura: ['temperatura', 'grados', 'calor', 'frío'],
-          humedad: ['humedad', 'porcentaje de humedad'],
-          presion: ['presión', 'presion', 'hpa'],
-          viento: ['viento', 'velocidad del viento', 'dirección del viento'],
-          lluvia: ['lluvia', 'precipitación', 'llueve', 'agua'],
-          pm25: ['pm2.5', 'pm 2.5', 'partículas', 'calidad del aire', 'polvo'],
-          pm10: ['pm10', 'pm 10', 'partículas grandes'],
-          gas: ['gas', 'nivel de gas', 'calidad del aire'],
-          sensores: ['sensores', 'qué sensores', 'qué mide', 'qué datos'],
-          proyecto: ['proyecto', 'horus', 'estación', 'meteorológica', 'cómo funciona'],
-          ayuda: ['ayuda', 'qué puedes hacer', 'funcionalidades', 'capacidades']
-        };
+      settingsClose.addEventListener('click', () => {
+        toggleSettingsModal(false);
+      });
+      
+      cancelBtn.addEventListener('click', () => {
+        toggleSettingsModal(false);
+      });
+      
+      saveBtn.addEventListener('click', async () => {
+        const apiKey = apiKeyInput.value.trim();
         
-        // Respuestas predefinidas
-        const responses = {
-          saludo: [
-            "¡Hola! Soy Horus Assistant, tu asistente virtual para la estación meteorológica Horus. ¿En qué puedo ayudarte hoy?",
-            "¡Bienvenido/a! Soy Horus Assistant. Estoy aquí para ayudarte con información sobre los datos meteorológicos. ¿Qué necesitas saber?",
-            "Hola, soy Horus Assistant. ¿Te gustaría conocer los datos actuales de la estación o necesitas ayuda con algo específico?"
-          ],
-          temperatura: [
-            "La temperatura actual registrada por la estación Horus es de 28.5°C. Esta información se actualiza cada 3 minutos desde los sensores de la estación.",
-            "Según los datos más recientes, la temperatura es de 28.5°C. La temperatura máxima hoy fue de 32.7°C y la mínima de 24.3°C.",
-            "La estación Horus reporta una temperatura actual de 28.5°C. Esto está dentro del rango normal para esta época del año en la zona."
-          ],
-          humedad: [
-            "La humedad relativa actual es del 65%. Este valor se mide con sensores de humedad de alta precisión y se actualiza cada 3 minutos.",
-            "Actualmente, la humedad registrada es del 65%. La humedad ha oscilado entre el 58% y el 72% durante las últimas 24 horas.",
-            "La humedad actual es del 65%. Este valor es importante para evaluar la sensación térmica y las condiciones de confort."
-          ],
-          presion: [
-            "La presión atmosférica actual es de 1013 hPa. Este valor se mantiene estable, lo que indica condiciones meteorológicas normales sin cambios bruscos inminentes.",
-            "La presión barométrica registrada es de 1013 hPa. Estamos en un sistema de alta presión, lo que suele indicar buen tiempo.",
-            "La presión atmosférica actual es de 1013 hPa. No se observan cambios significativos en las últimas horas, lo que sugiere estabilidad en el clima."
-          ],
-          viento: [
-            "El viento actual tiene una velocidad de 5.2 km/h con dirección sur-este (135°). Los datos se actualizan cada 3 minutos desde el anemómetro de la estación.",
-            "Actualmente, el viento sopla a 5.2 km/h desde el sur-este (135°). La velocidad máxima registrada hoy fue de 12.7 km/h.",
-            "La velocidad del viento es de 5.2 km/h con dirección sur-este (135°). Estos datos son importantes para evaluar la dispersión de contaminantes."
-          ],
-          lluvia: [
-            "No se están registrando precipitaciones en este momento. El acumulado de lluvia en las últimas 24 horas es de 0.0 mm.",
-            "Actualmente no hay lluvia. El último registro de precipitación fue hace 3 días, con un acumulado de 2.5 mm.",
-            "No se detecta lluvia en este momento. El sensor de lluvia está operativo y reportaría cualquier precipitación inmediatamente."
-          ],
-          pm25: [
-            "El nivel actual de PM2.5 es de 12 µg/m³, lo que se considera bueno según los estándares de calidad del aire. Este valor está por debajo del límite seguro de 25 µg/m³.",
-            "Los datos actuales muestran un nivel de PM2.5 de 12 µg/m³, lo que indica una calidad de aire buena. La calidad del aire se ha mantenido en niveles aceptables durante las últimas 24 horas.",
-            "El nivel de partículas PM2.5 es de 12 µg/m³, dentro del rango seguro. Este valor se mide con un sensor láser de alta precisión cada 3 minutos."
-          ],
-          pm10: [
-            "El nivel actual de PM10 es de 25 µg/m³, lo que se considera bueno. Este valor está bien por debajo del límite seguro de 50 µg/m³ establecido por la OMS.",
-            "Los datos actuales muestran un nivel de PM10 de 25 µg/m³, indicando una calidad de aire buena. Los niveles han sido estables durante las últimas horas.",
-            "El nivel de partículas PM10 es de 25 µg/m³, dentro del rango seguro. Estas partículas son más grandes que las PM2.5 y generalmente provienen de fuentes como el polvo."
-          ],
-          gas: [
-            "El nivel actual de resistencia de gas es de 4.2 kΩ, lo que indica una calidad de aire normal. Este sensor mide principalmente gases reductores como el CO y metano.",
-            "La resistencia del sensor de gas es de 4.2 kΩ, lo que sugiere la ausencia de niveles peligrosos de gases. Los valores normales suelen estar entre 3-6 kΩ.",
-            "El sensor de gas reporta una resistencia de 4.2 kΩ, dentro del rango esperado para condiciones normales. No se detectan niveles preocupantes de gases contaminantes."
-          ],
-          sensores: [
-            "La estación Horus está equipada con sensores para medir: temperatura, humedad, presión atmosférica, altitud, PM2.5, PM10, dirección y velocidad del viento, niveles de gas y precipitación. Todos los datos se actualizan cada 3 minutos y se transmiten en tiempo real.",
-            "Nuestra estación meteorológica incluye sensores de temperatura y humedad DHT22, sensor de presión BMP280, sensores de partículas PMS5003 para PM2.5 y PM10, anemómetro para viento, sensor de gas MQ-135 y sensor de lluvia. Todos los datos se recopilan y transmiten cada 3 minutos.",
-            "La estación Horus utiliza una combinación de sensores de alta calidad: DHT22 para temperatura y humedad, BMP280 para presión, PMS5003 para partículas finas, sensores específicos para viento y gas, y un sensor de lluvia. Los datos se procesan y transmiten cada 3 minutos a través de MQTT."
-          ],
-          proyecto: [
-            "Horus Station es un proyecto de estación meteorológica de código abierto que recopila datos ambientales en tiempo real. Los datos se transmiten a través de MQTT y están disponibles para visualización en nuestra interfaz web. El proyecto tiene como objetivo proporcionar datos meteorológicos accesibles para la comunidad.",
-            "El proyecto Horus es una estación meteorológica DIY construida con tecnología IoT. Utiliza un ESP32 para recopilar datos de múltiples sensores y transmitirlos en tiempo real. Los datos se pueden visualizar en nuestra interfaz web, en el dashboard de datos en vivo y en el análisis semanal.",
-            "Horus Station es una iniciativa de monitoreo ambiental que combina hardware de código abierto con una interfaz web interactiva. La estación recopila datos meteorológicos cada 3 minutos y los transmite a través de MQTT para su visualización en tiempo real y análisis posterior."
-          ],
-          ayuda: [
-            "Puedo ayudarte con información sobre los datos meteorológicos actuales, explicar tendencias, proporcionar detalles sobre los sensores y responder preguntas sobre el proyecto. ¿Te gustaría saber algo específico sobre la temperatura, humedad, calidad del aire u otros parámetros?",
-            "Estoy aquí para ayudarte con: datos meteorológicos actuales, explicación de tendencias, información sobre los sensores y detalles del proyecto Horus. ¿En qué puedo asistirte hoy?",
-            "Mis capacidades incluyen proporcionar datos actuales de temperatura, humedad, presión, calidad del aire, viento y lluvia, además de explicar cómo funciona la estación y qué datos recopila. ¿Qué información necesitas?"
-          ],
-          desconocido: [
-            "No entendí tu pregunta. ¿Podrías reformularla o preguntar algo relacionado con los datos meteorológicos de la estación Horus?",
-            "Lamento no poder ayudarte con eso. Puedo proporcionar información sobre los datos meteorológicos actuales, explicar tendencias o responder preguntas sobre el proyecto Horus. ¿Te gustaría preguntar algo relacionado con estos temas?",
-            "No tengo información sobre eso. Como asistente de la estación Horus, puedo ayudarte con datos meteorológicos, calidad del aire y detalles del proyecto. ¿Te gustaría preguntar algo relacionado con estos temas?"
-          ]
-        };
-        
-        // Verificar cada categoría de palabras clave
-        for (const category in keywords) {
-          for (const keyword of keywords[category]) {
-            if (message.includes(keyword)) {
-              return responses[category][Math.floor(Math.random() * responses[category].length)];
-            }
-          }
+        if (!apiKey) {
+          apiStatus.textContent = "La API key no puede estar vacía";
+          apiStatus.className = "api-status error";
+          apiStatus.style.display = "block";
+          return;
         }
         
-        // Si no se encontró ninguna palabra clave, usar respuesta genérica
-        return responses.desconocido[Math.floor(Math.random() * responses.desconocido.length)];
-      }
+        // Validar la API key
+        const isValid = await validateApiKey(apiKey);
+        
+        if (isValid) {
+          // Guardar la API key y el modelo
+          localStorage.setItem('horus_openai_api_key', apiKey);
+          localStorage.setItem('horus_openai_model', modelSelect.value);
+          
+          // Cerrar el modal
+          toggleSettingsModal(false);
+          
+          // Mostrar mensaje de éxito
+          showErrorNotification("Configuración guardada correctamente");
+        }
+      });
+      
+      // Evento para mostrar/ocultar la API key al hacer clic en el input
+      apiKeyInput.addEventListener('click', function() {
+        if (this.type === 'password') {
+          this.type = 'text';
+          setTimeout(() => {
+            this.type = 'password';
+          }, 2000);
+        }
+      });
       
       // Evento para enviar mensaje al hacer clic en el botón
       sendButton.addEventListener('click', () => {
@@ -677,14 +901,17 @@
       
       // Mensaje inicial sobre la API
       setTimeout(() => {
-        showErrorNotification("Nota: Para usar la API de OpenAI, debes agregar tu clave API en el código");
+        const apiKey = localStorage.getItem('horus_openai_api_key');
+        if (!apiKey) {
+          showErrorNotification("Nota: Configura tu API key de OpenAI en el menú de ajustes (⚙️)");
+        }
       }, 1000);
     });
   </script>
   
   <!-- Notificación de API -->
   <div id="api-notification" class="api-notification">
-    Nota: Configura tu API key de OpenAI en el código
+    Nota: Configura tu API key de OpenAI en el menú de ajustes
   </div>
 </body>
 </html>
