@@ -797,7 +797,7 @@
             
             // Marca de fuente para mensajes del bot
             const sourceBadge = source !== 'local' 
-                ? `<span class="source-badge" title="Información obtenida de: ${source}">${source === 'web' ? '🌐' : source}</span>` 
+                ? `<span class="source-badge" title="Información obtenida de: ${source}">${source === 'web' ? '🌐' : source}</span>' 
                 : '';
                 
             if (isUser) {
@@ -855,7 +855,7 @@
             return loadingId;
         };
 
-        // Nueva integración con OpenAI API
+        // Nueva integración con OpenAI API - CORREGIDA
         const openAIApi = {
             apiKey: null,
             apiUrl: 'https://api.openai.com/v1/chat/completions',
@@ -908,7 +908,7 @@
                 }
             },
             
-            // Generar respuesta usando OpenAI
+            // Generar respuesta usando OpenAI - CORREGIDA
             generateResponse: async function(userMessage, context) {
                 if (!this.isConfigured()) {
                     return null;
@@ -951,7 +951,14 @@
                     
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(`Error de API: ${response.status} - ${errorData.error?.message || 'Error desconocido'}`);
+                        const errorMessage = errorData.error?.message || 'Error desconocido';
+                        
+                        // Manejar específicamente el error 429
+                        if (response.status === 429) {
+                            throw new Error(`Error de API: ${response.status} - Has excedido tu cuota actual. Verifica tu plan y detalles de facturación. ${errorMessage}`);
+                        }
+                        
+                        throw new Error(`Error de API: ${response.status} - ${errorMessage}`);
                     }
                     
                     const data = await response.json();
@@ -1350,7 +1357,7 @@
             userInput.value = '';
         };
 
-        // Procesar mensaje del usuario
+        // Procesar mensaje del usuario - CORREGIDA
         const processUserMessage = async (message) => {
             // Guardar en historial de conversación
             conversationContext.conversationHistory.push({
@@ -1861,7 +1868,7 @@
 
         // Mapeo de intenciones mejorado
         const intentMap = {
-            current_data: {
+            current_ {
                 keywords: ['actual', 'ahora', 'en este momento', 'en directo', 'presente', 'en tiempo real', 'hoy', 'en benavente'],
                 parameters: ['temperatura', 'humedad', 'presión', 'lluvia', 'viento', 'gas', 'dirección'],
                 required: []
@@ -2432,7 +2439,7 @@
 
         // Manejadores de intenciones
         const intentHandlers = {
-            current_data: (entities, context) => {
+            current_ (entities, context) => {
                 // Si no hay parámetros específicos, usar el último parámetro mencionado o uno por defecto
                 let parameters = entities.parameters.length > 0 ? entities.parameters : 
                                 (context.lastParameter ? [context.lastParameter] : ['temperatura']);
@@ -4057,7 +4064,7 @@
                 data: {
                     datasets: [{
                         label: paramName,
-                        data: chartData,
+                         chartData,
                         borderColor: color,
                         backgroundColor: `${color}40`,
                         borderWidth: 3,
@@ -4151,11 +4158,11 @@
             // Crea el nuevo gráfico
             const chart = new Chart(chartCtx, {
                 type: 'line',
-                data: {
+                 {
                     datasets: [
                         {
                             label: period1,
-                            data: chartData1,
+                             chartData1,
                             borderColor: color1,
                             backgroundColor: `${color1}40`,
                             borderWidth: 3,
@@ -4274,10 +4281,10 @@
             // Crea el nuevo gráfico
             const chart = new Chart(chartCtx, {
                 type: 'line',
-                data: {
+                 {
                     datasets: [{
                         label: paramName,
-                        data: dataWithMarkers,
+                         dataWithMarkers,
                         borderColor: color,
                         backgroundColor: `${color}40`,
                         borderWidth: 3,
@@ -4380,11 +4387,11 @@
             // Crea el nuevo gráfico
             const chart = new Chart(chartCtx, {
                 type: 'line',
-                data: {
+                 {
                     datasets: [
                         {
                             label: paramName1,
-                            data: chartData.map(item => ({ x: item.x, y: item.y1 })),
+                             chartData.map(item => ({ x: item.x, y: item.y1 })),
                             borderColor: color1,
                             backgroundColor: `${color1}40`,
                             borderWidth: 3,
@@ -4393,7 +4400,7 @@
                         },
                         {
                             label: paramName2,
-                            data: chartData.map(item => ({ x: item.x, y: item.y2 })),
+                             chartData.map(item => ({ x: item.x, y: item.y2 })),
                             borderColor: color2,
                             backgroundColor: `${color2}40`,
                             borderWidth: 3,
