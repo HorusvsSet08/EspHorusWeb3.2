@@ -288,6 +288,96 @@
       border-radius: 50%;
       background: #4CAF50;
     }
+    
+    /* Configuración de IA */
+    .ia-settings {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    
+    .ia-settings-btn {
+      background: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 234, 255, 0.3);
+      transition: all 0.2s ease;
+    }
+    
+    .ia-settings-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 234, 255, 0.4);
+    }
+    
+    .ia-settings-panel {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      width: 300px;
+      box-shadow: 0 8px 24px rgba(0, 10, 30, 0.3);
+      display: none;
+      z-index: 1000;
+    }
+    
+    .ia-settings-panel.active {
+      display: block;
+    }
+    
+    .ia-settings-panel h3 {
+      margin: 0 0 12px;
+      color: var(--text);
+    }
+    
+    .ia-settings-panel input {
+      width: 100%;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+    
+    .ia-settings-panel button {
+      width: 100%;
+      padding: 8px;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    
+    .ia-status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    
+    .ia-status.connected {
+      background: rgba(76, 175, 80, 0.15);
+      color: #4CAF50;
+    }
+    
+    .ia-status.disconnected {
+      background: rgba(244, 67, 54, 0.15);
+      color: #F44336;
+    }
   </style>
 </head>
 <body class="light-mode chatbot-page">
@@ -383,13 +473,31 @@
     </main>
 
     <footer>
-      <p>Chatbot de Horus Station - Predicciones meteorológicas basadas en análisis de datos históricos</p>
-      <p class="disclaimer">Este chatbot analiza los datos de Google Sheets para generar predicciones inteligentes sin necesidad de APIs externas</p>
+      <p>Chatbot de Horus Station - Predicciones meteorológicas con IA gratuita</p>
+      <p class="disclaimer">Este chatbot utiliza Hugging Face para generar respuestas naturales y fluidas sin costos</p>
     </footer>
   </div>
 
   <!-- CARGA main.js AL FINAL: es CRÍTICO -->
   <script src="../js/main.js"></script>
+  
+  <!-- Panel de configuración de IA -->
+  <div class="ia-settings">
+    <button class="ia-settings-btn" id="ia-settings-btn">⚙️</button>
+    <div class="ia-settings-panel" id="ia-settings-panel">
+      <h3>Configuración de IA</h3>
+      <p>Conecta con Hugging Face para respuestas más naturales</p>
+      
+      <input type="password" id="hf-token" placeholder="Tu token de Hugging Face">
+      <button id="save-hf-token">Guardar token</button>
+      
+      <div class="ia-status" id="ia-status">Estado: Desconectado</div>
+      <p class="disclaimer" style="font-size: 12px; margin-top: 10px;">
+        Tu token se almacena localmente y nunca se comparte. 
+        <a href="https://huggingface.co/settings/tokens" target="_blank" style="color: var(--primary);">Obtén tu token aquí</a>
+      </p>
+    </div>
+  </div>
   
   <!-- Script del chatbot -->
   <script>
@@ -399,6 +507,11 @@
       const sendButton = document.getElementById('send-button');
       const suggestions = document.querySelectorAll('.suggestion');
       const connectionStatus = document.createElement('div');
+      const iaSettingsBtn = document.getElementById('ia-settings-btn');
+      const iaSettingsPanel = document.getElementById('ia-settings-panel');
+      const hfTokenInput = document.getElementById('hf-token');
+      const saveHfTokenBtn = document.getElementById('save-hf-token');
+      const iaStatus = document.getElementById('ia-status');
       
       // Agregar indicador de estado de conexión
       connectionStatus.className = "connection-status disconnected";
@@ -411,6 +524,66 @@
       // Variable para almacenar los datos meteorológicos
       let weatherData = [];
       let connectionError = null;
+      let hfToken = localStorage.getItem('horus_hf_token') || '';
+      let iaConnected = false;
+      
+      // Mostrar/ocultar panel de configuración
+      iaSettingsBtn.addEventListener('click', () => {
+        iaSettingsPanel.classList.toggle('active');
+      });
+      
+      // Guardar token de Hugging Face
+      saveHfTokenBtn.addEventListener('click', () => {
+        const token = hfTokenInput.value.trim();
+        if (token) {
+          localStorage.setItem('horus_hf_token', token);
+          hfToken = token;
+          hfTokenInput.value = '';
+          
+          // Verificar conexión
+          testHuggingFaceConnection();
+        }
+      });
+      
+      // Verificar conexión con Hugging Face
+      function testHuggingFaceConnection() {
+        if (!hfToken) {
+          iaStatus.textContent = "Estado: Desconectado";
+          iaStatus.className = "ia-status disconnected";
+          iaConnected = false;
+          return;
+        }
+        
+        iaStatus.textContent = "Estado: Conectando...";
+        iaStatus.className = "ia-status";
+        
+        fetch('https://api-inference.huggingface.co/models', {
+          headers: {
+            'Authorization': `Bearer ${hfToken}`
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            iaStatus.textContent = "Estado: Conectado";
+            iaStatus.className = "ia-status connected";
+            iaConnected = true;
+          } else {
+            throw new Error(`Error ${response.status}`);
+          }
+        })
+        .catch(error => {
+          console.error("Error con Hugging Face:", error);
+          iaStatus.textContent = "Estado: Error de conexión";
+          iaStatus.className = "ia-status disconnected";
+          iaConnected = false;
+        });
+      }
+      
+      // Inicializar estado de IA
+      if (hfToken) {
+        hfTokenInput.value = '••••••••••••••••';
+        testHuggingFaceConnection();
+      }
       
       // Función auxiliar para analizar una línea de CSV con comillas
       function parseCSVLine(line) {
@@ -506,8 +679,6 @@
           header.replace(/["']/g, '').trim().toLowerCase()
         );
         
-        console.log("Encabezados detectados:", headers);
-        
         const result = [];
         
         for (let i = 1; i < lines.length; i++) {
@@ -565,180 +736,6 @@
         });
       }
       
-      // Analizar tendencia de un parámetro
-      function analyzeTrend(data, parameter, hours = 6) {
-        if (data.length < 2) return { trend: 'stable', change: 0, confidence: 0.5 };
-        
-        // Tomar los últimos 'hours' horas de datos
-        const recentData = data.slice(-Math.min(data.length, hours * 4)); // Asumiendo datos cada 15 minutos
-        
-        // Calcular la tendencia usando regresión lineal simple
-        let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
-        let validPoints = 0;
-        
-        for (let i = 0; i < recentData.length; i++) {
-          const x = i;
-          const y = parseFloat(recentData[i][parameter]);
-          
-          if (isNaN(y) || y === 0) continue;
-          
-          sumX += x;
-          sumY += y;
-          sumXY += x * y;
-          sumXX += x * x;
-          validPoints++;
-        }
-        
-        if (validPoints < 2) return { trend: 'stable', change: 0, confidence: 0.3 };
-        
-        const n = validPoints;
-        const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-        const intercept = (sumY - slope * sumX) / n;
-        
-        // Determinar la tendencia
-        let trend = 'stable';
-        if (slope > 0.08) trend = 'increasing';
-        else if (slope < -0.08) trend = 'decreasing';
-        
-        // Calcular el cambio esperado en la próxima hora
-        const change = slope * 4; // Multiplicar por 4 para una hora (4 registros de 15 minutos)
-        
-        // Calcular confianza (basado en la cantidad de datos y consistencia)
-        const confidence = Math.min(0.95, 0.4 + (n / (hours * 4)) * 0.5);
-        
-        // Obtener el último valor válido
-        let lastValue = 0;
-        for (let i = recentData.length - 1; i >= 0; i--) {
-          const val = parseFloat(recentData[i][parameter]);
-          if (!isNaN(val) && val !== 0) {
-            lastValue = val;
-            break;
-          }
-        }
-        
-        return {
-          trend,
-          change: parseFloat(change.toFixed(2)),
-          confidence: parseFloat(confidence.toFixed(2)),
-          nextValue: parseFloat((lastValue + change).toFixed(2))
-        };
-      }
-      
-      // Generar predicción para un parámetro
-      function generatePrediction(parameter, trendAnalysis, latestData, historicalData) {
-        const { trend, change, confidence, nextValue } = trendAnalysis;
-        const currentValue = latestData ? parseFloat(latestData[parameter]) : 0;
-        
-        // Si no hay valor válido, usar el nextValue como estimación
-        const displayValue = isNaN(currentValue) || currentValue === 0 ? nextValue : currentValue;
-        
-        // Determinar el tiempo de predicción
-        const timeFrame = "en la próxima hora";
-        
-        // Generar descripción de la tendencia
-        let trendDescription = "";
-        let confidenceDescription = "";
-        
-        // Descripción de la tendencia
-        if (trend === 'increasing') {
-          trendDescription = `está aumentando`;
-        } else if (trend === 'decreasing') {
-          trendDescription = `está disminuyendo`;
-        } else {
-          trendDescription = `se mantiene estable`;
-        }
-        
-        // Descripción de la confianza
-        if (confidence > 0.8) {
-          confidenceDescription = "con alta confianza";
-        } else if (confidence > 0.6) {
-          confidenceDescription = "con moderada confianza";
-        } else {
-          confidenceDescription = "con baja confianza";
-        }
-        
-        // Generar predicción específica
-        let prediction = "";
-        
-        switch(parameter) {
-          case 'temperatura':
-            if (trend === 'increasing') {
-              prediction = `La temperatura ${trendDescription} a un ritmo de ${Math.abs(change)}°C/${timeFrame}. ` +
-                          `Se espera que alcance aproximadamente ${nextValue}°C ${timeFrame}.`;
-            } else if (trend === 'decreasing') {
-              prediction = `La temperatura ${trendDescription} a un ritmo de ${Math.abs(change)}°C/${timeFrame}. ` +
-                          `Se espera que disminuya a aproximadamente ${nextValue}°C ${timeFrame}.`;
-            } else {
-              prediction = `La temperatura se mantiene estable alrededor de ${displayValue}°C. ` +
-                          `Se espera que permanezca entre ${displayValue - 0.5}°C y ${displayValue + 0.5}°C ${timeFrame}.`;
-            }
-            break;
-            
-          case 'humedad':
-            if (trend === 'increasing') {
-              prediction = `La humedad ${trendDescription} a un ritmo de ${Math.abs(change)}%/${timeFrame}. ` +
-                          `Se espera que alcance aproximadamente ${nextValue}% ${timeFrame}.`;
-            } else if (trend === 'decreasing') {
-              prediction = `La humedad ${trendDescription} a un ritmo de ${Math.abs(change)}%/${timeFrame}. ` +
-                          `Se espera que disminuya a aproximadamente ${nextValue}% ${timeFrame}.`;
-            } else {
-              prediction = `La humedad se mantiene estable alrededor de ${displayValue}%. ` +
-                          `Se espera que permanezca entre ${displayValue - 2}% y ${displayValue + 2}% ${timeFrame}.`;
-            }
-            break;
-            
-          case 'lluvia':
-            const rainTrend = historicalData.some(d => parseFloat(d.lluvia) > 0) ? 
-              'ha habido precipitaciones recientes' : 'no ha habido precipitaciones recientes';
-              
-            const humidityTrend = analyzeTrend(historicalData, 'humedad');
-            const pressureTrend = analyzeTrend(historicalData, 'presion');
-            
-            if (humidityTrend.trend === 'increasing' && humidityTrend.change > 0.5 && 
-                pressureTrend.trend === 'decreasing' && pressureTrend.change < -0.2) {
-              prediction = `Basado en el aumento de humedad y disminución de presión, hay una probabilidad moderada de lluvia ${timeFrame}.`;
-            } else if (parseFloat(latestData.humedad) > 70 && pressureTrend.change < -0.3) {
-              prediction = `Con una humedad actual del ${latestData.humedad}% y presión en disminución, hay una probabilidad alta de lluvia ${timeFrame}.`;
-            } else {
-              prediction = `No se observan condiciones favorables para lluvia en las próximas horas. ${rainTrend}.`;
-            }
-            break;
-            
-          case 'presion':
-            if (trend === 'increasing') {
-              prediction = `La presión atmosférica ${trendDescription}, lo que sugiere condiciones climáticas estables o mejorando.`;
-            } else if (trend === 'decreasing') {
-              prediction = `La presión atmosférica ${trendDescription}, lo que podría indicar la posibilidad de mal tiempo en las próximas horas.`;
-            } else {
-              prediction = `La presión atmosférica se mantiene estable, indicando condiciones climáticas constantes.`;
-            }
-            break;
-            
-          case 'windspeed':
-            if (trend === 'increasing' && change > 0.5) {
-              prediction = `La velocidad del viento ${trendDescription} significativamente, alcanzando ráfagas de hasta ${nextValue} km/h.`;
-            } else if (trend === 'increasing') {
-              prediction = `La velocidad del viento ${trendDescription} ligeramente, con valores que podrían alcanzar ${nextValue} km/h.`;
-            } else if (trend === 'decreasing') {
-              prediction = `La velocidad del viento ${trendDescription}, estabilizándose en torno a ${nextValue} km/h.`;
-            } else {
-              prediction = `La velocidad del viento se mantiene estable alrededor de ${displayValue} km/h.`;
-            }
-            break;
-            
-          default:
-            prediction = `El parámetro ${parameter} ${trendDescription} a un ritmo de ${Math.abs(change)}/${timeFrame}.`;
-        }
-        
-        return {
-          prediction,
-          confidence: confidenceDescription,
-          trend,
-          change,
-          nextValue
-        };
-      }
-      
       // Función para añadir un mensaje al chat
       function addMessage(text, isUser = false) {
         const messageDiv = document.createElement('div');
@@ -786,231 +783,99 @@
         }
       }
       
-      // Función para analizar la pregunta y generar respuesta
-      function generateResponse(message, latestData, historicalData) {
-        // Si no hay datos disponibles
-        if (!latestData || Object.keys(latestData).length === 0) {
-          return "No tengo datos meteorológicos disponibles en este momento. " +
+      // Función para generar una respuesta usando Hugging Face
+      async function getAIResponse(message, latestData) {
+        if (!hfToken) {
+          return "⚠️ No tengo configurado un token de Hugging Face. " +
+                 "Haz clic en el botón de configuración (⚙️) en la esquina inferior derecha " +
+                 "para configurar tu token gratuito.";
+        }
+        
+        if (!latestData) {
+          return "⚠️ No tengo datos meteorológicos disponibles en este momento. " +
                  "Por favor, verifica que la estación esté funcionando correctamente.";
         }
         
-        // Convertir a minúsculas para comparación
-        const lowerMessage = message.toLowerCase();
+        // Formatear los datos meteorológicos recientes
+        const recentData = `
+- Fecha y hora: ${latestData.fecha}
+- Temperatura: ${latestData.temperatura}°C
+- Humedad: ${latestData.humedad}%
+- Presión atmosférica: ${latestData.presion} hPa
+- Altitud: ${latestData.altitud} m
+- PM2.5: ${latestData.pm25} µg/m³
+- PM10: ${latestData.pm10} µg/m³
+- Dirección del viento: ${latestData.winddirection}
+- Velocidad del viento: ${latestData.windspeed} km/h
+- Nivel de gas: ${latestData.gas} kΩ
+- Lluvia: ${latestData.lluvia} mm
+        `;
         
-        // Análisis de intención
-        const isPredictionRequest = 
-          lowerMessage.includes('predicci') || 
-          lowerMessage.includes('predecir') || 
-          lowerMessage.includes('cómo estará') ||
-          lowerMessage.includes('cómo va a estar') ||
-          lowerMessage.includes('cómo estará el clima') ||
-          lowerMessage.includes('cómo estará el tiempo') ||
-          lowerMessage.includes('qué pasará') ||
-          lowerMessage.includes('qué va a pasar') ||
-          lowerMessage.includes('qué ocurrirá') ||
-          lowerMessage.includes('va a ') ||
-          lowerMessage.includes('tendencia') ||
-          lowerMessage.includes('tendré');
-          
-        const isRainPrediction = 
-          lowerMessage.includes('llover') ||
-          lowerMessage.includes('lluvia') ||
-          lowerMessage.includes('precipitación') ||
-          lowerMessage.includes('agua') ||
-          lowerMessage.includes('llovizna');
-          
-        const isTemperaturePrediction = 
-          lowerMessage.includes('temperatura') ||
-          lowerMessage.includes('grados') ||
-          lowerMessage.includes('calor') ||
-          lowerMessage.includes('frío') ||
-          lowerMessage.includes('caliente') ||
-          lowerMessage.includes('frio');
-          
-        const isHumidityPrediction = 
-          lowerMessage.includes('humedad') ||
-          lowerMessage.includes('porcentaje de humedad') ||
-          lowerMessage.includes('húmedo') ||
-          lowerMessage.includes('seco');
-          
-        const isPressurePrediction = 
-          lowerMessage.includes('presión') ||
-          lowerMessage.includes('presion') ||
-          lowerMessage.includes('hpa') ||
-          lowerMessage.includes('barométrica');
-          
-        const isWindPrediction = 
-          lowerMessage.includes('viento') ||
-          lowerMessage.includes('velocidad del viento') ||
-          lowerMessage.includes('dirección del viento') ||
-          lowerMessage.includes('ráfaga');
-          
-        const isTrendAnalysis = 
-          lowerMessage.includes('cómo ha variado') ||
-          lowerMessage.includes('cómo ha cambiado') ||
-          lowerMessage.includes('cómo ha evolucionado') ||
-          lowerMessage.includes('tendencia histórica') ||
-          lowerMessage.includes('patrón') ||
-          lowerMessage.includes('comportamiento');
-          
-        const isGeneralQuestion = 
-          !isPredictionRequest && 
-          !isRainPrediction && 
-          !isTemperaturePrediction && 
-          !isHumidityPrediction && 
-          !isPressurePrediction && 
-          !isWindPrediction &&
-          !isTrendAnalysis;
-          
-        // Generar respuesta basada en la intención
-        if (isPredictionRequest || isGeneralQuestion) {
-          // Análisis general
-          const tempTrend = analyzeTrend(historicalData, 'temperatura');
-          const humidityTrend = analyzeTrend(historicalData, 'humedad');
-          const pressureTrend = analyzeTrend(historicalData, 'presion');
-          
-          // Determinar el pronóstico general
-          let forecast = "";
-          
-          // Determinar si es probable lluvia
-          const isRainLikely = 
-            (parseFloat(latestData.humedad) > 70 && pressureTrend.trend === 'decreasing') ||
-            (parseFloat(latestData.humedad) > 65 && pressureTrend.change < -0.2);
-            
-          // Determinar si la temperatura subirá o bajará
-          const tempChange = tempTrend.change > 0 ? "aumentará" : "disminuirá";
-          const tempChangeAmount = Math.abs(tempTrend.change).toFixed(1);
-          
-          // Construir el pronóstico
-          if (isRainLikely) {
-            forecast = `Basado en los datos recientes, se espera que `;
-            
-            if (parseFloat(latestData.humedad) > 80 && pressureTrend.change < -0.5) {
-              forecast += `haya lluvia en las próximas horas. `;
-            } else if (parseFloat(latestData.humedad) > 70 && pressureTrend.change < -0.3) {
-              forecast += `sea probable que llueva en las próximas horas. `;
-            } else {
-              forecast += `haya una probabilidad moderada de lluvia en las próximas horas. `;
+        // Crear el prompt para Hugging Face
+        const prompt = `Eres un experto meteorólogo que analiza datos de la estación Horus. 
+Tu tarea es responder preguntas sobre el clima y los datos meteorológicos de manera clara, precisa y profesional.
+
+Datos meteorológicos más recientes:
+${recentData}
+
+Instrucciones:
+1. Usa los datos proporcionados para responder la pregunta.
+2. Sé específico y detallado en tus respuestas.
+3. Si no estás seguro de algo, indícalo claramente.
+4. Proporciona contexto adicional cuando sea relevante.
+5. Usa un lenguaje claro y profesional, adecuado para cualquier audiencia.
+
+Pregunta del usuario: ${message}
+
+Respuesta:`;
+        
+        try {
+          const response = await fetch(
+            "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
+            {
+              headers: { 
+                "Authorization": `Bearer ${hfToken}`,
+                "Content-Type": "application/json" 
+              },
+              method: "POST",
+              body: JSON.stringify({ 
+                inputs: prompt,
+                parameters: {
+                  max_new_tokens: 300,
+                  temperature: 0.7,
+                  top_p: 0.95
+                }
+              })
             }
-            
-            forecast += `La temperatura ${tempChange} aproximadamente ${tempChangeAmount}°C.`;
-          } else {
-            forecast = `Se espera que el clima permanezca `;
-            
-            if (pressureTrend.trend === 'increasing') {
-              forecast += `estable con cielo despejado. `;
-            } else if (pressureTrend.trend === 'stable') {
-              forecast += `sin cambios significativos. `;
-            } else {
-              forecast += `con posibles variaciones. `;
-            }
-            
-            forecast += `La temperatura ${tempChange} aproximadamente ${tempChangeAmount}°C.`;
+          );
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Error ${response.status}`);
           }
           
-          return forecast;
+          const result = await response.json();
+          
+          // Procesar la respuesta
+          let aiResponse = result[0].generated_text;
+          
+          // Eliminar el prompt de la respuesta
+          aiResponse = aiResponse.split("Respuesta:")[1] || aiResponse;
+          
+          // Limpiar la respuesta
+          aiResponse = aiResponse.trim();
+          
+          return aiResponse;
+        } catch (error) {
+          console.error("Error con Hugging Face:", error);
+          return "⚠️ Hubo un problema al generar una respuesta con la IA. " +
+                 "Verifica tu token de Hugging Face o intenta nuevamente más tarde. " +
+                 `Error: ${error.message}`;
         }
-        
-        // Predicción específica para lluvia
-        if (isRainPrediction) {
-          const prediction = generatePrediction('lluvia', 
-            analyzeTrend(historicalData, 'lluvia'), 
-            latestData, 
-            historicalData
-          );
-          
-          return prediction.prediction;
-        }
-        
-        // Predicción específica para temperatura
-        if (isTemperaturePrediction) {
-          const prediction = generatePrediction('temperatura', 
-            analyzeTrend(historicalData, 'temperatura'), 
-            latestData
-          );
-          
-          return prediction.prediction;
-        }
-        
-        // Predicción específica para humedad
-        if (isHumidityPrediction) {
-          const prediction = generatePrediction('humedad', 
-            analyzeTrend(historicalData, 'humedad'), 
-            latestData
-          );
-          
-          return prediction.prediction;
-        }
-        
-        // Predicción específica para presión
-        if (isPressurePrediction) {
-          const prediction = generatePrediction('presion', 
-            analyzeTrend(historicalData, 'presion'), 
-            latestData
-          );
-          
-          return prediction.prediction;
-        }
-        
-        // Predicción específica para viento
-        if (isWindPrediction) {
-          const prediction = generatePrediction('windspeed', 
-            analyzeTrend(historicalData, 'windspeed'), 
-            latestData
-          );
-          
-          return prediction.prediction;
-        }
-        
-        // Análisis de tendencia histórica
-        if (isTrendAnalysis) {
-          const tempTrend = analyzeTrend(historicalData, 'temperatura', 24);
-          const humidityTrend = analyzeTrend(historicalData, 'humedad', 24);
-          
-          let analysis = "Análisis de las últimas 24 horas:\n\n";
-          
-          // Temperatura
-          if (tempTrend.trend === 'increasing') {
-            analysis += `- La temperatura ha estado aumentando a un ritmo de ${Math.abs(tempTrend.change)}°C por hora.\n`;
-          } else if (tempTrend.trend === 'decreasing') {
-            analysis += `- La temperatura ha estado disminuyendo a un ritmo de ${Math.abs(tempTrend.change)}°C por hora.\n`;
-          } else {
-            analysis += `- La temperatura se ha mantenido relativamente estable.\n`;
-          }
-          
-          // Humedad
-          if (humidityTrend.trend === 'increasing') {
-            analysis += `- La humedad ha estado aumentando, lo que podría indicar condiciones más húmedas.\n`;
-          } else if (humidityTrend.trend === 'decreasing') {
-            analysis += `- La humedad ha estado disminuyendo, indicando condiciones más secas.\n`;
-          } else {
-            analysis += `- La humedad se ha mantenido relativamente estable.\n`;
-          }
-          
-          // Determinar patrón
-          if (tempTrend.trend === 'increasing' && humidityTrend.trend === 'decreasing') {
-            analysis += `\nEste patrón sugiere un día soleado con temperaturas en aumento y humedad disminuyendo.`;
-          } else if (tempTrend.trend === 'decreasing' && humidityTrend.trend === 'increasing') {
-            analysis += `\nEste patrón sugiere condiciones que podrían llevar a precipitaciones en las próximas horas.`;
-          } else {
-            analysis += `\nEste patrón es típico de condiciones climáticas estables para esta época del año.`;
-          }
-          
-          return analysis;
-        }
-        
-        // Respuesta por defecto si no se identifica la intención
-        return `Basado en los datos más recientes:\n\n` +
-               `- Temperatura: ${latestData.temperatura}°C\n` +
-               `- Humedad: ${latestData.humedad}%\n` +
-               `- Presión: ${latestData.presion} hPa\n` +
-               `- Dirección del viento: ${latestData.winddirection}\n` +
-               `- Velocidad del viento: ${latestData.windspeed} km/h\n\n` +
-               `¿Te gustaría información más específica sobre algún parámetro meteorológico?`;
       }
       
       // Función para procesar el mensaje del usuario
-      function processUserMessage(message) {
+      async function processUserMessage(message) {
         // Añadir el mensaje del usuario
         addMessage(message, true);
         
@@ -1020,27 +885,28 @@
         // Mostrar indicador de escritura
         const typingIndicator = showTypingIndicator();
         
-        // Obtener el dato más reciente y datos históricos
+        // Obtener el dato más reciente
         const latestData = getLatestData();
-        const historicalData = getHistoricalData(6); // Últimas 6 horas para análisis
         
-        // Simular tiempo de análisis
-        setTimeout(() => {
+        try {
+          // Generar respuesta usando Hugging Face
+          const response = await getAIResponse(message, latestData);
+          
+          // Eliminar el indicador de escritura
           removeTypingIndicator();
-          
-          // Verificar si hay error de conexión
-          if (connectionError) {
-            addMessage("⚠️ No puedo generar predicciones porque hay un problema con la conexión a los datos meteorológicos. " +
-                      "Verifica que tu hoja de Google Sheets esté configurada correctamente.", false);
-            return;
-          }
-          
-          // Generar respuesta
-          const response = generateResponse(message.toLowerCase(), latestData, historicalData);
           
           // Añadir la respuesta del bot
           addMessage(response);
-        }, 800); // Tiempo ligeramente más largo para simular análisis
+        } catch (error) {
+          console.error("Error al procesar mensaje:", error);
+          
+          // Eliminar el indicador de escritura
+          removeTypingIndicator();
+          
+          // Mostrar mensaje de error
+          addMessage("Lo siento, hubo un problema al procesar tu pregunta. " +
+                    "Por favor, intenta nuevamente más tarde.", false);
+        }
       }
       
       // Evento para enviar mensaje al hacer clic en el botón
@@ -1093,6 +959,15 @@
       });
       
       chatMessages.parentNode.appendChild(reloadButton);
+      
+      // Mostrar mensaje de ayuda si no hay token configurado
+      if (!hfToken) {
+        setTimeout(() => {
+          addMessage("💡 ¿Quieres respuestas más inteligentes? " +
+                    "Haz clic en el botón de configuración (⚙️) en la esquina inferior derecha " +
+                    "para configurar tu token gratuito de Hugging Face.", false);
+        }, 2000);
+      }
     });
   </script>
 </body>
