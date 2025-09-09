@@ -261,22 +261,31 @@
       }
     }
     
-    /* Enlace al análisis */
-    .analysis-link {
+    /* Indicador de análisis */
+    .analysis-indicator {
       display: inline-block;
-      margin-top: 10px;
-      padding: 8px 15px;
-      background: rgba(0, 234, 255, 0.1);
-      border-radius: 8px;
-      color: var(--primary);
-      text-decoration: none;
-      font-weight: 500;
-      transition: all 0.2s ease;
+      width: 8px;
+      height: 8px;
+      background: #4CAF50;
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulse 2s infinite;
     }
     
-    .analysis-link:hover {
-      background: rgba(0, 234, 255, 0.2);
-      transform: translateX(3px);
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .analyzing {
+      display: flex;
+      align-items: center;
+      padding: 8px 15px;
+      background: rgba(76, 175, 80, 0.1);
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -327,7 +336,7 @@
   <div class="container">
     <header>
       <h1>🤖 Chatbot de la Estación Horus</h1>
-      <p>Interactúa con nuestro asistente virtual para obtener información sobre los datos meteorológicos</p>
+      <p>Interactúa con nuestro asistente virtual para obtener predicciones meteorológicas inteligentes</p>
     </header>
 
     <main class="chat-main">
@@ -347,9 +356,9 @@
             <br><br>
             • Consultar datos meteorológicos actuales
             <br>
-            • Explicar tendencias de los datos
+            • Predecir tendencias climáticas
             <br>
-            • Mostrar información sobre los sensores
+            • Analizar patrones históricos
             <br>
             • Responder preguntas sobre el proyecto
             <div class="message-time">Ahora</div>
@@ -357,14 +366,14 @@
         </div>
         
         <div class="suggestions" id="suggestions">
-          <div class="suggestion">¿Cuál es la temperatura actual?</div>
-          <div class="suggestion">¿Cómo está la calidad del aire?</div>
-          <div class="suggestion">¿Qué datos recopila la estación?</div>
-          <div class="suggestion">¿Cómo funciona el sistema de sensores?</div>
+          <div class="suggestion">¿Cómo estará el clima en las próximas horas?</div>
+          <div class="suggestion">¿Va a llover pronto?</div>
+          <div class="suggestion">¿Cómo ha variado la temperatura hoy?</div>
+          <div class="suggestion">¿Qué predicción tienes para mañana?</div>
         </div>
         
         <div class="chat-input">
-          <input type="text" id="user-input" placeholder="Escribe tu mensaje..." autofocus>
+          <input type="text" id="user-input" placeholder="Escribe tu mensaje...">
           <button id="send-button">
             <span>Enviar</span> ➤
           </button>
@@ -373,8 +382,8 @@
     </main>
 
     <footer>
-      <p>Chatbot de Horus Station - Interfaz de asistente virtual para datos meteorológicos</p>
-      <p class="disclaimer">Este chatbot utiliza los mismos datos que la página de análisis para proporcionar información contextualizada</p>
+      <p>Chatbot de Horus Station - Predicciones meteorológicas basadas en análisis de datos históricos</p>
+      <p class="disclaimer">Este chatbot analiza los datos de Google Sheets para generar predicciones inteligentes sin necesidad de APIs externas</p>
     </footer>
   </div>
 
@@ -410,7 +419,7 @@
           // Mostrar mensaje en el chat si es la primera carga
           if (weatherData.length > 0) {
             const latestData = weatherData[weatherData.length - 1];
-            const time = new Date(latestData.Fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const time = new Date(latestData.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             
             addMessage(`Datos meteorológicos actualizados a las ${time}. ` +
                       `¿En qué puedo ayudarte?`, false);
@@ -450,17 +459,174 @@
       }
       
       // Obtener datos históricos para análisis
-      function getHistoricalData(days = 1) {
+      function getHistoricalData(hours = 24) {
         if (weatherData.length === 0) return [];
         
         const now = new Date();
         const cutoffDate = new Date(now);
-        cutoffDate.setDate(cutoffDate.getDate() - days);
+        cutoffDate.setHours(cutoffDate.getHours() - hours);
         
         return weatherData.filter(data => {
-          const dataDate = new Date(data.Fecha);
+          const dataDate = new Date(data.fecha);
           return dataDate >= cutoffDate;
         });
+      }
+      
+      // Analizar tendencia de un parámetro
+      function analyzeTrend(data, parameter, hours = 6) {
+        if (data.length < 2) return { trend: 'stable', change: 0, confidence: 0.5 };
+        
+        // Tomar los últimos 'hours' horas de datos
+        const recentData = data.slice(-Math.min(data.length, hours * 2)); // Asumiendo datos cada 30 minutos
+        
+        // Calcular la tendencia usando regresión lineal simple
+        let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+        const n = recentData.length;
+        
+        for (let i = 0; i < n; i++) {
+          const x = i;
+          const y = parseFloat(recentData[i][parameter]);
+          
+          if (isNaN(y)) continue;
+          
+          sumX += x;
+          sumY += y;
+          sumXY += x * y;
+          sumXX += x * x;
+        }
+        
+        const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        const intercept = (sumY - slope * sumX) / n;
+        
+        // Determinar la tendencia
+        let trend = 'stable';
+        if (slope > 0.05) trend = 'increasing';
+        else if (slope < -0.05) trend = 'decreasing';
+        
+        // Calcular el cambio esperado en la próxima hora
+        const change = slope;
+        
+        // Calcular confianza (basado en la cantidad de datos y consistencia)
+        const confidence = Math.min(0.9, 0.5 + (n / (hours * 2)) * 0.4);
+        
+        return {
+          trend,
+          change: parseFloat(change.toFixed(2)),
+          confidence: parseFloat(confidence.toFixed(2)),
+          nextValue: parseFloat((parseFloat(recentData[recentData.length-1][parameter]) + change).toFixed(2))
+        };
+      }
+      
+      // Generar predicción para un parámetro
+      function generatePrediction(parameter, trendAnalysis, latestData, historicalData) {
+        const { trend, change, confidence, nextValue } = trendAnalysis;
+        const currentValue = parseFloat(latestData[parameter]);
+        
+        // Determinar el tiempo de predicción
+        const timeFrame = "en la próxima hora";
+        
+        // Generar descripción de la tendencia
+        let trendDescription = "";
+        let confidenceDescription = "";
+        
+        // Descripción de la tendencia
+        if (trend === 'increasing') {
+          trendDescription = `está aumentando`;
+        } else if (trend === 'decreasing') {
+          trendDescription = `está disminuyendo`;
+        } else {
+          trendDescription = `se mantiene estable`;
+        }
+        
+        // Descripción de la confianza
+        if (confidence > 0.8) {
+          confidenceDescription = "con alta confianza";
+        } else if (confidence > 0.6) {
+          confidenceDescription = "con moderada confianza";
+        } else {
+          confidenceDescription = "con baja confianza";
+        }
+        
+        // Generar predicción específica
+        let prediction = "";
+        
+        switch(parameter) {
+          case 'temperatura':
+            if (trend === 'increasing') {
+              prediction = `La temperatura ${trendDescription} a un ritmo de ${Math.abs(change)}°C/${timeFrame}. ` +
+                          `Se espera que alcance aproximadamente ${nextValue}°C ${timeFrame}.`;
+            } else if (trend === 'decreasing') {
+              prediction = `La temperatura ${trendDescription} a un ritmo de ${Math.abs(change)}°C/${timeFrame}. ` +
+                          `Se espera que disminuya a aproximadamente ${nextValue}°C ${timeFrame}.`;
+            } else {
+              prediction = `La temperatura se mantiene estable alrededor de ${currentValue}°C. ` +
+                          `Se espera que permanezca entre ${currentValue - 0.5}°C y ${currentValue + 0.5}°C ${timeFrame}.`;
+            }
+            break;
+            
+          case 'humedad':
+            if (trend === 'increasing') {
+              prediction = `La humedad ${trendDescription} a un ritmo de ${Math.abs(change)}%/${timeFrame}. ` +
+                          `Se espera que alcance aproximadamente ${nextValue}% ${timeFrame}.`;
+            } else if (trend === 'decreasing') {
+              prediction = `La humedad ${trendDescription} a un ritmo de ${Math.abs(change)}%/${timeFrame}. ` +
+                          `Se espera que disminuya a aproximadamente ${nextValue}% ${timeFrame}.`;
+            } else {
+              prediction = `La humedad se mantiene estable alrededor de ${currentValue}%. ` +
+                          `Se espera que permanezca entre ${currentValue - 2}% y ${currentValue + 2}% ${timeFrame}.`;
+            }
+            break;
+            
+          case 'lluvia':
+            const rainTrend = historicalData.some(d => parseFloat(d.lluvia) > 0) ? 
+              'ha habido precipitaciones recientes' : 'no ha habido precipitaciones recientes';
+              
+            const humidityTrend = analyzeTrend(historicalData, 'humedad');
+            const pressureTrend = analyzeTrend(historicalData, 'presion');
+            
+            if (humidityTrend.trend === 'increasing' && humidityTrend.change > 0.5 && 
+                pressureTrend.trend === 'decreasing' && pressureTrend.change < -0.2) {
+              prediction = `Basado en el aumento de humedad y disminución de presión, hay una probabilidad moderada de lluvia ${timeFrame}.`;
+            } else if (parseFloat(latestData.humedad) > 70 && pressureTrend.change < -0.3) {
+              prediction = `Con una humedad actual del ${latestData.humedad}% y presión en disminución, hay una probabilidad alta de lluvia ${timeFrame}.`;
+            } else {
+              prediction = `No se observan condiciones favorables para lluvia en las próximas horas. ${rainTrend}.`;
+            }
+            break;
+            
+          case 'presion':
+            if (trend === 'increasing') {
+              prediction = `La presión atmosférica ${trendDescription}, lo que sugiere condiciones climáticas estables o mejorando.`;
+            } else if (trend === 'decreasing') {
+              prediction = `La presión atmosférica ${trendDescription}, lo que podría indicar la posibilidad de mal tiempo en las próximas horas.`;
+            } else {
+              prediction = `La presión atmosférica se mantiene estable, indicando condiciones climáticas constantes.`;
+            }
+            break;
+            
+          case 'windSpeed':
+            if (trend === 'increasing' && change > 0.5) {
+              prediction = `La velocidad del viento ${trendDescription} significativamente, alcanzando ráfagas de hasta ${nextValue} km/h.`;
+            } else if (trend === 'increasing') {
+              prediction = `La velocidad del viento ${trendDescription} ligeramente, con valores que podrían alcanzar ${nextValue} km/h.`;
+            } else if (trend === 'decreasing') {
+              prediction = `La velocidad del viento ${trendDescription}, estabilizándose en torno a ${nextValue} km/h.`;
+            } else {
+              prediction = `La velocidad del viento se mantiene estable alrededor de ${currentValue} km/h.`;
+            }
+            break;
+            
+          default:
+            prediction = `El parámetro ${parameter} ${trendDescription} a un ritmo de ${Math.abs(change)}/${timeFrame}.`;
+        }
+        
+        return {
+          prediction,
+          confidence: confidenceDescription,
+          trend,
+          change,
+          nextValue
+        };
       }
       
       // Función para añadir un mensaje al chat
@@ -511,122 +677,228 @@
       }
       
       // Función para analizar la pregunta y generar respuesta
-      function generateResponse(message, latestData) {
-        // Palabras clave para diferentes tipos de preguntas
-        const keywords = {
-          temperatura: ['temperatura', 'grados', 'calor', 'frío', 'caliente', 'frio'],
-          humedad: ['humedad', 'porcentaje de humedad', 'húmedo', 'seco'],
-          presion: ['presión', 'presion', 'hpa', 'barométrica'],
-          viento: ['viento', 'velocidad del viento', 'dirección del viento', 'ráfaga'],
-          lluvia: ['lluvia', 'precipitación', 'llueve', 'agua', 'llovizna'],
-          pm25: ['pm2.5', 'pm 2.5', 'partículas', 'calidad del aire', 'polvo', 'contaminación'],
-          pm10: ['pm10', 'pm 10', 'partículas grandes'],
-          gas: ['gas', 'nivel de gas', 'calidad del aire', 'contaminación'],
-          sensores: ['sensores', 'qué sensores', 'qué mide', 'qué datos', 'cómo funciona'],
-          proyecto: ['proyecto', 'horus', 'estación', 'meteorológica', 'cómo funciona', 'para qué sirve'],
-          ayuda: ['ayuda', 'qué puedes hacer', 'funcionalidades', 'capacidades', 'qué preguntar']
-        };
-        
+      function generateResponse(message, latestData, historicalData) {
         // Si no hay datos disponibles
         if (!latestData) {
           return "No tengo datos meteorológicos disponibles en este momento. " +
                  "Por favor, verifica que la estación esté funcionando correctamente.";
         }
         
-        // Verificar cada categoría de palabras clave
-        for (const category in keywords) {
-          for (const keyword of keywords[category]) {
-            if (message.includes(keyword)) {
-              switch(category) {
-                case 'temperatura':
-                  return `La temperatura actual es de ${latestData.Temperatura}°C. ` +
-                         `El valor más alto registrado hoy fue ${Math.max(...weatherData.map(d => parseFloat(d.Temperatura)))}°C.`;
-                
-                case 'humedad':
-                  return `La humedad actual es del ${latestData.Humedad}%. ` +
-                         `Se ha mantenido entre ${Math.min(...weatherData.map(d => parseFloat(d.Humedad)))}% ` +
-                         `y ${Math.max(...weatherData.map(d => parseFloat(d.Humedad)))}% en las últimas horas.`;
-                
-                case 'presion':
-                  return `La presión atmosférica actual es de ${latestData.Presion} hPa. ` +
-                         `Este valor es normal para la altitud de la estación.`;
-                
-                case 'viento':
-                  return `La velocidad del viento actual es de ${latestData['Vel. Viento']} km/h ` +
-                         `con dirección ${latestData['Dir. Viento']}.`;
-                
-                case 'lluvia':
-                  const lluvia = parseFloat(latestData.Lluvia) > 0 ? "sí" : "no";
-                  return `Actualmente ${lluvia === "sí" ? "está lloviendo" : "no está lloviendo"}. ` +
-                         `El acumulado de lluvia en las últimas 24 horas es de ${latestData.Lluvia} mm.`;
-                
-                case 'pm25':
-                  return `El nivel actual de PM2.5 es de ${latestData.PM25} µg/m³. ` +
-                         `Este valor se considera ${getAirQuality(latestData.PM25)} según los estándares.`;
-                
-                case 'pm10':
-                  return `El nivel actual de PM10 es de ${latestData.PM10} µg/m³. ` +
-                         `Este valor se considera ${getAirQuality(latestData.PM10, true)} según los estándares.`;
-                
-                case 'gas':
-                  return `El nivel de resistencia del sensor de gas es de ${latestData.Gas} kΩ. ` +
-                         `Este valor indica ${getGasQuality(latestData.Gas)}.`;
-                
-                case 'sensores':
-                  return `La estación Horus está equipada con sensores para medir: temperatura, humedad, presión atmosférica, ` +
-                         `altitud, PM2.5, PM10, dirección y velocidad del viento, niveles de gas y precipitación. ` +
-                         `Todos los datos se actualizan cada 3 minutos y se transmiten en tiempo real.`;
-                
-                case 'proyecto':
-                  return `Horus Station es un proyecto de estación meteorológica de código abierto que recopila datos ambientales en tiempo real. ` +
-                         `Los datos se transmiten a través de MQTT y están disponibles para visualización en nuestra interfaz web. ` +
-                         `El proyecto tiene como objetivo proporcionar datos meteorológicos accesibles para la comunidad.`;
-                
-                case 'ayuda':
-                  return `Puedo ayudarte con información sobre los datos meteorológicos actuales, explicar tendencias, ` +
-                         `proporcionar detalles sobre los sensores y responder preguntas sobre el proyecto. ` +
-                         `¿Te gustaría saber algo específico sobre la temperatura, humedad, calidad del aire u otros parámetros?`;
-              }
+        // Convertir a minúsculas para comparación
+        const lowerMessage = message.toLowerCase();
+        
+        // Análisis de intención
+        const isPredictionRequest = 
+          lowerMessage.includes('predicci') || 
+          lowerMessage.includes('predecir') || 
+          lowerMessage.includes('cómo estará') ||
+          lowerMessage.includes('cómo va a estar') ||
+          lowerMessage.includes('cómo estará el clima') ||
+          lowerMessage.includes('cómo estará el tiempo') ||
+          lowerMessage.includes('qué pasará') ||
+          lowerMessage.includes('qué va a pasar') ||
+          lowerMessage.includes('qué ocurrirá') ||
+          lowerMessage.includes('qué ocurrirá') ||
+          lowerMessage.includes('va a ') ||
+          lowerMessage.includes('tendencia') ||
+          lowerMessage.includes('tendré');
+          
+        const isRainPrediction = 
+          lowerMessage.includes('llover') ||
+          lowerMessage.includes('lluvia') ||
+          lowerMessage.includes('precipitación') ||
+          lowerMessage.includes('agua') ||
+          lowerMessage.includes('llovizna');
+          
+        const isTemperaturePrediction = 
+          lowerMessage.includes('temperatura') ||
+          lowerMessage.includes('grados') ||
+          lowerMessage.includes('calor') ||
+          lowerMessage.includes('frío') ||
+          lowerMessage.includes('caliente') ||
+          lowerMessage.includes('frio');
+          
+        const isHumidityPrediction = 
+          lowerMessage.includes('humedad') ||
+          lowerMessage.includes('porcentaje de humedad') ||
+          lowerMessage.includes('húmedo') ||
+          lowerMessage.includes('seco');
+          
+        const isPressurePrediction = 
+          lowerMessage.includes('presión') ||
+          lowerMessage.includes('presion') ||
+          lowerMessage.includes('hpa') ||
+          lowerMessage.includes('barométrica');
+          
+        const isWindPrediction = 
+          lowerMessage.includes('viento') ||
+          lowerMessage.includes('velocidad del viento') ||
+          lowerMessage.includes('dirección del viento') ||
+          lowerMessage.includes('ráfaga');
+          
+        const isTrendAnalysis = 
+          lowerMessage.includes('cómo ha variado') ||
+          lowerMessage.includes('cómo ha cambiado') ||
+          lowerMessage.includes('cómo ha evolucionado') ||
+          lowerMessage.includes('tendencia histórica') ||
+          lowerMessage.includes('patrón') ||
+          lowerMessage.includes('comportamiento');
+          
+        const isGeneralQuestion = 
+          !isPredictionRequest && 
+          !isRainPrediction && 
+          !isTemperaturePrediction && 
+          !isHumidityPrediction && 
+          !isPressurePrediction && 
+          !isWindPrediction &&
+          !isTrendAnalysis;
+          
+        // Generar respuesta basada en la intención
+        if (isPredictionRequest || isGeneralQuestion) {
+          // Análisis general
+          const tempTrend = analyzeTrend(historicalData, 'temperatura');
+          const humidityTrend = analyzeTrend(historicalData, 'humedad');
+          const pressureTrend = analyzeTrend(historicalData, 'presion');
+          const rainTrend = analyzeTrend(historicalData, 'lluvia');
+          
+          // Determinar el pronóstico general
+          let forecast = "";
+          
+          // Determinar si es probable lluvia
+          const isRainLikely = 
+            (parseFloat(latestData.humedad) > 70 && pressureTrend.trend === 'decreasing') ||
+            (rainTrend.trend === 'increasing' && rainTrend.change > 0);
+            
+          // Determinar si la temperatura subirá o bajará
+          const tempChange = tempTrend.change > 0 ? "aumentará" : "disminuirá";
+          const tempChangeAmount = Math.abs(tempTrend.change).toFixed(1);
+          
+          // Construir el pronóstico
+          if (isRainLikely) {
+            forecast = `Basado en los datos recientes, se espera que `;
+            
+            if (parseFloat(latestData.humedad) > 80 && pressureTrend.change < -0.5) {
+              forecast += `haya lluvia en las próximas horas. `;
+            } else if (parseFloat(latestData.humedad) > 70 && pressureTrend.change < -0.3) {
+              forecast += `sea probable que llueva en las próximas horas. `;
+            } else {
+              forecast += `haya una probabilidad moderada de lluvia en las próximas horas. `;
             }
+            
+            forecast += `La temperatura ${tempChange} aproximadamente ${tempChangeAmount}°C.`;
+          } else {
+            forecast = `Se espera que el clima permanezca `;
+            
+            if (pressureTrend.trend === 'increasing') {
+              forecast += `estable con cielo despejado. `;
+            } else if (pressureTrend.trend === 'stable') {
+              forecast += `sin cambios significativos. `;
+            } else {
+              forecast += `con posibles variaciones. `;
+            }
+            
+            forecast += `La temperatura ${tempChange} aproximadamente ${tempChangeAmount}°C.`;
           }
+          
+          return forecast;
         }
         
-        // Si no se encontró ninguna palabra clave
-        return `Basado en los datos más recientes:\n\n` +
-               `- Temperatura: ${latestData.Temperatura}°C\n` +
-               `- Humedad: ${latestData.Humedad}%\n` +
-               `- Presión: ${latestData.Presion} hPa\n` +
-               `- Dirección del viento: ${latestData['Dir. Viento']}\n` +
-               `- Velocidad del viento: ${latestData['Vel. Viento']} km/h\n\n` +
-               `¿Te gustaría información más específica sobre algún parámetro meteorológico?`;
-      }
-      
-      // Función auxiliar para calidad del aire
-      function getAirQuality(value, isPM10 = false) {
-        const numValue = parseFloat(value);
-        if (isPM10) {
-          if (numValue <= 54) return "buena";
-          if (numValue <= 154) return "moderada";
-          if (numValue <= 254) return "dañina para grupos sensibles";
-          if (numValue <= 354) return "dañina";
-          if (numValue <= 424) return "muy dañina";
-          return "peligrosa";
-        } else {
-          if (numValue <= 12) return "buena";
-          if (numValue <= 35) return "moderada";
-          if (numValue <= 55) return "dañina para grupos sensibles";
-          if (numValue <= 150) return "dañina";
-          if (numValue <= 250) return "muy dañina";
-          return "peligrosa";
+        // Predicción específica para lluvia
+        if (isRainPrediction) {
+          const prediction = generatePrediction('lluvia', 
+            analyzeTrend(historicalData, 'lluvia'), 
+            latestData, 
+            historicalData
+          );
+          
+          return prediction.prediction;
         }
-      }
-      
-      // Función auxiliar para calidad del gas
-      function getGasQuality(value) {
-        const numValue = parseFloat(value);
-        if (numValue < 2) return "alta concentración de gases";
-        if (numValue < 4) return "concentración moderada de gases";
-        return "baja concentración de gases, calidad del aire normal";
+        
+        // Predicción específica para temperatura
+        if (isTemperaturePrediction) {
+          const prediction = generatePrediction('temperatura', 
+            analyzeTrend(historicalData, 'temperatura'), 
+            latestData
+          );
+          
+          return prediction.prediction;
+        }
+        
+        // Predicción específica para humedad
+        if (isHumidityPrediction) {
+          const prediction = generatePrediction('humedad', 
+            analyzeTrend(historicalData, 'humedad'), 
+            latestData
+          );
+          
+          return prediction.prediction;
+        }
+        
+        // Predicción específica para presión
+        if (isPressurePrediction) {
+          const prediction = generatePrediction('presion', 
+            analyzeTrend(historicalData, 'presion'), 
+            latestData
+          );
+          
+          return prediction.prediction;
+        }
+        
+        // Predicción específica para viento
+        if (isWindPrediction) {
+          const prediction = generatePrediction('windSpeed', 
+            analyzeTrend(historicalData, 'windSpeed'), 
+            latestData
+          );
+          
+          return prediction.prediction;
+        }
+        
+        // Análisis de tendencia histórica
+        if (isTrendAnalysis) {
+          const tempTrend = analyzeTrend(historicalData, 'temperatura', 24);
+          const humidityTrend = analyzeTrend(historicalData, 'humedad', 24);
+          
+          let analysis = "Análisis de las últimas 24 horas:\n\n";
+          
+          // Temperatura
+          if (tempTrend.trend === 'increasing') {
+            analysis += `- La temperatura ha estado aumentando a un ritmo de ${Math.abs(tempTrend.change)}°C por hora.\n`;
+          } else if (tempTrend.trend === 'decreasing') {
+            analysis += `- La temperatura ha estado disminuyendo a un ritmo de ${Math.abs(tempTrend.change)}°C por hora.\n`;
+          } else {
+            analysis += `- La temperatura se ha mantenido relativamente estable.\n`;
+          }
+          
+          // Humedad
+          if (humidityTrend.trend === 'increasing') {
+            analysis += `- La humedad ha estado aumentando, lo que podría indicar condiciones más húmedas.\n`;
+          } else if (humidityTrend.trend === 'decreasing') {
+            analysis += `- La humedad ha estado disminuyendo, indicando condiciones más secas.\n`;
+          } else {
+            analysis += `- La humedad se ha mantenido relativamente estable.\n`;
+          }
+          
+          // Determinar patrón
+          if (tempTrend.trend === 'increasing' && humidityTrend.trend === 'decreasing') {
+            analysis += `\nEste patrón sugiere un día soleado con temperaturas en aumento y humedad disminuyendo.`;
+          } else if (tempTrend.trend === 'decreasing' && humidityTrend.trend === 'increasing') {
+            analysis += `\nEste patrón sugiere condiciones que podrían llevar a precipitaciones en las próximas horas.`;
+          } else {
+            analysis += `\nEste patrón es típico de condiciones climáticas estables para esta época del año.`;
+          }
+          
+          return analysis;
+        }
+        
+        // Respuesta por defecto si no se identifica la intención
+        return `Basado en los datos más recientes:\n\n` +
+               `- Temperatura: ${latestData.temperatura}°C\n` +
+               `- Humedad: ${latestData.humedad}%\n` +
+               `- Presión: ${latestData.presion} hPa\n` +
+               `- Dirección del viento: ${latestData.windDirection}\n` +
+               `- Velocidad del viento: ${latestData.windSpeed} km/h\n\n` +
+               `¿Te gustaría información más específica sobre algún parámetro meteorológico?`;
       }
       
       // Función para procesar el mensaje del usuario
@@ -640,19 +912,20 @@
         // Mostrar indicador de escritura
         const typingIndicator = showTypingIndicator();
         
-        // Simular tiempo de respuesta
+        // Obtener el dato más reciente y datos históricos
+        const latestData = getLatestData();
+        const historicalData = getHistoricalData(6); // Últimas 6 horas para análisis
+        
+        // Simular tiempo de análisis
         setTimeout(() => {
           removeTypingIndicator();
           
-          // Obtener el dato más reciente
-          const latestData = getLatestData();
-          
           // Generar respuesta
-          const response = generateResponse(message.toLowerCase(), latestData);
+          const response = generateResponse(message.toLowerCase(), latestData, historicalData);
           
           // Añadir la respuesta del bot
           addMessage(response);
-        }, 500);
+        }, 800); // Tiempo ligeramente más largo para simular análisis
       }
       
       // Evento para enviar mensaje al hacer clic en el botón
@@ -682,7 +955,9 @@
       });
       
       // Enfocar el input al cargar
-      userInput.focus();
+      setTimeout(() => {
+        userInput.focus();
+      }, 100);
       
       // Cargar los datos meteorológicos al iniciar
       loadWeatherData();
