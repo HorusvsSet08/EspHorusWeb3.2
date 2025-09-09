@@ -928,7 +928,7 @@
         }
       });
       
-      // Verificar conexión con Hugging Face
+      // Verificar conexión con Hugging Face - CORREGIDO
       function testHuggingFaceConnection() {
         if (!hfToken) {
           iaStatus.textContent = "Estado: Desconectado";
@@ -940,7 +940,8 @@
         iaStatus.textContent = "Estado: Conectando...";
         iaStatus.className = "ia-status";
         
-        fetch('https://api-inference.huggingface.co/models', {
+        // URL CORRECTA para verificar tokens
+        fetch('https://huggingface.co/api/whoami-v2', {
           headers: {
             'Authorization': `Bearer ${hfToken}`
           }
@@ -1193,7 +1194,8 @@
         
         // Ejecutar diagnóstico de Hugging Face
         if (hfToken) {
-          fetch('https://api-inference.huggingface.co/models', {
+          // URL CORRECTA para verificar tokens
+          fetch('https://huggingface.co/api/whoami-v2', {
             headers: {
               'Authorization': `Bearer ${hfToken}`
             }
@@ -1361,7 +1363,7 @@
         }
       }
       
-      // Función para generar una respuesta usando Hugging Face
+      // Función para generar una respuesta usando Hugging Face - CORREGIDO
       async function getAIResponse(message, latestData) {
         if (!hfToken) {
           return "⚠️ No tengo configurado un token de Hugging Face. " +
@@ -1408,8 +1410,9 @@ Pregunta del usuario: ${message}
 Respuesta:`;
         
         try {
+          // MODELO CORRECTO para la API gratuita
           const response = await fetch(
-            "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
+            "https://api-inference.huggingface.co/models/gpt2",
             {
               headers: { 
                 "Authorization": `Bearer ${hfToken}`,
@@ -1419,9 +1422,9 @@ Respuesta:`;
               body: JSON.stringify({ 
                 inputs: prompt,
                 parameters: {
-                  max_new_tokens: 300,
+                  max_new_tokens: 150,  // Reducido para gpt2
                   temperature: 0.7,
-                  top_p: 0.95
+                  top_p: 0.9
                 }
               })
             }
