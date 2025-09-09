@@ -325,10 +325,12 @@
       background: var(--card-bg);
       border-radius: 12px;
       padding: 16px;
-      width: 300px;
+      width: 400px;
       box-shadow: 0 8px 24px rgba(0, 10, 30, 0.3);
       display: none;
       z-index: 1000;
+      max-height: 80vh;
+      overflow-y: auto;
     }
     
     .ia-settings-panel.active {
@@ -338,6 +340,29 @@
     .ia-settings-panel h3 {
       margin: 0 0 12px;
       color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .ia-settings-panel h4 {
+      margin: 16px 0 8px;
+      color: var(--text);
+      font-size: 16px;
+    }
+    
+    .ia-settings-panel p {
+      margin: 8px 0;
+      line-height: 1.5;
+    }
+    
+    .ia-settings-panel a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    
+    .ia-settings-panel a:hover {
+      text-decoration: underline;
     }
     
     .ia-settings-panel input {
@@ -377,6 +402,95 @@
     .ia-status.disconnected {
       background: rgba(244, 67, 54, 0.15);
       color: #F44336;
+    }
+    
+    .step {
+      counter-increment: step-counter;
+      position: relative;
+      padding-left: 32px;
+      margin: 16px 0;
+    }
+    
+    .step:before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 24px;
+      height: 24px;
+      background: var(--primary);
+      color: #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    
+    .step-img {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 8px;
+      margin: 8px 0;
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+    
+    .step-img::before {
+      content: "🖼️ Captura de pantalla";
+      display: block;
+      margin-bottom: 4px;
+    }
+    
+    .token-example {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 8px;
+      font-family: monospace;
+      font-size: 14px;
+      margin: 8px 0;
+    }
+    
+    .disclaimer {
+      font-size: 12px;
+      color: var(--text-secondary);
+      opacity: 0.7;
+      margin-top: 10px;
+    }
+    
+    .tab-container {
+      margin-top: 16px;
+    }
+    
+    .tab-buttons {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .tab-button {
+      padding: 8px 16px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+      border-bottom: 2px solid transparent;
+    }
+    
+    .tab-button.active {
+      color: var(--text);
+      border-bottom: 2px solid var(--primary);
+      font-weight: 500;
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 16px 0;
+    }
+    
+    .tab-content.active {
+      display: block;
     }
   </style>
 </head>
@@ -485,17 +599,78 @@
   <div class="ia-settings">
     <button class="ia-settings-btn" id="ia-settings-btn">⚙️</button>
     <div class="ia-settings-panel" id="ia-settings-panel">
-      <h3>Configuración de IA</h3>
-      <p>Conecta con Hugging Face para respuestas más naturales</p>
+      <h3><span>🤖</span> Configuración de IA</h3>
       
-      <input type="password" id="hf-token" placeholder="Tu token de Hugging Face">
-      <button id="save-hf-token">Guardar token</button>
-      
-      <div class="ia-status" id="ia-status">Estado: Desconectado</div>
-      <p class="disclaimer" style="font-size: 12px; margin-top: 10px;">
-        Tu token se almacena localmente y nunca se comparte. 
-        <a href="https://huggingface.co/settings/tokens" target="_blank" style="color: var(--primary);">Obtén tu token aquí</a>
-      </p>
+      <div class="tab-container">
+        <div class="tab-buttons">
+          <button class="tab-button active" data-tab="setup">Configuración</button>
+          <button class="tab-button" data-tab="help">Ayuda</button>
+        </div>
+        
+        <div class="tab-content active" id="setup-tab">
+          <p>Conecta tu chatbot con Hugging Face para obtener respuestas más inteligentes y fluidas.</p>
+          
+          <div class="step">
+            <h4>Regístrate en Hugging Face (es gratis)</h4>
+            <p>Visita <a href="https://huggingface.co/join" target="_blank">https://huggingface.co/join</a> y crea una cuenta usando GitHub, Google o tu correo electrónico.</p>
+            <div class="step-img">Pantalla de registro de Hugging Face</div>
+          </div>
+          
+          <div class="step">
+            <h4>Obtén tu token de acceso</h4>
+            <p>Después de iniciar sesión, haz clic en tu foto de perfil > "Settings" > "Access Tokens". Luego haz clic en "New token".</p>
+            <div class="step-img">Menú de configuración con Access Tokens resaltado</div>
+          </div>
+          
+          <div class="step">
+            <h4>Configura tu token</h4>
+            <p>En el formulario, escribe "HorusChatbot" como nombre, selecciona "Read" como rol y deja "No expiration". Haz clic en "Generate a token".</p>
+            <div class="step-img">Formulario para crear nuevo token</div>
+          </div>
+          
+          <div class="step">
+            <h4>Copia tu token</h4>
+            <p>¡IMPORTANTE! El token solo se muestra una vez. Cópialo inmediatamente (haz clic en el icono de copiar). Debería verse así:</p>
+            <div class="token-example">hf_abcdefghijklmnopqrstuvwxyz123456</div>
+          </div>
+          
+          <div class="step">
+            <h4>Ingresa tu token aquí</h4>
+            <input type="password" id="hf-token" placeholder="Tu token de Hugging Face">
+            <button id="save-hf-token">Guardar token</button>
+          </div>
+          
+          <div class="ia-status" id="ia-status">Estado: Desconectado</div>
+          
+          <p class="disclaimer">
+            Tu token se almacena SOLO en tu navegador y nunca se comparte. 
+            <a href="https://huggingface.co/settings/tokens" target="_blank">Obtén tu token aquí</a>
+          </p>
+        </div>
+        
+        <div class="tab-content" id="help-tab">
+          <h4>¿Por qué necesito un token?</h4>
+          <p>El token es necesario para conectarte a los modelos de IA de Hugging Face. Es como una contraseña que verifica tu identidad.</p>
+          
+          <h4>¿Es realmente gratuito?</h4>
+          <p>¡Sí! Hugging Face ofrece 30,000 tokens gratuitos por mes, más que suficiente para tu proyecto.</p>
+          
+          <h4>¿Necesito tarjeta de crédito?</h4>
+          <p>¡No! Hugging Face no requiere tarjeta de crédito para el plan gratuito.</p>
+          
+          <h4>¿Qué hago si veo "Estado: Error de conexión"?</h4>
+          <p>Verifica que:</p>
+          <ul>
+            <li>Copiaste el token completo (incluyendo "hf_")</li>
+            <li>No hay espacios al inicio o final</li>
+            <li>El token tiene permisos "Read"</li>
+            <li>Tu conexión a internet funciona correctamente</li>
+          </ul>
+          
+          <h4>¿Puedo eliminar mi token?</h4>
+          <p>Sí, simplemente deja el campo vacío y haz clic en "Guardar token".</p>
+        </div>
+      </div>
     </div>
   </div>
   
@@ -512,6 +687,8 @@
       const hfTokenInput = document.getElementById('hf-token');
       const saveHfTokenBtn = document.getElementById('save-hf-token');
       const iaStatus = document.getElementById('ia-status');
+      const tabButtons = document.querySelectorAll('.tab-button');
+      const tabContents = document.querySelectorAll('.tab-content');
       
       // Agregar indicador de estado de conexión
       connectionStatus.className = "connection-status disconnected";
@@ -532,16 +709,39 @@
         iaSettingsPanel.classList.toggle('active');
       });
       
+      // Cambiar entre pestañas
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const tabName = button.getAttribute('data-tab');
+          
+          // Actualizar botones
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          button.classList.add('active');
+          
+          // Actualizar contenido
+          tabContents.forEach(content => content.classList.remove('active'));
+          document.getElementById(`${tabName}-tab`).classList.add('active');
+        });
+      });
+      
       // Guardar token de Hugging Face
       saveHfTokenBtn.addEventListener('click', () => {
         const token = hfTokenInput.value.trim();
         if (token) {
           localStorage.setItem('horus_hf_token', token);
           hfToken = token;
-          hfTokenInput.value = '';
           
           // Verificar conexión
           testHuggingFaceConnection();
+        } else {
+          // Si el token está vacío, eliminarlo
+          localStorage.removeItem('horus_hf_token');
+          hfToken = '';
+          iaStatus.textContent = "Estado: Desconectado";
+          iaStatus.className = "ia-status disconnected";
+          iaConnected = false;
+          
+          addMessage("⚠️ La conexión con IA ha sido desactivada. El chatbot ahora usará respuestas básicas.", false);
         }
       });
       
@@ -567,6 +767,11 @@
             iaStatus.textContent = "Estado: Conectado";
             iaStatus.className = "ia-status connected";
             iaConnected = true;
+            
+            // Mostrar mensaje de éxito
+            setTimeout(() => {
+              addMessage("✅ ¡Conexión con IA establecida! Ahora recibirás respuestas más inteligentes y fluidas.", false);
+            }, 300);
           } else {
             throw new Error(`Error ${response.status}`);
           }
@@ -576,6 +781,11 @@
           iaStatus.textContent = "Estado: Error de conexión";
           iaStatus.className = "ia-status disconnected";
           iaConnected = false;
+          
+          // Mostrar mensaje de error
+          setTimeout(() => {
+            addMessage("⚠️ Error al conectar con IA. Verifica tu token o intenta nuevamente más tarde.", false);
+          }, 300);
         });
       }
       
