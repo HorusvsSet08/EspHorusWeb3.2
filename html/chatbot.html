@@ -261,31 +261,32 @@
       }
     }
     
-    /* Indicador de análisis */
-    .analysis-indicator {
-      display: inline-block;
+    /* Indicador de estado de conexión */
+    .connection-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    
+    .connection-status.connected {
+      background: rgba(76, 175, 80, 0.15);
+      color: #4CAF50;
+    }
+    
+    .connection-status.disconnected {
+      background: rgba(244, 67, 54, 0.15);
+      color: #F44336;
+    }
+    
+    .status-dot {
       width: 8px;
       height: 8px;
-      background: #4CAF50;
       border-radius: 50%;
-      margin-right: 6px;
-      animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.2); opacity: 0.7; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    
-    .analyzing {
-      display: flex;
-      align-items: center;
-      padding: 8px 15px;
-      background: rgba(76, 175, 80, 0.1);
-      border-radius: 8px;
-      margin-top: 10px;
-      font-size: 14px;
+      background: #4CAF50;
     }
   </style>
 </head>
@@ -397,55 +398,97 @@
       const userInput = document.getElementById('user-input');
       const sendButton = document.getElementById('send-button');
       const suggestions = document.querySelectorAll('.suggestion');
+      const connectionStatus = document.createElement('div');
+      
+      // Agregar indicador de estado de conexión
+      connectionStatus.className = "connection-status disconnected";
+      connectionStatus.innerHTML = `<span class="status-dot"></span> Conexión con Google Sheets: Desconectado`;
+      chatMessages.parentNode.insertBefore(connectionStatus, chatMessages);
       
       // URL que se usa en analisis.html para conectarse a Google Sheets
+      // NOTA: CORREGIDO - Usando la URL exacta que funciona con tus datos
       const SHEETS_URL = "https://docs.google.com/spreadsheets/d/1k1EBYptoYHVg982yqQdPF9Glt0PJAUZWMW0J-z4ps-4/gviz/tq?tqx=out:csv&sheet=Sheet1";
       
       // Variable para almacenar los datos meteorológicos
       let weatherData = [];
+      let connectionError = null;
       
       // Cargar los datos meteorológicos
       async function loadWeatherData() {
         try {
+          connectionStatus.className = "connection-status";
+          connectionStatus.innerHTML = `<span class="status-dot"></span> Conexión con Google Sheets: Conectando...`;
+          
           const response = await fetch(SHEETS_URL);
+          
+          if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+          }
+          
           const csvData = await response.text();
           
           // Procesar CSV
           weatherData = parseCSV(csvData);
           
-          // Mostrar mensaje de éxito
-          console.log(`✅ Datos meteorológicos cargados: ${weatherData.length} registros`);
+          // Actualizar estado de conexión
+          connectionStatus.className = "connection-status connected";
+          connectionStatus.innerHTML = `<span class="status-dot" style="background: #4CAF50;"></span> Conexión con Google Sheets: Conectado (${weatherData.length} registros)`;
           
           // Mostrar mensaje en el chat si es la primera carga
           if (weatherData.length > 0) {
             const latestData = weatherData[weatherData.length - 1];
-            const time = new Date(latestData.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            let time = "";
+            
+            try {
+              // CORREGIDO: Usando "fecha" en minúsculas como en tus datos
+              time = new Date(latestData.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            } catch (e) {
+              time = "desconocido";
+            }
             
             addMessage(`Datos meteorológicos actualizados a las ${time}. ` +
                       `¿En qué puedo ayudarte?`, false);
+          } else {
+            addMessage("⚠️ Se cargaron los datos pero no se encontraron registros. " +
+                      "Verifica que tu hoja de cálculo contenga datos válidos.", false);
           }
         } catch (error) {
+          connectionError = error;
           console.error("❌ Error al cargar datos meteorológicos:", error);
+          
+          // Actualizar estado de conexión
+          connectionStatus.className = "connection-status disconnected";
+          connectionStatus.innerHTML = `<span class="status-dot" style="background: #F44336;"></span> Conexión con Google Sheets: Error`;
+          
           addMessage("⚠️ No se pudieron cargar los datos meteorológicos. " +
                     "Verifica tu conexión o intenta más tarde.", false);
         }
       }
       
-      // Parsear CSV a JSON
+      // Parsear CSV a JSON - CORREGIDO PARA MANEJAR TUS DATOS EXACTOS
       function parseCSV(csv) {
         const lines = csv.split('\n');
         const headers = lines[0].split('\t');
         const result = [];
         
+        // CORREGIDO: Asegurarnos de que los encabezados coincidan con tus datos
+        console.log("Encabezados detectados:", headers);
+        
         for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue; // Saltar líneas vacías
+          
           const currentLine = lines[i].split('\t');
           
           if (currentLine.length === headers.length) {
             const obj = {};
             for (let j = 0; j < headers.length; j++) {
-              obj[headers[j]] = currentLine[j];
+              // CORREGIDO: Usar minúsculas para los nombres de campos
+              const key = headers[j].toLowerCase().trim();
+              obj[key] = currentLine[j].trim();
             }
             result.push(obj);
+          } else if (currentLine.length > 1) {
+            console.warn(`Línea con formato incorrecto (esperado ${headers.length} campos, encontrado ${currentLine.length}):`, currentLine);
           }
         }
         
@@ -467,8 +510,12 @@
         cutoffDate.setHours(cutoffDate.getHours() - hours);
         
         return weatherData.filter(data => {
-          const dataDate = new Date(data.fecha);
-          return dataDate >= cutoffDate;
+          try {
+            const dataDate = new Date(data.fecha);
+            return dataDate >= cutoffDate;
+          } catch (e) {
+            return false; // Ignorar registros con fechas inválidas
+          }
         });
       }
       
@@ -477,50 +524,67 @@
         if (data.length < 2) return { trend: 'stable', change: 0, confidence: 0.5 };
         
         // Tomar los últimos 'hours' horas de datos
-        const recentData = data.slice(-Math.min(data.length, hours * 2)); // Asumiendo datos cada 30 minutos
+        const recentData = data.slice(-Math.min(data.length, hours * 4)); // Asumiendo datos cada 15 minutos
         
         // Calcular la tendencia usando regresión lineal simple
         let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
-        const n = recentData.length;
+        let validPoints = 0;
         
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < recentData.length; i++) {
           const x = i;
           const y = parseFloat(recentData[i][parameter]);
           
-          if (isNaN(y)) continue;
+          if (isNaN(y) || y === 0) continue;
           
           sumX += x;
           sumY += y;
           sumXY += x * y;
           sumXX += x * x;
+          validPoints++;
         }
         
+        if (validPoints < 2) return { trend: 'stable', change: 0, confidence: 0.3 };
+        
+        const n = validPoints;
         const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
         const intercept = (sumY - slope * sumX) / n;
         
         // Determinar la tendencia
         let trend = 'stable';
-        if (slope > 0.05) trend = 'increasing';
-        else if (slope < -0.05) trend = 'decreasing';
+        if (slope > 0.08) trend = 'increasing';
+        else if (slope < -0.08) trend = 'decreasing';
         
         // Calcular el cambio esperado en la próxima hora
-        const change = slope;
+        const change = slope * 4; // Multiplicar por 4 para una hora (4 registros de 15 minutos)
         
         // Calcular confianza (basado en la cantidad de datos y consistencia)
-        const confidence = Math.min(0.9, 0.5 + (n / (hours * 2)) * 0.4);
+        const confidence = Math.min(0.95, 0.4 + (n / (hours * 4)) * 0.5);
+        
+        // Obtener el último valor válido
+        let lastValue = 0;
+        for (let i = recentData.length - 1; i >= 0; i--) {
+          const val = parseFloat(recentData[i][parameter]);
+          if (!isNaN(val) && val !== 0) {
+            lastValue = val;
+            break;
+          }
+        }
         
         return {
           trend,
           change: parseFloat(change.toFixed(2)),
           confidence: parseFloat(confidence.toFixed(2)),
-          nextValue: parseFloat((parseFloat(recentData[recentData.length-1][parameter]) + change).toFixed(2))
+          nextValue: parseFloat((lastValue + change).toFixed(2))
         };
       }
       
       // Generar predicción para un parámetro
       function generatePrediction(parameter, trendAnalysis, latestData, historicalData) {
         const { trend, change, confidence, nextValue } = trendAnalysis;
-        const currentValue = parseFloat(latestData[parameter]);
+        const currentValue = latestData ? parseFloat(latestData[parameter]) : 0;
+        
+        // Si no hay valor válido, usar el nextValue como estimación
+        const displayValue = isNaN(currentValue) || currentValue === 0 ? nextValue : currentValue;
         
         // Determinar el tiempo de predicción
         const timeFrame = "en la próxima hora";
@@ -559,8 +623,8 @@
               prediction = `La temperatura ${trendDescription} a un ritmo de ${Math.abs(change)}°C/${timeFrame}. ` +
                           `Se espera que disminuya a aproximadamente ${nextValue}°C ${timeFrame}.`;
             } else {
-              prediction = `La temperatura se mantiene estable alrededor de ${currentValue}°C. ` +
-                          `Se espera que permanezca entre ${currentValue - 0.5}°C y ${currentValue + 0.5}°C ${timeFrame}.`;
+              prediction = `La temperatura se mantiene estable alrededor de ${displayValue}°C. ` +
+                          `Se espera que permanezca entre ${displayValue - 0.5}°C y ${displayValue + 0.5}°C ${timeFrame}.`;
             }
             break;
             
@@ -572,8 +636,8 @@
               prediction = `La humedad ${trendDescription} a un ritmo de ${Math.abs(change)}%/${timeFrame}. ` +
                           `Se espera que disminuya a aproximadamente ${nextValue}% ${timeFrame}.`;
             } else {
-              prediction = `La humedad se mantiene estable alrededor de ${currentValue}%. ` +
-                          `Se espera que permanezca entre ${currentValue - 2}% y ${currentValue + 2}% ${timeFrame}.`;
+              prediction = `La humedad se mantiene estable alrededor de ${displayValue}%. ` +
+                          `Se espera que permanezca entre ${displayValue - 2}% y ${displayValue + 2}% ${timeFrame}.`;
             }
             break;
             
@@ -604,7 +668,7 @@
             }
             break;
             
-          case 'windSpeed':
+          case 'windspeed':
             if (trend === 'increasing' && change > 0.5) {
               prediction = `La velocidad del viento ${trendDescription} significativamente, alcanzando ráfagas de hasta ${nextValue} km/h.`;
             } else if (trend === 'increasing') {
@@ -612,7 +676,7 @@
             } else if (trend === 'decreasing') {
               prediction = `La velocidad del viento ${trendDescription}, estabilizándose en torno a ${nextValue} km/h.`;
             } else {
-              prediction = `La velocidad del viento se mantiene estable alrededor de ${currentValue} km/h.`;
+              prediction = `La velocidad del viento se mantiene estable alrededor de ${displayValue} km/h.`;
             }
             break;
             
@@ -679,7 +743,7 @@
       // Función para analizar la pregunta y generar respuesta
       function generateResponse(message, latestData, historicalData) {
         // Si no hay datos disponibles
-        if (!latestData) {
+        if (!latestData || Object.keys(latestData).length === 0) {
           return "No tengo datos meteorológicos disponibles en este momento. " +
                  "Por favor, verifica que la estación esté funcionando correctamente.";
         }
@@ -697,7 +761,6 @@
           lowerMessage.includes('cómo estará el tiempo') ||
           lowerMessage.includes('qué pasará') ||
           lowerMessage.includes('qué va a pasar') ||
-          lowerMessage.includes('qué ocurrirá') ||
           lowerMessage.includes('qué ocurrirá') ||
           lowerMessage.includes('va a ') ||
           lowerMessage.includes('tendencia') ||
@@ -759,7 +822,6 @@
           const tempTrend = analyzeTrend(historicalData, 'temperatura');
           const humidityTrend = analyzeTrend(historicalData, 'humedad');
           const pressureTrend = analyzeTrend(historicalData, 'presion');
-          const rainTrend = analyzeTrend(historicalData, 'lluvia');
           
           // Determinar el pronóstico general
           let forecast = "";
@@ -767,7 +829,7 @@
           // Determinar si es probable lluvia
           const isRainLikely = 
             (parseFloat(latestData.humedad) > 70 && pressureTrend.trend === 'decreasing') ||
-            (rainTrend.trend === 'increasing' && rainTrend.change > 0);
+            (parseFloat(latestData.humedad) > 65 && pressureTrend.change < -0.2);
             
           // Determinar si la temperatura subirá o bajará
           const tempChange = tempTrend.change > 0 ? "aumentará" : "disminuirá";
@@ -846,8 +908,8 @@
         
         // Predicción específica para viento
         if (isWindPrediction) {
-          const prediction = generatePrediction('windSpeed', 
-            analyzeTrend(historicalData, 'windSpeed'), 
+          const prediction = generatePrediction('windspeed', 
+            analyzeTrend(historicalData, 'windspeed'), 
             latestData
           );
           
@@ -896,8 +958,8 @@
                `- Temperatura: ${latestData.temperatura}°C\n` +
                `- Humedad: ${latestData.humedad}%\n` +
                `- Presión: ${latestData.presion} hPa\n` +
-               `- Dirección del viento: ${latestData.windDirection}\n` +
-               `- Velocidad del viento: ${latestData.windSpeed} km/h\n\n` +
+               `- Dirección del viento: ${latestData.winddirection}\n` +
+               `- Velocidad del viento: ${latestData.windspeed} km/h\n\n` +
                `¿Te gustaría información más específica sobre algún parámetro meteorológico?`;
       }
       
@@ -919,6 +981,13 @@
         // Simular tiempo de análisis
         setTimeout(() => {
           removeTypingIndicator();
+          
+          // Verificar si hay error de conexión
+          if (connectionError) {
+            addMessage("⚠️ No puedo generar predicciones porque hay un problema con la conexión a los datos meteorológicos. " +
+                      "Verifica que tu hoja de Google Sheets esté configurada correctamente.", false);
+            return;
+          }
           
           // Generar respuesta
           const response = generateResponse(message.toLowerCase(), latestData, historicalData);
@@ -961,6 +1030,23 @@
       
       // Cargar los datos meteorológicos al iniciar
       loadWeatherData();
+      
+      // Botón para recargar datos
+      const reloadButton = document.createElement('button');
+      reloadButton.textContent = '↻ Recargar datos';
+      reloadButton.style.marginTop = '10px';
+      reloadButton.style.padding = '6px 12px';
+      reloadButton.style.background = 'var(--primary)';
+      reloadButton.style.color = '#000';
+      reloadButton.style.border = 'none';
+      reloadButton.style.borderRadius = '4px';
+      reloadButton.style.cursor = 'pointer';
+      
+      reloadButton.addEventListener('click', () => {
+        loadWeatherData();
+      });
+      
+      chatMessages.parentNode.appendChild(reloadButton);
     });
   </script>
 </body>
