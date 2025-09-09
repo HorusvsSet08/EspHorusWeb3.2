@@ -492,6 +492,103 @@
     .tab-content.active {
       display: block;
     }
+    
+    /* Diagnóstico */
+    .diagnostic-panel {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+    
+    .diagnostic-item {
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .diagnostic-status {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    .status-good {
+      background: #4CAF50;
+    }
+    
+    .status-warning {
+      background: #FFC107;
+    }
+    
+    .status-error {
+      background: #F44336;
+    }
+    
+    .diagnostic-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    
+    .diagnostic-btn {
+      background: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    
+    .diagnostic-detail {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-left: 24px;
+      margin-top: 4px;
+    }
+    
+    .troubleshooting {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    
+    .troubleshooting h4 {
+      margin: 0 0 8px;
+      color: var(--text);
+    }
+    
+    .troubleshooting ul {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+    
+    .troubleshooting li {
+      margin-bottom: 4px;
+    }
+    
+    .data-sample {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 6px;
+      padding: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      margin: 8px 0;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+    
+    .solution {
+      background: rgba(76, 175, 80, 0.1);
+      border-left: 3px solid #4CAF50;
+      padding: 8px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body class="light-mode chatbot-page">
@@ -605,6 +702,7 @@
         <div class="tab-buttons">
           <button class="tab-button active" data-tab="setup">Configuración</button>
           <button class="tab-button" data-tab="help">Ayuda</button>
+          <button class="tab-button" data-tab="diagnostic">Diagnóstico</button>
         </div>
         
         <div class="tab-content active" id="setup-tab">
@@ -613,19 +711,16 @@
           <div class="step">
             <h4>Regístrate en Hugging Face (es gratis)</h4>
             <p>Visita <a href="https://huggingface.co/join" target="_blank">https://huggingface.co/join</a> y crea una cuenta usando GitHub, Google o tu correo electrónico.</p>
-            <div class="step-img">Pantalla de registro de Hugging Face</div>
           </div>
           
           <div class="step">
             <h4>Obtén tu token de acceso</h4>
             <p>Después de iniciar sesión, haz clic en tu foto de perfil > "Settings" > "Access Tokens". Luego haz clic en "New token".</p>
-            <div class="step-img">Menú de configuración con Access Tokens resaltado</div>
           </div>
           
           <div class="step">
             <h4>Configura tu token</h4>
             <p>En el formulario, escribe "HorusChatbot" como nombre, selecciona "Read" como rol y deja "No expiration". Haz clic en "Generate a token".</p>
-            <div class="step-img">Formulario para crear nuevo token</div>
           </div>
           
           <div class="step">
@@ -669,6 +764,61 @@
           
           <h4>¿Puedo eliminar mi token?</h4>
           <p>Sí, simplemente deja el campo vacío y haz clic en "Guardar token".</p>
+          
+          <h4>Problemas comunes y soluciones</h4>
+          <div class="troubleshooting">
+            <h4>Problema: "Error 429: Too Many Requests"</h4>
+            <p><strong>Causa:</strong> Has excedido los límites gratuitos de Hugging Face.</p>
+            <p><strong>Solución:</strong> Espera unas horas o crea una cuenta adicional.</p>
+            
+            <h4>Problema: "Error 401: Unauthorized"</h4>
+            <p><strong>Causa:</strong> El token es incorrecto o ha sido revocado.</p>
+            <p><strong>Solución:</strong> Genera un nuevo token y configúralo en el chatbot.</p>
+            
+            <h4>Problema: "Error de conexión con Google Sheets"</h4>
+            <p><strong>Causa:</strong> Los datos de Google Sheets no están accesibles.</p>
+            <p><strong>Solución:</strong> Verifica que tu hoja de cálculo esté configurada como "Cualquier persona con el enlace puede ver".</p>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="diagnostic-tab">
+          <h4>Diagnóstico del sistema</h4>
+          <p>Este panel te ayudará a identificar y resolver problemas con tu configuración.</p>
+          
+          <div class="diagnostic-panel">
+            <div class="diagnostic-title">Estado de conexión a Google Sheets</div>
+            <div class="diagnostic-item">
+              <span class="diagnostic-status status-good" id="sheets-status"></span>
+              <span id="sheets-status-text">Verificando...</span>
+            </div>
+            <div class="diagnostic-detail" id="sheets-detail">Intentando conectar con Google Sheets...</div>
+            
+            <div class="diagnostic-title">Estado de conexión a Hugging Face</div>
+            <div class="diagnostic-item">
+              <span class="diagnostic-status status-good" id="hf-status"></span>
+              <span id="hf-status-text">Verificando...</span>
+            </div>
+            <div class="diagnostic-detail" id="hf-detail">Intentando conectar con Hugging Face...</div>
+            
+            <div class="diagnostic-title">Formato de datos</div>
+            <div class="diagnostic-item">
+              <span class="diagnostic-status status-good" id="format-status"></span>
+              <span id="format-status-text">Verificando...</span>
+            </div>
+            <div class="diagnostic-detail" id="format-detail">Analizando el formato de tus datos...</div>
+            
+            <div id="sample-data" class="data-sample" style="display: none;">
+              <strong>Datos de muestra:</strong>
+              <pre id="sample-data-content"></pre>
+            </div>
+            
+            <button class="diagnostic-btn" id="run-diagnostic">Ejecutar diagnóstico completo</button>
+          </div>
+          
+          <div class="troubleshooting" id="troubleshooting-suggestions" style="display: none;">
+            <h4>Soluciones recomendadas</h4>
+            <div id="solutions-container"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -690,6 +840,22 @@
       const tabButtons = document.querySelectorAll('.tab-button');
       const tabContents = document.querySelectorAll('.tab-content');
       
+      // Elementos de diagnóstico
+      const runDiagnosticBtn = document.getElementById('run-diagnostic');
+      const sheetsStatus = document.getElementById('sheets-status');
+      const sheetsStatusText = document.getElementById('sheets-status-text');
+      const sheetsDetail = document.getElementById('sheets-detail');
+      const hfStatus = document.getElementById('hf-status');
+      const hfStatusText = document.getElementById('hf-status-text');
+      const hfDetail = document.getElementById('hf-detail');
+      const formatStatus = document.getElementById('format-status');
+      const formatStatusText = document.getElementById('format-status-text');
+      const formatDetail = document.getElementById('format-detail');
+      const sampleData = document.getElementById('sample-data');
+      const sampleDataContent = document.getElementById('sample-data-content');
+      const troubleshootingSuggestions = document.getElementById('troubleshooting-suggestions');
+      const solutionsContainer = document.getElementById('solutions-container');
+      
       // Agregar indicador de estado de conexión
       connectionStatus.className = "connection-status disconnected";
       connectionStatus.innerHTML = `<span class="status-dot"></span> Conexión con Google Sheets: Desconectado`;
@@ -703,6 +869,8 @@
       let connectionError = null;
       let hfToken = localStorage.getItem('horus_hf_token') || '';
       let iaConnected = false;
+      let sheetsConnected = false;
+      let diagnosticRunning = false;
       
       // Mostrar/ocultar panel de configuración
       iaSettingsBtn.addEventListener('click', () => {
@@ -721,6 +889,11 @@
           // Actualizar contenido
           tabContents.forEach(content => content.classList.remove('active'));
           document.getElementById(`${tabName}-tab`).classList.add('active');
+          
+          // Si es la pestaña de diagnóstico, ejecutar diagnóstico automático
+          if (tabName === 'diagnostic' && !diagnosticRunning) {
+            runDiagnostic();
+          }
         });
       });
       
@@ -733,6 +906,11 @@
           
           // Verificar conexión
           testHuggingFaceConnection();
+          
+          // Actualizar diagnóstico si estamos en esa pestaña
+          if (document.querySelector('.tab-button.active').getAttribute('data-tab') === 'diagnostic') {
+            runDiagnostic();
+          }
         } else {
           // Si el token está vacío, eliminarlo
           localStorage.removeItem('horus_hf_token');
@@ -742,6 +920,11 @@
           iaConnected = false;
           
           addMessage("⚠️ La conexión con IA ha sido desactivada. El chatbot ahora usará respuestas básicas.", false);
+          
+          // Actualizar diagnóstico si estamos en esa pestaña
+          if (document.querySelector('.tab-button.active').getAttribute('data-tab') === 'diagnostic') {
+            runDiagnostic();
+          }
         }
       });
       
@@ -839,6 +1022,8 @@
           connectionStatus.className = "connection-status connected";
           connectionStatus.innerHTML = `<span class="status-dot" style="background: #4CAF50;"></span> Conexión con Google Sheets: Conectado (${weatherData.length} registros)`;
           
+          sheetsConnected = true;
+          
           // Mostrar mensaje en el chat si es la primera carga
           if (weatherData.length > 0) {
             const latestData = weatherData[weatherData.length - 1];
@@ -858,6 +1043,7 @@
           }
         } catch (error) {
           connectionError = error;
+          sheetsConnected = false;
           console.error("❌ Error al cargar datos meteorológicos:", error);
           
           // Actualizar estado de conexión
@@ -911,7 +1097,13 @@
           if (currentLine.length === headers.length) {
             const obj = {};
             for (let j = 0; j < headers.length; j++) {
-              obj[headers[j]] = currentLine[j];
+              // Corregir valores con formato incorrecto (ej. "07.06" en lugar de "7.06")
+              let value = currentLine[j];
+              if (/^\d{2}\.\d{2}$/.test(value) && value.startsWith('0')) {
+                value = value.replace(/^0/, '');
+              }
+              
+              obj[headers[j]] = value;
             }
             result.push(obj);
           } else if (currentLine.length > 1) {
@@ -921,6 +1113,182 @@
         
         return result;
       }
+      
+      // Ejecutar diagnóstico completo
+      function runDiagnostic() {
+        diagnosticRunning = true;
+        
+        // Actualizar estado de Google Sheets
+        sheetsStatus.className = "diagnostic-status status-warning";
+        sheetsStatusText.textContent = "Verificando...";
+        sheetsDetail.textContent = "Intentando conectar con Google Sheets...";
+        
+        // Actualizar estado de Hugging Face
+        hfStatus.className = "diagnostic-status status-warning";
+        hfStatusText.textContent = "Verificando...";
+        hfDetail.textContent = "Intentando conectar con Hugging Face...";
+        
+        // Actualizar estado de formato
+        formatStatus.className = "diagnostic-status status-warning";
+        formatStatusText.textContent = "Verificando...";
+        formatDetail.textContent = "Analizando el formato de tus datos...";
+        
+        // Ejecutar diagnóstico de Google Sheets
+        fetch(SHEETS_URL)
+          .then(response => {
+            if (response.ok) {
+              sheetsStatus.className = "diagnostic-status status-good";
+              sheetsStatusText.textContent = "Conexión establecida";
+              sheetsDetail.textContent = "Se pudo conectar correctamente con Google Sheets.";
+              
+              // Obtener y analizar los datos
+              return response.text();
+            } else {
+              throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+          })
+          .then(csvData => {
+            // Analizar el formato de los datos
+            const testWeatherData = parseCSV(csvData);
+            
+            if (testWeatherData.length > 0) {
+              sheetsStatus.className = "diagnostic-status status-good";
+              sheetsStatusText.textContent = `Conectado (${testWeatherData.length} registros)`;
+              sheetsDetail.textContent = "Se cargaron los datos correctamente.";
+              
+              // Mostrar datos de muestra
+              sampleData.style.display = 'block';
+              sampleDataContent.textContent = JSON.stringify(testWeatherData[0], null, 2);
+              
+              // Verificar formato de los datos
+              const requiredFields = ['fecha', 'temperatura', 'humedad', 'presion'];
+              let missingFields = [];
+              
+              for (const field of requiredFields) {
+                if (!testWeatherData[0].hasOwnProperty(field)) {
+                  missingFields.push(field);
+                }
+              }
+              
+              if (missingFields.length === 0) {
+                formatStatus.className = "diagnostic-status status-good";
+                formatStatusText.textContent = "Formato correcto";
+                formatDetail.textContent = "Todos los campos requeridos están presentes.";
+              } else {
+                formatStatus.className = "diagnostic-status status-error";
+                formatStatusText.textContent = "Formato incorrecto";
+                formatDetail.textContent = `Faltan los siguientes campos: ${missingFields.join(', ')}`;
+              }
+            } else {
+              sheetsStatus.className = "diagnostic-status status-error";
+              sheetsStatusText.textContent = "Sin datos";
+              sheetsDetail.textContent = "Se conectó con Google Sheets pero no se encontraron datos.";
+            }
+          })
+          .catch(error => {
+            sheetsStatus.className = "diagnostic-status status-error";
+            sheetsStatusText.textContent = "Error de conexión";
+            sheetsDetail.textContent = `No se pudo conectar: ${error.message}`;
+          });
+        
+        // Ejecutar diagnóstico de Hugging Face
+        if (hfToken) {
+          fetch('https://api-inference.huggingface.co/models', {
+            headers: {
+              'Authorization': `Bearer ${hfToken}`
+            }
+          })
+          .then(response => {
+            if (response.ok) {
+              hfStatus.className = "diagnostic-status status-good";
+              hfStatusText.textContent = "Conexión establecida";
+              hfDetail.textContent = "Se pudo conectar correctamente con Hugging Face.";
+            } else {
+              throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+          })
+          .catch(error => {
+            hfStatus.className = "diagnostic-status status-error";
+            hfStatusText.textContent = "Error de conexión";
+            hfDetail.textContent = `No se pudo conectar: ${error.message}`;
+          });
+        } else {
+          hfStatus.className = "diagnostic-status status-warning";
+          hfStatusText.textContent = "Token no configurado";
+          hfDetail.textContent = "Necesitas configurar un token de Hugging Face para usar la IA.";
+        }
+        
+        // Generar sugerencias de solución
+        setTimeout(() => {
+          generateTroubleshootingSuggestions();
+          diagnosticRunning = false;
+        }, 2000);
+      }
+      
+      // Generar sugerencias de solución basadas en el diagnóstico
+      function generateTroubleshootingSuggestions() {
+        const solutions = [];
+        
+        // Problemas con Google Sheets
+        if (sheetsStatus.className.includes('status-error')) {
+          solutions.push({
+            title: "Problema con Google Sheets",
+            description: "No se puede conectar con tus datos meteorológicos",
+            solution: "Verifica que tu hoja de cálculo esté configurada como 'Cualquier persona con el enlace puede ver'. Ve a Compartir > Configuración > 'Cualquier persona con el enlace' > 'Ver'."
+          });
+        }
+        
+        // Problemas con formato de datos
+        if (formatStatus.className.includes('status-error')) {
+          solutions.push({
+            title: "Problema con el formato de datos",
+            description: "Los campos requeridos no coinciden con lo esperado",
+            solution: "Asegúrate de que tus encabezados en Google Sheets sean: fecha, temperatura, humedad, presion, altitud, pm25, pm10, windDirection, windSpeed, gas, lluvia"
+          });
+        }
+        
+        // Problemas con Hugging Face
+        if (hfStatus.className.includes('status-error')) {
+          solutions.push({
+            title: "Problema con Hugging Face",
+            description: "No se puede conectar con el servicio de IA",
+            solution: "Verifica que tu token sea correcto y tenga permisos 'Read'. Si el problema persiste, espera unas horas (puedes haber excedido los límites gratuitos)."
+          });
+        } else if (hfStatus.className.includes('status-warning') && hfToken) {
+          solutions.push({
+            title: "Advertencia de Hugging Face",
+            description: "El token está configurado pero no se ha podido verificar",
+            solution: "Haz clic en 'Guardar token' nuevamente para verificar la conexión."
+          });
+        } else if (hfStatus.className.includes('status-warning') && !hfToken) {
+          solutions.push({
+            title: "Configuración de Hugging Face",
+            description: "La IA no está configurada",
+            solution: "Para respuestas más inteligentes, configura un token de Hugging Face en la pestaña de Configuración."
+          });
+        }
+        
+        // Mostrar sugerencias
+        if (solutions.length > 0) {
+          troubleshootingSuggestions.style.display = 'block';
+          solutionsContainer.innerHTML = '';
+          
+          solutions.forEach(solution => {
+            const solutionDiv = document.createElement('div');
+            solutionDiv.className = 'solution';
+            solutionDiv.innerHTML = `
+              <strong>${solution.title}</strong>: ${solution.description}
+              <p>${solution.solution}</p>
+            `;
+            solutionsContainer.appendChild(solutionDiv);
+          });
+        } else {
+          troubleshootingSuggestions.style.display = 'none';
+        }
+      }
+      
+      // Ejecutar diagnóstico al hacer clic en el botón
+      runDiagnosticBtn.addEventListener('click', runDiagnostic);
       
       // Obtener el dato más reciente
       function getLatestData() {
@@ -1177,6 +1545,11 @@ Respuesta:`;
                     "Haz clic en el botón de configuración (⚙️) en la esquina inferior derecha " +
                     "para configurar tu token gratuito de Hugging Face.", false);
         }, 2000);
+      }
+      
+      // Ejecutar diagnóstico inicial si estamos en la pestaña de diagnóstico
+      if (document.querySelector('.tab-button.active').getAttribute('data-tab') === 'diagnostic') {
+        runDiagnostic();
       }
     });
   </script>
