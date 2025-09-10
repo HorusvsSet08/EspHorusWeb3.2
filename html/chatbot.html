@@ -684,8 +684,8 @@
     </main>
 
     <footer>
-      <p>Chatbot de Horus Station - Predicciones meteorológicas con IA gratuita</p>
-      <p class="disclaimer">Este chatbot utiliza Hugging Face para generar respuestas naturales y fluidas sin costos</p>
+      <p>Chatbot de Horus Station - Predicciones meteorológicas con respuestas inteligentes</p>
+      <p class="disclaimer">Este chatbot utiliza un sistema de respuestas inteligentes basado en reglas</p>
     </footer>
   </div>
 
@@ -706,78 +706,65 @@
         </div>
         
         <div class="tab-content active" id="setup-tab">
-          <p>Conecta tu chatbot con Hugging Face para obtener respuestas más inteligentes y fluidas.</p>
+          <p>Este chatbot utiliza un sistema de respuestas inteligentes basado en reglas, sin necesidad de conectarse a servicios externos.</p>
           
           <div class="step">
-            <h4>Regístrate en Hugging Face (es gratis)</h4>
-            <p>Visita <a href="https://huggingface.co/join" target="_blank">https://huggingface.co/join</a> y crea una cuenta usando GitHub, Google o tu correo electrónico.</p>
+            <h4>¿Por qué no se usa Hugging Face?</h4>
+            <p>La API gratuita de Hugging Face no permite inferencia directa con modelos. Requiere una cuenta PRO o desplegar un Inference Endpoint.</p>
           </div>
           
           <div class="step">
-            <h4>Obtén tu token de acceso</h4>
-            <p>Después de iniciar sesión, haz clic en tu foto de perfil > "Settings" > "Access Tokens". Luego haz clic en "New token".</p>
+            <h4>Sistema de respuestas inteligentes</h4>
+            <p>Nuestro sistema analiza tus preguntas y los datos meteorológicos para generar respuestas naturales y útiles.</p>
           </div>
           
           <div class="step">
-            <h4>Configura tu token</h4>
-            <p>En el formulario, escribe "HorusChatbot" como nombre, selecciona "Read" como rol y deja "No expiration". Haz clic en "Generate a token".</p>
+            <h4>¿Es realmente gratuito?</h4>
+            <p>¡Sí! Este sistema funciona completamente en tu navegador sin costos ni necesidad de tokens.</p>
           </div>
           
           <div class="step">
-            <h4>Copia tu token</h4>
-            <p>¡IMPORTANTE! El token solo se muestra una vez. Cópialo inmediatamente (haz clic en el icono de copiar). Debería verse así:</p>
-            <div class="token-example">hf_abcdefghijklmnopqrstuvwxyz123456</div>
+            <h4>¿Necesito tarjeta de crédito?</h4>
+            <p>¡No! Este sistema no requiere tarjeta de crédito ni cuenta en servicios externos.</p>
           </div>
           
           <div class="step">
-            <h4>Ingresa tu token aquí</h4>
-            <input type="password" id="hf-token" placeholder="Tu token de Hugging Face">
-            <button id="save-hf-token">Guardar token</button>
+            <h4>¿Cómo funciona?</h4>
+            <p>El sistema analiza tus preguntas, identifica palabras clave y combina esa información con los datos meteorológicos para generar respuestas coherentes.</p>
           </div>
-          
-          <div class="ia-status" id="ia-status">Estado: Desconectado</div>
           
           <p class="disclaimer">
-            Tu token se almacena SOLO en tu navegador y nunca se comparte. 
-            <a href="https://huggingface.co/settings/tokens" target="_blank">Obtén tu token aquí</a>
+            Tu privacidad está garantizada. Todos los datos se procesan en tu navegador.
           </p>
         </div>
         
         <div class="tab-content" id="help-tab">
-          <h4>¿Por qué necesito un token?</h4>
-          <p>El token es necesario para conectarte a los modelos de IA de Hugging Face. Es como una contraseña que verifica tu identidad.</p>
-          
-          <h4>¿Es realmente gratuito?</h4>
-          <p>¡Sí! Hugging Face ofrece 30,000 tokens gratuitos por mes, más que suficiente para tu proyecto.</p>
-          
-          <h4>¿Necesito tarjeta de crédito?</h4>
-          <p>¡No! Hugging Face no requiere tarjeta de crédito para el plan gratuito.</p>
-          
-          <h4>¿Qué hago si veo "Estado: Error de conexión"?</h4>
-          <p>Verifica que:</p>
+          <h4>¿Qué puedo preguntar?</h4>
+          <p>Puedes preguntar sobre:</p>
           <ul>
-            <li>Copiaste el token completo (incluyendo "hf_")</li>
-            <li>No hay espacios al inicio o final</li>
-            <li>El token tiene permisos "Read"</li>
-            <li>Tu conexión a internet funciona correctamente</li>
+            <li>Datos meteorológicos actuales</li>
+            <li>Predicciones a corto plazo</li>
+            <li>Patrones históricos</li>
+            <li>Información sobre el proyecto</li>
           </ul>
           
-          <h4>¿Puedo eliminar mi token?</h4>
-          <p>Sí, simplemente deja el campo vacío y haz clic en "Guardar token".</p>
+          <h4>Ejemplos de preguntas:</h4>
+          <ul>
+            <li>"¿Cuál es la temperatura actual?"</li>
+            <li>"¿Va a llover en las próximas horas?"</li>
+            <li>"¿Cómo ha variado la humedad hoy?"</li>
+            <li>"¿Qué predicción tienes para mañana?"</li>
+          </ul>
           
-          <h4>Problemas comunes y soluciones</h4>
+          <h4>Problemas comunes</h4>
           <div class="troubleshooting">
-            <h4>Problema: "Error 429: Too Many Requests"</h4>
-            <p><strong>Causa:</strong> Has excedido los límites gratuitos de Hugging Face.</p>
-            <p><strong>Solución:</strong> Espera unas horas o crea una cuenta adicional.</p>
-            
-            <h4>Problema: "Error 401: Unauthorized"</h4>
-            <p><strong>Causa:</strong> El token es incorrecto o ha sido revocado.</p>
-            <p><strong>Solución:</strong> Genera un nuevo token y configúralo en el chatbot.</p>
-            
-            <h4>Problema: "Error de conexión con Google Sheets"</h4>
+            <h4>Problema: "No se cargan los datos"</h4>
             <p><strong>Causa:</strong> Los datos de Google Sheets no están accesibles.</p>
             <p><strong>Solución:</strong> Verifica que tu hoja de cálculo esté configurada como "Cualquier persona con el enlace puede ver".</p>
+            
+            <h4>Problema: "Respuestas no relevantes"</h4>
+            <p><strong>Causa:</strong> El sistema no reconoce las palabras clave en tu pregunta.</p>
+            <p><strong>Solución:</strong> Reformula tu pregunta usando palabras clave como "temperatura", "humedad", "presión", "lluvia", etc.</p>
           </div>
         </div>
         
@@ -793,12 +780,12 @@
             </div>
             <div class="diagnostic-detail" id="sheets-detail">Intentando conectar con Google Sheets...</div>
             
-            <div class="diagnostic-title">Estado de conexión a Hugging Face</div>
+            <div class="diagnostic-title">Estado del sistema de respuestas</div>
             <div class="diagnostic-item">
-              <span class="diagnostic-status status-good" id="hf-status"></span>
-              <span id="hf-status-text">Verificando...</span>
+              <span class="diagnostic-status status-good" id="system-status"></span>
+              <span id="system-status-text">Verificando...</span>
             </div>
-            <div class="diagnostic-detail" id="hf-detail">Intentando conectar con Hugging Face...</div>
+            <div class="diagnostic-detail" id="system-detail">Analizando el sistema de respuestas...</div>
             
             <div class="diagnostic-title">Formato de datos</div>
             <div class="diagnostic-item">
@@ -834,9 +821,6 @@
       const connectionStatus = document.createElement('div');
       const iaSettingsBtn = document.getElementById('ia-settings-btn');
       const iaSettingsPanel = document.getElementById('ia-settings-panel');
-      const hfTokenInput = document.getElementById('hf-token');
-      const saveHfTokenBtn = document.getElementById('save-hf-token');
-      const iaStatus = document.getElementById('ia-status');
       const tabButtons = document.querySelectorAll('.tab-button');
       const tabContents = document.querySelectorAll('.tab-content');
       
@@ -845,9 +829,9 @@
       const sheetsStatus = document.getElementById('sheets-status');
       const sheetsStatusText = document.getElementById('sheets-status-text');
       const sheetsDetail = document.getElementById('sheets-detail');
-      const hfStatus = document.getElementById('hf-status');
-      const hfStatusText = document.getElementById('hf-status-text');
-      const hfDetail = document.getElementById('hf-detail');
+      const systemStatus = document.getElementById('system-status');
+      const systemStatusText = document.getElementById('system-status-text');
+      const systemDetail = document.getElementById('system-detail');
       const formatStatus = document.getElementById('format-status');
       const formatStatusText = document.getElementById('format-status-text');
       const formatDetail = document.getElementById('format-detail');
@@ -867,8 +851,6 @@
       // Variable para almacenar los datos meteorológicos
       let weatherData = [];
       let connectionError = null;
-      let hfToken = localStorage.getItem('horus_hf_token') || '';
-      let iaConnected = false;
       let sheetsConnected = false;
       let diagnosticRunning = false;
       
@@ -897,87 +879,12 @@
         });
       });
       
-      // Guardar token de Hugging Face
-      saveHfTokenBtn.addEventListener('click', () => {
-        const token = hfTokenInput.value.trim();
-        if (token) {
-          localStorage.setItem('horus_hf_token', token);
-          hfToken = token;
-          
-          // Verificar conexión
-          testHuggingFaceConnection();
-          
-          // Actualizar diagnóstico si estamos en esa pestaña
-          if (document.querySelector('.tab-button.active').getAttribute('data-tab') === 'diagnostic') {
-            runDiagnostic();
-          }
-        } else {
-          // Si el token está vacío, eliminarlo
-          localStorage.removeItem('horus_hf_token');
-          hfToken = '';
-          iaStatus.textContent = "Estado: Desconectado";
-          iaStatus.className = "ia-status disconnected";
-          iaConnected = false;
-          
-          addMessage("⚠️ La conexión con IA ha sido desactivada. El chatbot ahora usará respuestas básicas.", false);
-          
-          // Actualizar diagnóstico si estamos en esa pestaña
-          if (document.querySelector('.tab-button.active').getAttribute('data-tab') === 'diagnostic') {
-            runDiagnostic();
-          }
-        }
-      });
-      
-      // Verificar conexión con Hugging Face - CORREGIDO
-      function testHuggingFaceConnection() {
-        if (!hfToken) {
-          iaStatus.textContent = "Estado: Desconectado";
-          iaStatus.className = "ia-status disconnected";
-          iaConnected = false;
-          return;
-        }
-        
-        iaStatus.textContent = "Estado: Conectando...";
-        iaStatus.className = "ia-status";
-        
-        // URL CORRECTA para verificar tokens
-        fetch('https://huggingface.co/api/whoami-v2', {
-          headers: {
-            'Authorization': `Bearer ${hfToken}`
-          }
-        })
-        .then(response => {
-          if (response.ok) {
-            iaStatus.textContent = "Estado: Conectado";
-            iaStatus.className = "ia-status connected";
-            iaConnected = true;
-            
-            // Mostrar mensaje de éxito
-            setTimeout(() => {
-              addMessage("✅ ¡Conexión con IA establecida! Ahora recibirás respuestas más inteligentes y fluidas.", false);
-            }, 300);
-          } else {
-            throw new Error(`Error ${response.status}`);
-          }
-        })
-        .catch(error => {
-          console.error("Error con Hugging Face:", error);
-          iaStatus.textContent = "Estado: Error de conexión";
-          iaStatus.className = "ia-status disconnected";
-          iaConnected = false;
-          
-          // Mostrar mensaje de error
-          setTimeout(() => {
-            addMessage("⚠️ Error al conectar con IA. Verifica tu token o intenta nuevamente más tarde.", false);
-          }, 300);
-        });
-      }
-      
-      // Inicializar estado de IA
-      if (hfToken) {
-        hfTokenInput.value = '••••••••••••••••';
-        testHuggingFaceConnection();
-      }
+      // Inicializar estado del sistema
+      systemStatus.textContent = "Sistema activo";
+      systemStatus.className = "ia-status connected";
+      systemStatusText.textContent = "Sistema activo";
+      systemStatusText.className = "diagnostic-status status-good";
+      systemDetail.textContent = "El sistema de respuestas inteligentes está funcionando correctamente.";
       
       // Función auxiliar para analizar una línea de CSV con comillas
       function parseCSVLine(line) {
@@ -1124,10 +1031,10 @@
         sheetsStatusText.textContent = "Verificando...";
         sheetsDetail.textContent = "Intentando conectar con Google Sheets...";
         
-        // Actualizar estado de Hugging Face
-        hfStatus.className = "diagnostic-status status-warning";
-        hfStatusText.textContent = "Verificando...";
-        hfDetail.textContent = "Intentando conectar con Hugging Face...";
+        // Actualizar estado del sistema
+        systemStatus.className = "diagnostic-status status-good";
+        systemStatusText.textContent = "Sistema activo";
+        systemDetail.textContent = "El sistema de respuestas inteligentes está funcionando correctamente.";
         
         // Actualizar estado de formato
         formatStatus.className = "diagnostic-status status-warning";
@@ -1192,34 +1099,6 @@
             sheetsDetail.textContent = `No se pudo conectar: ${error.message}`;
           });
         
-        // Ejecutar diagnóstico de Hugging Face
-        if (hfToken) {
-          // URL CORRECTA para verificar tokens
-          fetch('https://huggingface.co/api/whoami-v2', {
-            headers: {
-              'Authorization': `Bearer ${hfToken}`
-            }
-          })
-          .then(response => {
-            if (response.ok) {
-              hfStatus.className = "diagnostic-status status-good";
-              hfStatusText.textContent = "Conexión establecida";
-              hfDetail.textContent = "Se pudo conectar correctamente con Hugging Face.";
-            } else {
-              throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-          })
-          .catch(error => {
-            hfStatus.className = "diagnostic-status status-error";
-            hfStatusText.textContent = "Error de conexión";
-            hfDetail.textContent = `No se pudo conectar: ${error.message}`;
-          });
-        } else {
-          hfStatus.className = "diagnostic-status status-warning";
-          hfStatusText.textContent = "Token no configurado";
-          hfDetail.textContent = "Necesitas configurar un token de Hugging Face para usar la IA.";
-        }
-        
         // Generar sugerencias de solución
         setTimeout(() => {
           generateTroubleshootingSuggestions();
@@ -1246,27 +1125,6 @@
             title: "Problema con el formato de datos",
             description: "Los campos requeridos no coinciden con lo esperado",
             solution: "Asegúrate de que tus encabezados en Google Sheets sean: fecha, temperatura, humedad, presion, altitud, pm25, pm10, windDirection, windSpeed, gas, lluvia"
-          });
-        }
-        
-        // Problemas con Hugging Face
-        if (hfStatus.className.includes('status-error')) {
-          solutions.push({
-            title: "Problema con Hugging Face",
-            description: "No se puede conectar con el servicio de IA",
-            solution: "Verifica que tu token sea correcto y tenga permisos 'Read'. Si el problema persiste, espera unas horas (puedes haber excedido los límites gratuitos)."
-          });
-        } else if (hfStatus.className.includes('status-warning') && hfToken) {
-          solutions.push({
-            title: "Advertencia de Hugging Face",
-            description: "El token está configurado pero no se ha podido verificar",
-            solution: "Haz clic en 'Guardar token' nuevamente para verificar la conexión."
-          });
-        } else if (hfStatus.className.includes('status-warning') && !hfToken) {
-          solutions.push({
-            title: "Configuración de Hugging Face",
-            description: "La IA no está configurada",
-            solution: "Para respuestas más inteligentes, configura un token de Hugging Face en la pestaña de Configuración."
           });
         }
         
@@ -1363,115 +1221,161 @@
         }
       }
       
-      // Función para generar una respuesta usando Hugging Face - CORREGIDO
-      async function getAIResponse(message, latestData) {
-        if (!hfToken) {
-          return "⚠️ No tengo configurado un token de Hugging Face. " +
-                 "Haz clic en el botón de configuración (⚙️) en la esquina inferior derecha " +
-                 "para configurar tu token gratuito.";
-        }
+      // Sistema de respuestas inteligentes basado en reglas
+      function getSmartResponse(message, latestData) {
+        // Convertir mensaje a minúsculas para análisis
+        const lowerMessage = message.toLowerCase();
         
+        // Si no hay datos meteorológicos
         if (!latestData) {
           return "⚠️ No tengo datos meteorológicos disponibles en este momento. " +
                  "Por favor, verifica que la estación esté funcionando correctamente.";
         }
         
-        // Formatear los datos meteorológicos recientes
-        const recentData = `
-- Fecha y hora: ${latestData.fecha}
-- Temperatura: ${latestData.temperatura}°C
-- Humedad: ${latestData.humedad}%
-- Presión atmosférica: ${latestData.presion} hPa
-- Altitud: ${latestData.altitud} m
-- PM2.5: ${latestData.pm25} µg/m³
-- PM10: ${latestData.pm10} µg/m³
-- Dirección del viento: ${latestData.winddirection}
-- Velocidad del viento: ${latestData.windspeed} km/h
-- Nivel de gas: ${latestData.gas} kΩ
-- Lluvia: ${latestData.lluvia} mm
-        `;
+        // Extraer valores numéricos de los datos
+        const temp = parseFloat(latestData.temperatura);
+        const humedad = parseFloat(latestData.humedad);
+        const presion = parseFloat(latestData.presion);
+        const lluvia = parseFloat(latestData.lluvia);
+        const velocidadViento = parseFloat(latestData.windspeed);
+        const direccionViento = latestData.winddirection;
         
-        // Crear el prompt para Hugging Face
-        const prompt = `Eres un experto meteorólogo que analiza datos de la estación Horus. 
-Tu tarea es responder preguntas sobre el clima y los datos meteorológicos de manera clara, precisa y profesional.
-
-Datos meteorológicos más recientes:
-${recentData}
-
-Instrucciones:
-1. Usa los datos proporcionados para responder la pregunta.
-2. Sé específico y detallado en tus respuestas.
-3. Si no estás seguro de algo, indícalo claramente.
-4. Proporciona contexto adicional cuando sea relevante.
-5. Usa un lenguaje claro y profesional, adecuado para cualquier audiencia.
-
-Pregunta del usuario: ${message}
-
-Respuesta:`;
+        // Determinar tendencias (comparar con datos anteriores)
+        let tempTrend = "estable";
+        let humedadTrend = "estable";
+        let presionTrend = "estable";
         
-        try {
-          // URL CORRECTA para la API de Hugging Face
-          const response = await fetch(
-            "https://api-inference.huggingface.co/models",
-            {
-              headers: { 
-                "Authorization": `Bearer ${hfToken}`,
-                "Content-Type": "application/json" 
-              },
-              method: "POST",
-              body: JSON.stringify({ 
-                // Especificar el modelo en el cuerpo, no en la URL
-                model: "gpt2",
-                inputs: prompt,
-                parameters: {
-                  max_new_tokens: 150,
-                  temperature: 0.7,
-                  top_p: 0.9
-                }
-              })
-            }
-          );
+        if (weatherData.length > 1) {
+          const previousData = weatherData[weatherData.length - 2];
+          const prevTemp = parseFloat(previousData.temperatura);
+          const prevHumedad = parseFloat(previousData.humedad);
+          const prevPresion = parseFloat(previousData.presion);
           
-          // Manejar respuestas no JSON (corrección CRÍTICA para el error 404)
-          if (!response.ok) {
-            // Si la respuesta no es JSON válido, manejar como texto
-            const textResponse = await response.text();
-            console.error("Respuesta de error de Hugging Face:", textResponse);
-            throw new Error(`Error ${response.status}: ${textResponse}`);
-          }
+          if (temp > prevTemp) tempTrend = "subiendo";
+          else if (temp < prevTemp) tempTrend = "bajando";
           
-          const result = await response.json();
+          if (humedad > prevHumedad) humedadTrend = "subiendo";
+          else if (humedad < prevHumedad) humedadTrend = "bajando";
           
-          // Procesar la respuesta
-          let aiResponse;
-          
-          // Dependiendo del modelo, la estructura de la respuesta puede variar
-          if (result.generated_text) {
-            aiResponse = result.generated_text;
-          } else if (result[0] && result[0].generated_text) {
-            aiResponse = result[0].generated_text;
-          } else {
-            throw new Error("Formato de respuesta inesperado de Hugging Face");
-          }
-          
-          // Eliminar el prompt de la respuesta
-          aiResponse = aiResponse.split("Respuesta:")[1] || aiResponse;
-          
-          // Limpiar la respuesta
-          aiResponse = aiResponse.trim();
-          
-          // Si la respuesta está vacía, proporcionar un mensaje predeterminado
-          if (!aiResponse) {
-            return "⚠️ No pude generar una respuesta completa. Por favor, intenta reformular tu pregunta.";
-          }
-          
-          return aiResponse;
-        } catch (error) {
-          console.error("Error con Hugging Face:", error);
-          return "⚠️ Hubo un problema al generar una respuesta con la IA. " +
-                 "Verifica tu token de Hugging Face o intenta nuevamente más tarde. " +
-                 `Error: ${error.message}`;
+          if (presion > prevPresion) presionTrend = "subiendo";
+          else if (presion < prevPresion) presionTrend = "bajando";
         }
+        
+        // Analizar la pregunta del usuario
+        if (lowerMessage.includes("temperatura") || lowerMessage.includes("calor") || lowerMessage.includes("frío")) {
+          let response = `La temperatura actual es de ${temp}°C. `;
+          
+          if (temp > 30) {
+            response += "Hace bastante calor. ";
+          } else if (temp > 20) {
+            response += "La temperatura es agradable. ";
+          } else if (temp > 10) {
+            response += "Hace fresco. ";
+          } else {
+            response += "Hace frío. ";
+          }
+          
+          response += `La temperatura ha estado ${tempTrend} últimamente.`;
+          return response;
+        }
+        
+        if (lowerMessage.includes("humedad") || lowerMessage.includes("húmedo")) {
+          let response = `La humedad actual es del ${humedad}%. `;
+          
+          if (humedad > 70) {
+            response += "El aire está muy húmedo. ";
+          } else if (humedad > 50) {
+            response += "La humedad es moderada. ";
+          } else {
+            response += "El aire está seco. ";
+          }
+          
+          response += `La humedad ha estado ${humedadTrend} últimamente.`;
+          return response;
+        }
+        
+        if (lowerMessage.includes("presión") || lowerMessage.includes("presion")) {
+          let response = `La presión atmosférica actual es de ${presion} hPa. `;
+          
+          if (presion > 1020) {
+            response += "La presión es alta, lo que generalmente indica buen tiempo. ";
+          } else if (presion > 1000) {
+            response += "La presión es normal. ";
+          } else {
+            response += "La presión es baja, lo que podría indicar mal tiempo. ";
+          }
+          
+          response += `La presión ha estado ${presionTrend} últimamente.`;
+          return response;
+        }
+        
+        if (lowerMessage.includes("lluvia") || lowerMessage.includes("llover") || lowerMessage.includes("agua")) {
+          if (lluvia > 0) {
+            return `Está lloviendo actualmente (${lluvia} mm). Considera usar paraguas.`;
+          } else {
+            return `No está lloviendo en este momento. `;
+          }
+        }
+        
+        if (lowerMessage.includes("viento") || lowerMessage.includes("velocidad") || lowerMessage.includes("dirección")) {
+          let response = `La velocidad del viento es de ${velocidadViento} km/h desde la dirección ${direccionViento}. `;
+          
+          if (velocidadViento > 30) {
+            response += "Hay viento fuerte. ";
+          } else if (velocidadViento > 15) {
+            response += "Hay brisa moderada. ";
+          } else {
+            response += "Hay poca brisa. ";
+          }
+          
+          return response;
+        }
+        
+        if (lowerMessage.includes("clima") || lowerMessage.includes("tiempo") || lowerMessage.includes("atmósfera")) {
+          let response = `El clima actual es: `;
+          
+          // Combinar varios factores
+          if (temp > 25 && humedad > 60) {
+            response += "caluroso y húmedo. ";
+          } else if (temp > 25 && humedad < 40) {
+            response += "caluroso y seco. ";
+          } else if (temp < 15 && humedad > 60) {
+            response += "frío y húmedo. ";
+          } else if (temp < 15 && humedad < 40) {
+            response += "frío y seco. ";
+          } else {
+            response += "agradable. ";
+          }
+          
+          response += `Temperatura: ${temp}°C, Humedad: ${humedad}%, Presión: ${presion} hPa. `;
+          
+          if (presion < 1000) {
+            response += "La presión baja sugiere que podría cambiar el tiempo.";
+          } else if (presion > 1020) {
+            response += "La presión alta indica que el buen tiempo probablemente continuará.";
+          }
+          
+          return response;
+        }
+        
+        if (lowerMessage.includes("mañana") || lowerMessage.includes("futuro") || lowerMessage.includes("próximamente")) {
+          let response = `Basado en los datos actuales, puedo hacer una predicción aproximada: `;
+          
+          // Predicción simple basada en tendencias
+          if (presionTrend === "bajando" && humedadTrend === "subiendo") {
+            response += "Es probable que el tiempo empeore, posiblemente con lluvia.";
+          } else if (presionTrend === "subiendo" && humedadTrend === "bajando") {
+            response += "El tiempo probablemente mejorará.";
+          } else {
+            response += "El tiempo probablemente se mantendrá similar.";
+          }
+          
+          return response;
+        }
+        
+        // Respuesta predeterminada para preguntas no reconocidas
+        return "Entiendo tu pregunta, pero necesito más detalles específicos sobre el clima. " +
+               "Puedo ayudarte con información sobre temperatura, humedad, presión, viento o lluvia.";
       }
       
       // Función para procesar el mensaje del usuario
@@ -1489,8 +1393,8 @@ Respuesta:`;
         const latestData = getLatestData();
         
         try {
-          // Generar respuesta usando Hugging Face
-          const response = await getAIResponse(message, latestData);
+          // Generar respuesta usando el sistema inteligente basado en reglas
+          const response = getSmartResponse(message, latestData);
           
           // Eliminar el indicador de escritura
           removeTypingIndicator();
@@ -1559,15 +1463,6 @@ Respuesta:`;
       });
       
       chatMessages.parentNode.appendChild(reloadButton);
-      
-      // Mostrar mensaje de ayuda si no hay token configurado
-      if (!hfToken) {
-        setTimeout(() => {
-          addMessage("💡 ¿Quieres respuestas más inteligentes? " +
-                    "Haz clic en el botón de configuración (⚙️) en la esquina inferior derecha " +
-                    "para configurar tu token gratuito de Hugging Face.", false);
-        }, 2000);
-      }
       
       // Ejecutar diagnóstico inicial si estamos en la pestaña de diagnóstico
       if (document.querySelector('.tab-button.active').getAttribute('data-tab') === 'diagnostic') {
