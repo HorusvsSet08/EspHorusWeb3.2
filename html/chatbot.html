@@ -322,7 +322,7 @@
       position: fixed;
       bottom: 80px;
       right: 20px;
-      background: var(--card-bg); /* Eliminado el efecto de transparencia */
+      background: var(--card-bg);
       border-radius: 12px;
       padding: 16px;
       width: 400px;
@@ -1410,9 +1410,9 @@ Pregunta del usuario: ${message}
 Respuesta:`;
         
         try {
-          // MODELO CORRECTO que está disponible para inferencia gratuita
+          // URL CORRECTA para la API de Hugging Face
           const response = await fetch(
-            "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill",
+            "https://api-inference.huggingface.co/models",
             {
               headers: { 
                 "Authorization": `Bearer ${hfToken}`,
@@ -1420,6 +1420,8 @@ Respuesta:`;
               },
               method: "POST",
               body: JSON.stringify({ 
+                // Especificar el modelo en el cuerpo, no en la URL
+                model: "gpt2",
                 inputs: prompt,
                 parameters: {
                   max_new_tokens: 150,
